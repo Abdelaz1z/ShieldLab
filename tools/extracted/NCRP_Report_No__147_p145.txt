@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      Appendix       C                                              
+                                                                                    
+                                                                                    
+                                                                                    
+                           Computation         of                                   
+                                                                                    
+                           Secondary        Barrier                                 
+                                                                                    
+                           Thickness                                                
+                                                                                    
+                                                                                    
+                                                                                    
+                        Secondary radiation is an unavoidable consequence of the pri-
+                      mary x-ray beam. Barriers that are otherwise never struck by the
+                      primary beam must therefore serve as adequate shields against 
+                      scattered and leakage radiations. In some x-ray imaging situations,
+                      regulations require the primary beam to be completely intercepted
+                      by an absorbing barrier behind or incorporated into the image 
+                      receptor. This is the case for operation of an image intensifier and
+                      dedicated mammography systems. The air kerma to an occupied   
+                      area from primary radiation for these cases is thus assumed to
+                      benegligible and only scattered and leakage radiations will need
+                      tobe considered.                                              
+                                  C.1 Scattered Radiation                           
+                        The intensity of x rays scattered off the patient is dependent on
+                      the scattering angle θ (defined from the direction of the center of
+                      the primary beam to a ray pointing to the occupied area), the num-
+                      ber of primary photons incident on the patient, the primary beam
+                      photon energy, and the location of the x-ray beam on the patient. It
+                      is assumed that the number of primary photons incident on the 
+                      patient varies linearly with the x-ray beam field size. Thus for fixed
+                      kVp, mAs, and collimator jaw opening, the scattered radiation 
+                      intensity is independent of the distance from the primary x-ray
+                      source to the patient.                                        
+                        Trout and Kelley (1972) made a series of widely accepted radio-
+                      graphic scattered radiation measurements 100 cm from the center
+                      of a phantom which were then related to the primary air kerma at
+                      1 m. This ratio of scattered to primary air kerma, when divided by
+                      the primary beam field size at 1 m primary distance, defines the
+                      scatter fraction (a ). Unfortunately, the filtration of the x-ray
+                                   1                                                
+                                          135                                       
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

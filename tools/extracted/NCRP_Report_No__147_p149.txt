@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                         C.3 TOTAL SECONDARY BARRIER / 139          
+                                                                                    
+                      workload is the time integral of the tube current. Consider an area
+                      located at leakage radiation distance d from the x-ray tube. The
+                                                L                                   
+                      transmission of leakage radiation through a shielding barrier of
+                      thickness x will be e [–(ln 2) x/x 1/2 (kVp)] where x (kVp) is the
+                                                       1/2                          
+                      HVLthrough the barrier material at high attenuation. The values
+                      of x (kVp) are shown in Figure A.1. If a fraction U of the x-ray tube
+                         1/2                                                        
+                      workload is expended as a primary beam directed at this barrier,
+                      the workload available to generate leakage radiation on this bar-
+                      rier should be reduced (Simpkin, 1987b) from W(kVp) to (1 – U)
+                      W(kVp). The leakage air kerma to this shielded area is then:  
+                                                      –(ln 2)x                      
+                                                      -------------------------     
+                          K (x,kVp) = K -- · --- l - i - m ----- - k --- V --- p ---- 2 --- - B ----h--o---u--s--i--n--g--- ( -- k --- V ---- p --- ) --- -- ( -- 1 ----- – ---- U ----- ) --- - W ------ ( -- k --- V --- p ---- ) - e ------- x --- 1 -- / - 2 --- ( -- k -- V --- p --- ) --, (C.8)
+                           L       kVp 2 B (kVp ) I   d 2                           
+                                     max housing max max L                          
+                      with the total leakage air kerma equal to the sum over the operat-
+                      ing potentials in the workload:                               
+                                    K (x) = ∑ K (x,kVp).      (C.9)                 
+                                     L     L                                        
+                                         kVp                                        
+                                 C.3 Total Secondary Barrier                        
+                                 and Secondary Transmission                         
+                        Consider a radiation barrier that is not struck by primary radi-
+                      ation. The total air kerma behind this secondary radiation barrier
+                      will be due only to secondary radiations. The total secondary air
+                      kerma [K (x)], behind a secondary barrier of thickness x is the sum
+                            sec                                                     
+                      of the scattered and leakage air kermas. Dropping the θ depen-
+                      dence on K :                                                  
+                             S                                                      
+                                   K (x) = K (x)+K (x).      (C.10)                 
+                                    sec   S   L                                     
+                        The unshielded scattered, leakage, and total secondary air ker-
+                      mas are predicted by Equations C.5, C.9, and C.10 with x = 0. 
+                      Table4.7 shows the unshielded scattered, leakage, and total   
+                      secondary air kermas at 1 m calculated for a variety of workload
+                      distributions at typical x-ray beam sizes and leakage radiation
+                      technique factors. The unshielded secondary air kerma at 1 m from
+                      constant kVp operation is also available (Simpkin and Dixon,  
+                      1998). The total unshielded secondary air kermas inTable 4.7  
+                       (Κ1 ) were calculated for radiation scattered at 90degrees   
+                         sec                                                        
+                      (“side-scatter”) and 135 degrees (“forward- and backscatter”) 
+                      assuming distances d = d = d . The workload distributions for 
+                                    S   L  sec                                      
+                      the clinical sites are taken from the survey of clinical workloads

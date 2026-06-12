@@ -1,0 +1,118 @@
+{
+  "_comment": "ShieldLab - master bibliography. Every numeric value in the other data files carries a 'ref' key pointing here. Edit/add entries freely; keys are cited in the UI and in exported reports.",
+
+  "NCRP147": {
+    "citation": "NCRP Report No. 147, 'Structural Shielding Design for Medical X-Ray Imaging Facilities', National Council on Radiation Protection and Measurements, Bethesda, MD (2004).",
+    "role": "Core methodology and data for diagnostic X-ray, fluoroscopy, mammography, CT and dental shielding: design goals, occupancy factors, workload distributions, unshielded kermas, transmission (Archer) parameters.",
+    "provided_by_user": true,
+    "file": "References/NCRP Report No. 147.pdf"
+  },
+  "NCRP151": {
+    "citation": "NCRP Report No. 151, 'Structural Shielding Design and Evaluation for Megavoltage X- and Gamma-Ray Radiotherapy Facilities', National Council on Radiation Protection and Measurements, Bethesda, MD (2005).",
+    "role": "Megavoltage (LINAC) vault methodology: B = P d^2 / (W U T), 0.1 % head leakage, IMRT factor, time-averaged dose rate checks. Values cross-checked against IAEA SRS 47.",
+    "provided_by_user": false,
+    "note": "Report not freely distributable; methodology and equations encoded from the report formalism as also published in IAEA SRS 47 and peer-reviewed summaries."
+  },
+  "NCRP172": {
+    "citation": "NCRP Report No. 172, 'Reference Levels and Achievable Doses in Medical and Dental Imaging: Recommendations for the United States', NCRP, Bethesda, MD (2012).",
+    "role": "Context for realistic per-patient dose and workload defaults.",
+    "provided_by_user": true,
+    "file": "References/NCRP_Report_172_AAPM.pdf"
+  },
+  "SRS47": {
+    "citation": "IAEA Safety Reports Series No. 47, 'Radiation Protection in the Design of Radiotherapy Facilities', STI/PUB/1223, International Atomic Energy Agency, Vienna (2006).",
+    "role": "LINAC vault data: TVL1/TVLe for concrete, steel and lead at 4-18 MV (primary and leakage), patient scatter fractions vs angle, maze and door guidance, Co-60 and HDR data.",
+    "provided_by_user": false,
+    "file": "References/IAEA_SRS_47_Radiotherapy_Facilities.pdf",
+    "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/Pub1223_web.pdf"
+  },
+  "GSR_PART3": {
+    "citation": "IAEA Safety Standards Series No. GSR Part 3, 'Radiation Protection and Safety of Radiation Sources: International Basic Safety Standards', IAEA, Vienna (2014), Schedule III.",
+    "role": "International dose limits: occupational effective dose 20 mSv/y averaged over 5 consecutive years (max 50 mSv in any single year); public 1 mSv/y.",
+    "provided_by_user": false
+  },
+  "ICRP103": {
+    "citation": "ICRP Publication 103, 'The 2007 Recommendations of the International Commission on Radiological Protection', Ann. ICRP 37 (2-4), 2007.",
+    "role": "Underlying system of radiological protection: justification, optimisation, dose limitation.",
+    "provided_by_user": false
+  },
+  "NRRC_R01": {
+    "citation": "NRRC-R-01, Technical Regulation 'Radiation Safety', Nuclear and Radiological Regulatory Commission (NRRC), Kingdom of Saudi Arabia (2022).",
+    "role": "Saudi dose limits - Section 10: clause 22 occupational (20 mSv/y avg 5 y, 50 mSv max single year; lens 20 mSv/y; extremities/skin 500 mSv/y; apprentices 16-18 y: 6 mSv/y), clause 23 pregnant/breastfeeding worker 1 mSv to embryo/fetus, clause 24 public (1 mSv/y effective; lens 15 mSv/y; skin 50 mSv/y). Section 8 clause 20: dose constraints are practice-specific, set below NRRC generic values (no fixed numeric design constraint given in R-01).",
+    "provided_by_user": true,
+    "file": "References/NRRC-R-01.PDF",
+    "pages_verified": "44-47"
+  },
+  "KSA_LAW": {
+    "citation": "Law of Nuclear and Radiological Control, Royal Decree No. M/81 of 25/7/1439 AH (11 April 2018), Kingdom of Saudi Arabia.",
+    "role": "Legal basis of the Saudi regulatory framework (NRRC).",
+    "provided_by_user": false
+  },
+  "SFDA_NDRL": {
+    "citation": "SFDA MDS-G-008-V2, 'National Diagnostic Reference Levels', Version 2.0, Saudi Food and Drug Authority (26/10/2022).",
+    "role": "Saudi national DRLs (CT DLP values, etc.) used for KSA-specific default workloads.",
+    "provided_by_user": true,
+    "file": "References/NDRL-En.pdf"
+  },
+  "RG839": {
+    "citation": "U.S. NRC Regulatory Guide 8.39, 'Release of Patients Administered Radioactive Materials', U.S. Nuclear Regulatory Commission (April 1997).",
+    "role": "I-131 patient-as-source biokinetics: occupancy factor E, uptake fractions and effective half-lives (Table B-1), dose-integration formalism (Equations B-2/B-3).",
+    "provided_by_user": true,
+    "file": "References/RG 8.39.pdf"
+  },
+  "RPII09": {
+    "citation": "RPII 09/01, 'The Design of Diagnostic Medical Facilities where Ionising Radiation is used - A Code of Practice', Radiological Protection Institute of Ireland, Dublin (June 2009).",
+    "role": "European constraint-style design basis (0.3 mSv/y public dose constraint) and room design good practice.",
+    "provided_by_user": true,
+    "file": "References/RPII_Code_Design_Medical_Facilities_09.pdf"
+  },
+  "BIR2012": {
+    "citation": "Sutton, D.G., Martin, C.J., Williams, J.R., Peet, D.J., 'Radiation Shielding for Diagnostic Radiology', 2nd ed., British Institute of Radiology, London (2012) - Chapter 2 excerpt provided by user.",
+    "role": "Barrier-height and tertiary (ceiling/wall) scatter methodology: scatter air kerma per patient KAP (interventional) or per DLP (CT) as a function of barrier height and ceiling height.",
+    "provided_by_user": true,
+    "file": "References/shielding height shb.pdf"
+  },
+  "TG108": {
+    "citation": "Madsen, M.T., Anderson, J.A., Halama, J.R., Kleck, J., Simpkin, D.J., Votaw, J.R., Wendt, R.E. III, Williams, L.E., Yester, M.V., 'AAPM Task Group 108: PET and PET/CT Shielding Requirements', Medical Physics 33(1):4-15 (2006).",
+    "role": "PET/CT shielding methodology: patient-as-source with uptake/imaging phases, decay and patient self-attenuation factors, broad-beam transmission for 511 keV photons in lead, steel and concrete.",
+    "provided_by_user": false
+  },
+  "OUMANO2025": {
+    "citation": "Oumano, M., Wendt, R., Botti, J., et al., 'Shielding resources for four common radiopharmaceuticals utilized for imaging and therapy: Tc-99m, F-18, I-131, and Lu-177', Journal of Applied Clinical Medical Physics 26(5):e70084 (2025). doi:10.1002/acm2.70084.",
+    "role": "Monte-Carlo-derived (GATE 9.2 / MCNP6) broad-beam Archer transmission fits and HVL/TVL for Tc-99m, F-18, I-131 and Lu-177 in lead and concrete; dose-rate constants.",
+    "provided_by_user": false,
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12059296/"
+  },
+  "XCOM": {
+    "citation": "Berger, M.J., Hubbell, J.H., Seltzer, S.M., et al., 'XCOM: Photon Cross Sections Database', NIST Standard Reference Database 8 (XGAM), NBSIR 87-3597, National Institute of Standards and Technology.",
+    "role": "Mass attenuation coefficients (mu/rho) for any element, compound or mixture, 1 keV - 100 GeV; basis of the generic-material engine.",
+    "provided_by_user": false,
+    "url": "https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html"
+  },
+  "HUBBELL": {
+    "citation": "Hubbell, J.H., Seltzer, S.M., 'Tables of X-Ray Mass Attenuation Coefficients and Mass Energy-Absorption Coefficients 1 keV to 20 MeV for Elements Z = 1 to 92 and 48 Additional Substances of Dosimetric Interest', NISTIR 5632, NIST (2004 web version).",
+    "role": "Tabulated mu/rho grids used for the built-in material library.",
+    "provided_by_user": false,
+    "url": "https://physics.nist.gov/PhysRefData/XrayMassCoef/tab3.html"
+  },
+  "ANS643": {
+    "citation": "ANSI/ANS-6.4.3-1991, 'Gamma-Ray Attenuation Coefficients and Buildup Factors for Engineering Materials', American Nuclear Society, La Grange Park, IL (1991).",
+    "role": "Point-isotropic buildup factors (Geometric-Progression fitting form) for the generic broad-beam model where no measured Archer/TVL fit exists.",
+    "provided_by_user": false
+  },
+  "ARCHER1983": {
+    "citation": "Archer, B.R., Thornby, J.I., Bushong, S.C., 'Diagnostic X-ray shielding design based on an empirical model of photon attenuation', Health Physics 44(5):507-517 (1983).",
+    "role": "Origin of the three-parameter (alpha, beta, gamma) broad-beam transmission model used throughout.",
+    "provided_by_user": false
+  },
+  "SIMPKIN1995": {
+    "citation": "Simpkin, D.J., 'Transmission data for shielding diagnostic x-ray facilities', Health Physics 68(5):704-709 (1995).",
+    "role": "Fitted Archer parameters for broad diagnostic beams in lead, concrete, gypsum, steel, plate glass and wood (basis of the NCRP 147 transmission data).",
+    "provided_by_user": false
+  },
+  "CFR20": {
+    "citation": "U.S. Code of Federal Regulations, 10 CFR 20.1301, 'Dose limits for individual members of the public'.",
+    "role": "Origin of the 0.02 mSv 'in any one hour' criterion used as the LINAC time-averaged dose-rate check (per NCRP 151).",
+    "provided_by_user": false
+  }
+}

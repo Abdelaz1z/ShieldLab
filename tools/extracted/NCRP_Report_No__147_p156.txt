@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    146 / APPENDIX C                                                
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      Fig. C.7. Transmission of secondary radiation through wood (data as
+                    in Figure C.2).                                                 
+                                                                                    
+                    exponential interpolation to estimate the thickness x at which  
+                                                       est                          
+                    the total air kerma is P/T:                                     
+                                           P/T                                    
+                                          ln  -----------                         
+                                            K                                       
+                                x = x +(x –x )-----------------1-------- (C.17)     
+                                est 1  2 1 ln  K -----2-                        
+                                             K                                      
+                                             1                                      
+                    That is, the total air kerma K (x ) is compared to P/T, and x is
+                                       tot est              est                     
+                    used as a new upper (or lower) bounding thickness. This procedure
+                    may be used to find by iteration a value of x that yields a value of
+                                                est                                 
+                    K (x ) that closely approaches P/T.                             
+                     tot est                                                        
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

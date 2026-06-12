@@ -1,0 +1,194 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    70 / 5. EXAMPLES OF SHIELDING CALCULATIONS                      
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    .tropeR                                                         
+                                                                                    
+                                                                                    
+                    siht                                                            
+                    ni                                                              
+                    secruoser                                                       
+                                                                                    
+                                                                                    
+                    ot                                                              
+                    ediug                                                           
+                                                                                    
+                    yrammuS—1.5                                                     
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    ELBAT                                                           
+                        ataD                                                        
+                        noissimsnarT                                                
+                        dedleihsnU                                                  
+                        fo                                                          
+                        epyT                                                        
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                        mooR                                                        
+                         reirraB                                                    
+                          ataD                                                      
+                          amreK-riA                                                 
+                          noitaidaR                                                 
+                          noitangiseD                                               
+                          slairetaM                                                 
+                          rehtO                                                     
+                          etercnoC                                                  
+                          daeL                                                      
+                             ,8.4                                                   
+                             elbaT                                                  
+                             ,a6.4                                                  
+                             erugiF                                                 
+                             ,a5.4                                                  
+                             erugiF                                                 
+                             5.4                                                    
+                             elbaT                                                  
+                             yramirP                                                
+                             yar-x                                                  
+                             rednu                                                  
+                             roolF                                                  
+                             cihpargoidaR                                           
+                              –                                                     
+                              4.B                                                   
+                              serugiF                                               
+                              ,b6.4                                                 
+                              erugiF                                                
+                              ,b5.4                                                 
+                              erugiF                                                
+                              ,elbat-ssorc                                          
+                              ,elbat                                                
+                              moor                                                  
+                                ,6.B                                                
+                                ,3.B                                                
+                                erugiF                                              
+                                ,2.B                                                
+                                erugiF                                              
+                                ,sllaw                                              
+                                yramirp                                             
+                                rehto                                               
+                                 1.B                                                
+                                 elbaT                                              
+                                 1.B                                                
+                                 elbaT                                              
+                                 1.B                                                
+                                 elbaT                                              
+                                 llaw                                               
+                                 ykcub-tsehc                                        
+                                    ,8.4                                            
+                                    elbaT                                           
+                                    ,c6.4                                           
+                                    erugiF                                          
+                                    ,c5.4                                           
+                                    erugiF                                          
+                                    7.4                                             
+                                    elbaT                                           
+                                    yradnoceS                                       
+                                    yradnoces                                       
+                                    ,gnilieC                                        
+                                     –                                              
+                                     4.C                                            
+                                     serugiF                                        
+                                     ,3.C                                           
+                                     erugiF                                         
+                                     ,2.C                                           
+                                     erugiF                                         
+                                     sllaw                                          
+                                     ,roolf                                         
+                                     fo                                             
+                                     trap                                           
+                                      ,7.C                                          
+                                      1.C                                           
+                                      elbaT                                         
+                                      1.C                                           
+                                      elbaT                                         
+                                        1.C                                         
+                                        elbaT                                       
+                                          ,8.4                                      
+                                          elbaT                                     
+                                          ,a8.4                                     
+                                          erugiF                                    
+                                          ,a7.4                                     
+                                          erugiF                                    
+                                          5.4                                       
+                                          elbaT                                     
+                                          yramirP                                   
+                                          yar-x                                     
+                                          rednu                                     
+                                          roolF                                     
+                                          moor                                      
+                                          F&R                                       
+                                            –                                       
+                                            4.B                                     
+                                            serugiF                                 
+                                            ,b8.4                                   
+                                            erugiF                                  
+                                            ,b7.4                                   
+                                            erugiF                                  
+                                            ,elbat-ssorc                            
+                                            ,elbat                                  
+                                             ,6.B                                   
+                                             ,3.B                                   
+                                             erugiF                                 
+                                             ,2.B                                   
+                                             erugiF                                 
+                                             ,sllaw                                 
+                                             yramirp                                
+                                             rehto                                  
+                                               1.B                                  
+                                               elbaT                                
+                                               1.B                                  
+                                               elbaT                                
+                                               1.B                                  
+                                               elbaT                                
+                                               llaw                                 
+                                               ykcub-tsehc                          
+                                                 ,8.4                               
+                                                 elbaT                              
+                                                 ,c8.4                              
+                                                 erugiF                             
+                                                 ,c7.4                              
+                                                 erugiF                             
+                                                 7.4                                
+                                                 elbaT                              
+                                                 yradnoceS                          
+                                                 yradnoces                          
+                                                 ,gnilieC                           
+                                                  –                                 
+                                                  4.C                               
+                                                  serugiF                           
+                                                  ,3.C                              
+                                                  erugiF                            
+                                                  ,2.C                              
+                                                  erugiF                            
+                                                  sllaw                             
+                                                  ,roolf                            
+                                                  fo                                
+                                                  trap                              
+                                                    ,7.C                            
+                                                    1.C                             
+                                                    elbaT                           
+                                                    1.C                             
+                                                    elbaT                           
+                                                     1.C                            
+                                                     elbaT                          

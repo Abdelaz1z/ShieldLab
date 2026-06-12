@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                            Ê  1   ˆ                                              
+                     n = log 10Ë Á 3.46¥10-5¯ ˜ = 4.46                            
+                                                                                  
+                  The required barrier thickness is (4.46 × 445 mm =) 1985 mm.    
+                     The primary barrier can be shown, (as in examples 3 and 4), to be
+                  adequate for shielding against leakage radiation and patient scatter.
+                                                                                  
+                  6.3.2. Secondary barrier                                        
+                                                                                  
+                  6.3.2.1. Public area at location A                              
+                                                                                  
+                  Example 6: Leakage and patient scatter considerations           
+                                                                                  
+                     Only leakage and patient scatter are considered since there is no primary
+                  radiation directed at location A. For conservative reasons, the minimum scatter
+                  angle of 30° is used to look up the scatter fraction a from Table 5. The input
+                  data values used in Eqs (6), (8) and (9) are:                   
+                                                                                  
+                     P = 20 × 10–6 Sv·week–1;                                     
+                     d = 7.2 m;                                                   
+                      s                                                           
+                     d = 1 m;                                                     
+                      sca                                                         
+                     d = 7.2 m;                                                   
+                      sec                                                         
+                     a = 2.53 × 10–3 (for 18 MV at 2.5 cm depth);                 
+                     W = 600 Gy·week–1;                                           
+                     F = 40 × 40 cm2;                                             
+                     T = 0.0625.                                                  
+                     For leakage radiation using Eq. (8),                         
+                         1000¥20¥10-6 ¥7.22                                       
+                     B =              = 2.76 × 10–2                               
+                      L     600¥0.0625                                            
+                     n (leakage) = 1.56                                           
+                     The TVL for 18 MV leakage radiation is 330 mm concrete (Table 4);
+                  therefore, the required leakage barrier thickness is (1.56 × 330 =) 515 mm
+                  concrete.                                                       
+                     For determining shielding against patient scatter, Eq. (9) is used:
+                                                                                  
+                               20¥10-6 ¥1¥7.22                                    
+                     B =                         = × 10–3                         
+                      p  2.53¥10-3¥600¥0.0625¥(40¥40/400)                         
+                                                                                  
+                  70                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

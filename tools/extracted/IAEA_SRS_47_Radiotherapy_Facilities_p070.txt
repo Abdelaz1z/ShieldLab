@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  primary beam scattered by wall B, leakage radiation scattered down the maze
+                  and leakage radiation transmitted through the maze wall.        
+                     The dose scattered by the patient D (Eq. (13)) to wall B for all gantry
+                                           p                                      
+                  angles is determined from the following values:                 
+                     W  is 384 Gy·week–1;                                         
+                     a  for 90° scatter is 0.0009 (Table 5);                      
+                     F  is 400 cm2;                                               
+                     a  the scatter coefficient at the wall for 0.5 MeV is 0.021 for 45°
+                        incidence and 15° reflection (value rounded from Table 6);
+                     A  the area of wall is (3.0 m (W) × 2.5 m (H) =) 7.5 m2;     
+                      1                                                           
+                     d  is 0.8 m;                                                 
+                      sca                                                         
+                     d  is 5.0 m;                                                 
+                      1                                                           
+                     d  is 3.0 m.                                                 
+                      2                                                           
+                         384¥1¥0.0009(400 400)(0.021¥7.5)                         
+                     D =                       =3.78¥10-4 GGy·week-1              
+                      p        (0.8¥5.0¥3.0)2                                     
+                     Similarly, the IDR will be given by:                         
+                           48¥106 ¥0.0009¥0.021¥7.5                               
+                     IDR =                  =47 mSv◊h-1                           
+                        p     (0.8¥5.0¥3.0)2                                      
+                     The dose scattered by wall B to the entrance D is determined from Eq. (14):
+                                               w                                  
+                     U  is assumed to be 0.25;                                    
+                      H                                                           
+                     d  the distance to wall B is 1.6 m;                          
+                      H                                                           
+                     a  the reflection coefficient for normal incidence and 75° reflection for
+                      H                                                           
+                        60Co is 4.06 × 10–3 (Table 7);                            
+                     a  the reflection coefficient for normal incidence, 75° reflection for 0.5 MeV
+                      r                                                           
+                        is 7.54 × 10–3;                                           
+                     A  is the area of the maximum field size projected on wall B at distance
+                      H                                                           
+                        d (0.04 × (1.6/0.8)2) = 0.16 m2;                          
+                         H                                                        
+                     A  is the cross-sectional area of the inner maze opening (1.5 W × 2.5 H);
+                      r                                                           
+                     d  is 4.3 m;                                                 
+                      r                                                           
+                     d  is 2.5 m.                                                 
+                      z                                                           
+                  56                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

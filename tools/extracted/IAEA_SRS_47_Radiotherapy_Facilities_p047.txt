@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  This equation is applicable whether the gantry rotation axis is parallel or
+                  perpendicular to the maze axis (see Eqs (13) and (16)). Where the maze wall is
+                  a primary barrier this contribution should be negligible.       
+                     There is a special case when the gantry rotation axis is perpendicular to
+                  the maze axis, the room has a moderately long maze and the use factor can be
+                  assumed as 0.25 for the four major beam directions. The total photon dose at
+                  the maze entrance will be the product of 2.64 and the sum of the doses for the
+                  worst case scenario. In Fig. 4, this will be when the beam is directed at wall H.
+                  (Note that the use factor 0.25 should be applied to all four components,
+                  including the leakage dose D .)                                 
+                                   LH                                             
+                           (                 )                                    
+                     D =2.64 D +f ¥D +D  +D                   (18)                
+                      d      pH    wH  LH  TH                                     
+                  where                                                           
+                     f is the patient transmission factor described earlier in this section and
+                       tabulated in Table 8.                                      
+                                                                                  
+                     In the United Kingdom, the IDR at the maze entrance for each gantry
+                  angle would be calculated. This is achieved by substituting the dose rate DR at
+                                                               0                  
+                  1 m (usually the isocentre) for the workload (W), use factor (U) and occupancy
+                  (T) in the above equations. The suitability of the maze design would be
+                  assessed on the IDR for the worst case scenario. The aim would be to reduce
+                  the IDR at the maze entrance to 7.5 mSv·h–1or less for the worst case.
+                     The methods described in this section are also valid for accelerators with
+                  energies greater than 10 MV. However, the presence of photoneutrons and
+                  capture gammas must also be taken into account and this is described in
+                  Section 5.7.                                                    
+                                                                                  
+                  5.5. DOORS                                                      
+                                                                                  
+                     Once the dose at the end of the maze has been calculated the necessity or
+                  otherwise of a door for radiation safety purposes can be ascertained. This will
+                  depend on the design dose limit in force. In the United Kingdom the guidance
+                  [6] is to designate the area as controlled if the IDR exceeds 7.5 mSv·h–1, and as
+                  supervised if the TADR is less than 7.5 mSv·h–1 with a maximum IDR of
+                  500 mSv·h–1. For a controlled area the annual design dose limit is 6 mSv per year
+                  in the United Kingdom [7] or, in the USA, the NCRP recommends a fraction of
+                  10 mSv per year [9]. For a public area the design dose limit is 0.3 mSv per year in
+                  the United Kingdom and the NCRP recommends 1 mSv per year in the USA [10].
+                                                                                  
+                                                                                  
+                                                               33                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

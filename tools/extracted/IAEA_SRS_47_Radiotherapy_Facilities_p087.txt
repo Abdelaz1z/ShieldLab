@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  and                                                             
+                                                                                  
+                     n (patient scatter) = 3.07                                   
+                                                                                  
+                     From Table 11, the TVL for 30° patient scatter is 288 mm concrete
+                  Therefore, the barrier thickness required to shield against radiation scattered
+                  by the patient is (3.07 × 288 =) 884 mm                         
+                     The difference between the required scatter and leakage barrier
+                  thicknesses (884 mm – 681 mm) is less than one TVL. Therefore, an additional
+                  HVL thickness for leakage is added to the greater thickness (see Section 5.2.2).
+                  The total barrier thickness for location B is therefore (884 + 99 =) 983 mm.
+                                                                                  
+                  6.3.3. Maze door area                                           
+                                                                                  
+                  6.3.3.1. Example 9: Leakage and scatter                         
+                                                                                  
+                     For a high energy accelerator, the contribution of leakage and scatter
+                  radiation reaching the maze door is relatively low compared with the capture
+                  gamma and neutron dose components shown in examples 10 and 11. Since the
+                  room layout is similar to that shown in Fig. 4, Eq. (18) may be used to simplify
+                  the calculation for the dose at the door D                      
+                                          d                                       
+                           (                 )                                    
+                     D =2.64 D +f ¥D +D  +D                                       
+                      d      pH    wH  LH  TH                                     
+                  where each component is calculated as follows.                  
+                  Patient scatter component D                                     
+                                   pH                                             
+                     Equation (13) is used to determine the dose at the door, scattered by the
+                  patient with the beam pointing at wall H, or location C, as shown in Fig. 12. The
+                  input data values are:                                          
+                                                                                  
+                     W = 600 Gy·week–1;                                           
+                     U = 0.25;                                                    
+                      0                                                           
+                     F = 40 × 40 cm2;                                             
+                     d = 1 m;                                                     
+                      sca                                                         
+                     d = 7.3 m, the distance from isocentre to wall A ;           
+                      1                            1                              
+                     d = 9.9 m, the distance from wall A to the door;             
+                      M                    1                                      
+                     A is 2.8 m × 4.2 m = 11.8 m2, the area of the wall,          
+                      1                                                           
+                     a = 8.64 × 10–4 the scatter function at 45° scatter angle (Table 5);
+                                                               73                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

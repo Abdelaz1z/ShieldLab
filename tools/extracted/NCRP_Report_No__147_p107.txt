@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                           5.6 COMPUTED TOMOGRAPHY / 97             
+                                                                                    
+                         with an average scan length L for a head scan of 20 cm at  
+                         300 mAs and a pitch of unity, and L = 50 cm for a body     
+                         scan at 250 mAs using a pitch of 1.35. The CTDI val-       
+                                                     n    100                       
+                         ues are 0.223 and 0.138 mGy mAs–1 for a head and body      
+                         scan, respectively.                                        
+                           Thus, from Equation 5.6, the secondary air-kerma val-    
+                         ues per patient at 1 m for one head and one body scan,     
+                         respectively, are:                                         
+                         K 1 (head) = (9×10 –5 cm –1)(20 cm) (300 mAs) (0.223 mGy mAs –1)
+                          sec                                                       
+                                          –1                                        
+                                = 0.12 mGy patient                                  
+                         K s 1 ec (body) = (3×10 –4 cm –1)  5 --- 1 - 0 -- . - 3 - c -- 5 - m ----   (250 mAs) (0.138 mGy mAs –1)
+                                = 0.38 mGy patient                                  
+                                          –1                                        
+                                           .                                        
+                         Therefore, for a barrier bounding an uncontrolled,         
+                         fully-occupied area at 3 m distance from the isocenter, the
+                         unshielded weekly secondary air kerma for the total of     
+                         100 patients would be:                                     
+                            K sec =   1 3 ---- - m m ----  2 [40 (0.12) + 60 (0.38)] = 3.1 mGy week –1 .
+                         The required barrier transmission is:                      
+                                             –1                                     
+                                  B = 0 ---- . - 0 --- 2 --- -- m ----- G ---- y --- - w ----- e -- e --- k ------- = 6.5×10 –3 .
+                                            –1                                      
+                                     3.1 mGy week                                   
+                         The required barrier thickness from the CT scanner         
+                         attenuation curves (Figure A.2 in Appendix A) is:          
+                                      x   = 1.3 mm lead.                            
+                                       barrier                                      
+                         Thus a 1/16 inch standard lead thickness (1.59 mm) is      
+                         adequate for this barrier under the conditions stated      
+                         above. It is important to note that the shielding provided 
+                         by the standard concrete floor and ceiling in a modern     
+                         multi-slice scanner room may not be adequate (Langer       
+                         and Gray, 1998).                                           
+                      5.6.1 Dose-Length Product Method                              
+                                                                                    
+                        Computed tomography is currently undergoing rapid and       
+                      significant change. Several CT manufacturers now display DLP  
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

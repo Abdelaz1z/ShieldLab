@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                         0.001¥384¥1.06¥10-4                                      
+                     D =               =1.63¥10-6 Gy·week 1                       
+                      T       5.02                                                
+                           0.001¥48¥106¥1.06¥10-4                                 
+                     IDR =                  =0.2 mSv◊h-1                          
+                        T         5.02                                            
+                                                                                  
+                     The total dose at the door D for the worst case when the beam is directed
+                                      d                                           
+                  at wall B is obtained by using a modified Eq. (11) for one gantry orientation
+                  only:                                                           
+                        3.78¥10-4           1.37¥10-4 1.63¥10-6                   
+                     D =       +(1.0)¥5.96¥10-6 +  +                              
+                      d    4                   4       4                          
+                       =1.35¥100-4 Gy·week-1 =135 mSv·week-1                      
+                                                                                  
+                     The first, third and fourth terms are each divided by 4 since it is assumed
+                  that the gantry will only be in this orientation for 0.25 of the total use. The
+                  second term, which arises from the primary beam scattered by the wall, will
+                  usually be attenuated by the patient before it strikes the wall, but a trans-
+                  mission factor of 1.0 has been used. Since this is the dose for the worst case the
+                  total dose per week will be less than four times this amount i.e. less than
+                  (4 × 135 =) 540 mSv·week–1.                                     
+                     According to Eq. (18), the total dose at the maze entrance is (2.64 × 135=)
+                  356 mSv·week–1.                                                 
+                     The instantaneous dose rate at the door IDR for the worst case will be:
+                                                d                                 
+                     IDR =47+2.98+17+0.2=67.2 mSv◊h-1                             
+                        d                                                         
+                     If the area immediately outside the doors is a controlled area, then the
+                  dose limit is 120 mSv·week–1 (6 mSv/a). To reduce the dose to an acceptable
+                  level, one TVL would be adequate. The radiation scattered by the patient, the
+                  primary beam scattered by wall B and the leakage radiation scattered down the
+                  maze have all suffered at least one scatter to arrive at the maze entrance, so the
+                  TVL for 90° scattered radiation may be used to determine the necessary door
+                  thickness. The TVL for 90° scattered radiation is 6.5 mm lead (Table 23), so
+                  doors with this thickness of lead would reduce the weekly dose from
+                  356 mSv·week–1 to around 35 mSv·week–1, which is well within the design dose
+                  limit. The worst case IDR would be reduced from 67.2 mSv·week–1 to 7 mSv·h–1
+                                 d                                                
+                  with a 6.5 mm lead door in place. This would give a TADR of (7 × 1.6 ÷ 8=)
+                  1.4 mSv·h–1, which would be very acceptable.                    
+                                                                                  
+                  58                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

@@ -1,0 +1,101 @@
+{
+  "_comment": "Nuclear-medicine radionuclide data for shielding (I-131, Tc-99m, F-18, Lu-177) and the I-131 patient-as-source biokinetics. Shielding uses broad-beam tenth-value layers (TVL): B = 10^(-x/TVL), x in mm. Sources: OUMANO2025 (TVL/HVL, dose-rate constants), RG839 (I-131 biokinetics), TG108 (PET method). Every value editable.",
+
+  "exposure_rate_constant_units": "R*cm^2/(mCi*h)  [equivalently R/(mCi*h) at 1 cm]. Convert to air-kerma rate: 1 R ~ 8.76e-3 Gy(air). For ambient dose-equivalent screening, 1 R ~ 10 mSv is a common conservative approximation.",
+
+  "radionuclides": {
+    "I-131": {
+      "label": "Iodine-131 (radioiodine therapy)",
+      "half_life_days": 8.04,
+      "half_life_ref": "RG839 (Table A-1, Tp = 8.04 d)",
+      "main_gamma_keV": 364,
+      "main_gamma_abundance": 0.815,
+      "gamma_note": "Principal photon 364 keV (81.5%); also 637 keV (7%), 284 keV (6%).",
+      "dose_rate_constant": 2.2,
+      "dose_rate_constant_ref": "RG839 (Gamma = 2.2 R*cm^2/mCi*h); consistent with OUMANO2025.",
+      "shielding": {
+        "ref": "OUMANO2025",
+        "lead":     {"HVL_mm": 2.48, "TVL_mm": 10.5},
+        "concrete": {"HVL_mm": 17.9, "TVL_mm": 186, "HVL_note": "HVL approx TVL/3.32"}
+      },
+      "use": "therapy_room"
+    },
+    "Tc-99m": {
+      "label": "Technetium-99m (gamma-camera / SPECT imaging)",
+      "half_life_days": 0.2503,
+      "half_life_ref": "6.0067 h",
+      "main_gamma_keV": 140.5,
+      "main_gamma_abundance": 0.885,
+      "dose_rate_constant": 0.795,
+      "dose_rate_constant_ref": "OUMANO2025",
+      "shielding": {
+        "ref": "OUMANO2025",
+        "lead":     {"HVL_mm": 0.243, "TVL_mm": 0.870},
+        "concrete": {"HVL_mm": 36.7, "TVL_mm": 122, "HVL_note": "HVL approx TVL/3.32"}
+      },
+      "use": "imaging_room"
+    },
+    "F-18": {
+      "label": "Fluorine-18 (PET / PET-CT, 511 keV annihilation photons)",
+      "half_life_days": 0.07625,
+      "half_life_ref": "109.8 min",
+      "main_gamma_keV": 511,
+      "main_gamma_abundance": 1.935,
+      "gamma_note": "Two 511 keV annihilation photons per decay (~193.5% incl. positron branching).",
+      "dose_rate_constant": 5.7,
+      "dose_rate_constant_ref": "OUMANO2025; consistent with AAPM TG-108 (Gamma ~ 5.9 R*cm^2/mCi*h at 511 keV).",
+      "shielding": {
+        "ref": "OUMANO2025",
+        "lead":     {"HVL_mm": 4.75, "TVL_mm": 15.4},
+        "concrete": {"HVL_mm": 61.4, "TVL_mm": 204, "HVL_note": "HVL approx TVL/3.32"}
+      },
+      "use": "pet_ct"
+    },
+    "Lu-177": {
+      "label": "Lutetium-177 (PRRT / radioligand therapy)",
+      "half_life_days": 6.647,
+      "main_gamma_keV": 208,
+      "main_gamma_abundance": 0.11,
+      "gamma_note": "Low-abundance gammas 113 keV (6.2%), 208 keV (11%); predominantly a beta emitter.",
+      "dose_rate_constant": 0.181,
+      "dose_rate_constant_ref": "OUMANO2025",
+      "shielding": {
+        "ref": "OUMANO2025",
+        "lead":     {"HVL_mm": 0.511, "TVL_mm": 1.99},
+        "concrete": {"HVL_mm": 40.4, "TVL_mm": 134, "HVL_note": "HVL approx TVL/3.32"}
+      },
+      "use": "therapy_room"
+    }
+  },
+
+  "i131_biokinetics": {
+    "_comment": "RG 8.39 Appendix B patient-as-source model for I-131. Integrated dose to a nearby person to total decay. D(inf) = 34.6 * Gamma * Q0 * E * {0.8*(1 - exp(-0.693*0.33/Tp)) + exp(-0.693*0.33/Tp)*[F1*T1eff + F2*T2eff]} / r^2, with Q0 in mCi, r in cm, T in days, Gamma in R*cm^2/mCi*h; result in R (~ rem ~ 10 mSv/R). First 8 h (0.33 d): 80% at physical half-life.",
+    "ref": "RG839",
+    "integration_constant_34_6": "34.6 = 24 h/day * 1.4427 (1/ln2), integrating an exponentially decaying point source over time.",
+    "physical_half_life_days": 8.04,
+    "occupancy_factor_first_8h": 0.75,
+    "occupancy_factor_after_8h": 0.25,
+    "occupancy_note": "RG 8.39: E=0.25 at 1 m default (conservative); 0.75 for <1 day component; 0.125 if patient-specific ALARA instructions justify it.",
+    "medical_conditions": {
+      "hyperthyroidism":      {"F1_extrathyroidal": 0.20, "T1eff_days": 0.32, "F2_thyroidal": 0.80, "T2eff_days": 5.2, "ref": "RG839 Table B-1"},
+      "thyroid_cancer_postthyroidectomy": {"F1_extrathyroidal": 0.95, "T1eff_days": 0.32, "F2_thyroidal": 0.05, "T2eff_days": 7.3, "ref": "RG839 Table B-1"}
+    },
+    "release_dose_limits": {
+      "total_effective_dose_to_others_mSv": 5,
+      "instructions_required_above_mSv": 1,
+      "ref": "RG839 / 10 CFR 35.75"
+    }
+  },
+
+  "pet_patient_source_tg108": {
+    "_comment": "AAPM TG-108 PET/CT patient-as-source method. Patient becomes the source after injection. Account for uptake phase (pre-scan) and imaging phase with decay; apply patient self-attenuation. Dose at distance = decayed, self-attenuated point source integrated over each phase.",
+    "ref": "TG108",
+    "patient_self_attenuation_factor": 0.36,
+    "patient_self_attenuation_note": "Fraction of 511 keV fluence escaping the patient (TG-108); ~0.85 sometimes used pre-void. 0.36 accounts for tissue attenuation of annihilation photons.",
+    "typical_administered_activity_MBq": 555,
+    "typical_uptake_time_h": 1.0,
+    "typical_scan_time_h": 0.5,
+    "dose_rate_constant_at_1m_uGy_per_MBq_h": 0.092,
+    "dose_rate_constant_note": "Air-kerma rate constant for F-18 ~0.092 uGy*m^2/(MBq*h) before patient attenuation (TG-108)."
+  }
+}

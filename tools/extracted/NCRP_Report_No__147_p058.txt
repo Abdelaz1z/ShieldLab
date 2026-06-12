@@ -1,0 +1,65 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    48 / 4. COMPUTATION OF SHIELDING REQUIREMENTS                   
+                                                                                    
+                    Table B.1 in Appendix B. That is, the air kerma due to the workload
+                    in each kVp interval of the workload distribution is transmitted
+                    through the barrier of thickness x with a transmission factor   
+                                          barrier                                   
+                    e–ax barrier, and summed to get the total transmitted air kerma due to
+                    leakage radiation.                                              
+                    4.1.7.2 Scattered Radiation. The magnitude of the air kerma due 
+                    to scattered radiation is a function of the scattering angle, the
+                    number and energy of primary photons incident on the patient,   
+                    location of the beam on the patient, and the size and shape of the
+                    patient. It is assumed that scattered radiation intensity is propor-
+                    tional to the primary beam area at a distance from the focal spot.
+                    These parameters are conveniently taken as the image-receptor   
+                    area and the source-to-image-receptor distance (SID), respectively.
+                    The scatter fraction (a ) is defined as the ratio of the scattered air
+                                  1                                                 
+                    kerma 1 m from the center of the primary beam area at the patient
+                    to the primary air kerma 1 m from the x-ray tube for a given    
+                    primary beam area. The air kerma for scattered radiation is     
+                    assumed to scale linearly with primary field area. This reference
+                    field size is conveniently taken as the image-receptor area at the
+                    SID.                                                            
+                    4.1.7.3 Total Contribution from Secondary Radiation. Table 4.7  
+                    gives values for unshielded leakage, scattered and total secondary
+                    air kermas (the latter being                                    
+                                      Κ1                                            
+                                         ) calculated for theclinical work-         
+                                        sec                                         
+                    load distributions for the case where the leakage and scattered air
+                    kerma distances are both 1 m. The assumed values of the primary 
+                    beam area (F) at the primary distance (d ) in meters and the total
+                                              F                                     
+                    workload per patient (W ) used to obtain the values of scattered
+                                    norm                                            
+                    air kerma (i.e., for side-scattered and forward/backscattered radia-
+                    tions), are also given in Table 4.7.                            
+                      The air kerma from unshielded secondary radiation [K (0)] at  
+                                                         sec                        
+                    a distance d for N patients is:                                 
+                            sec                                                     
+                                          1                                         
+                                         K N                                        
+                                   K (0) = -----s-e--c--------. (4.4)               
+                                    sec   2                                         
+                                         d                                          
+                                          sec                                       
+                      Strictly speaking, this simplified expression is only correct 
+                    when d and d , the distances relevant for leakage and scattered 
+                         L    S                                                     
+                    radiation, respectively, are equal. Using the shorter of these two
+                    distances for d is one acceptable solution. Other acceptable    
+                              sec                                                   
+                    choices are discussed in Sections 5.3 and 5.4 as typical cases are
+                    discussed.                                                      

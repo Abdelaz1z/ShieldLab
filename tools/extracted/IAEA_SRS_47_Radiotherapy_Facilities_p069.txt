@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                              Ê   1   ˆ                                           
+                     nTVLs=log 10Ë Á 1.06¥10-4¯ ˜ =4.0                            
+                                                                                  
+                  i.e. a wall thickness of (4 × 218 =) 872 mm concrete is required.
+                     The IDR is determined by re-arranging Eq. (8):               
+                                                                                  
+                                                                                  
+                          DR ¥B  48¥106 ¥1.06¥10-4                                
+                     IDR=   0   =             =0.8 mSv·h-1                        
+                          1000¥d 2  1000¥(2.6)2                                   
+                              s                                                   
+                  6.1.5.2. Scatter radiation                                      
+                     The barrier thickness necessary to shield against radiation scattered by
+                  the patient is determined from Eq. (9):                         
+                                                                                  
+                     P  is 6 mSv·week–1;                                          
+                     d  the isocentric distance is 0.8 m;                         
+                      sca                                                         
+                     d  has the same value as d in the previous calculation, 2.6 m;
+                      sec             s                                           
+                     a  the scatter fraction for 90° scatter is 0.0009 (Table 5) per 400 cm2 of
+                        area irradiated;                                          
+                     F  is the maximum field area incident on the patient (20 cm × 20 cm =)
+                        400 cm2:                                                  
+                             6¥0.82 ¥2.62                                         
+                     B=                    =7.5¥10-5                              
+                        0.0009¥384¥106 ¥1¥(400 400)                               
+                              Ê   1  ˆ                                            
+                     nTVLs=log 10Ë Á 7.5¥10-5¯ ˜ =4.12                            
+                                                                                  
+                     This is similar to the number of TVLs required to shield against leakage
+                  radiation. For 90° scatter the energy of the scattered radiation will be degraded
+                  and the protection designed for the leakage radiation should provide adequate
+                  protection against radiation scattered from the patient. (The TVL for 90°
+                  scattered radiation is 151 mm concrete (Table 11) compared with 218 mm
+                  concrete for broad beam 60Co radiation (Table 4).)              
+                                                                                  
+                  6.1.6. Dose at entrance door                                    
+                                                                                  
+                     The worst case will be when the treatment unit is aimed at wall B. For this
+                  case the dose at the entrance door will comprise dose scattered by the patient,
+                                                                                  
+                                                                                  
+                                                               55                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

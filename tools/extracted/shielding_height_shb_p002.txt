@@ -1,0 +1,61 @@
+                                                                                      
+                                                                                      
+                 Melflods for primary and ucondary radiation                          
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                          Figure 2.6 How tertiary scatter from ceilings can contribute to staff dose.
+                                                                                      
+                   where b is the height of the barrier between the staff and X-ray equipment, D is
+                  the relevant dose quantity and m and C are constants for a particular ceiling height.
+                  The majority of the tertiary scatter contributing to personnel dose results from a 3 m
+                                                                                      
+                  wide strip of ceiling slab between the X-ray unit and the operator or other personnel.
+                  Therefore, it is possible to use standard factors in the equation linked simply to the
+                  ceiling height. Values of constants relating to a CT scanner room and an interventional
+                  suite are given in Table 2.5. The factors have been derived so that they can be applied
+                  directly to the patient dose quantities used for estimating scatter. For CT scanning,
+                  this would be the DLP workload with half the OLP for the head being added to that
+                  of the body, while for an interventional suite, this would be the KAP. Examples of the
+                  application of the method are given in the relevant chapters.       
+                   Tertiary scatter from a wall adjacent to an unshielded entrance to a control cubicle
+                                                                                      
+                  (Sw can also be significant. Doors will almost always be required for CT facilities
+                     )                                                                
+                    111                                                               
+                  to protect against this, but protection may also need to be installed in the door of
+                  an interventional suite. The magnitude of the scatter is related to the perpendicular
+                  distance, d (measured in metres), between the patient/isocentre and the wall adjacent to
+                  the entrance. Levels of tertiary scatter at the edge of a protected screen can be predicted
+                  from the KAP in gray centimetres squared for an interventional suite using the equation:
+                         S  =KA.Px 0 058e-O.S6d                       (2.5)           
+                          wall    •                                                   
+                   and from the OLP in gray centimetres for a CT suite from the equation:
+                         S  =OLP x 6 6e4u6d                           (2.6)           
+                          wall    •                                                   
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                  Radiation Shielding for Diagnostic Radiology           21           
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      

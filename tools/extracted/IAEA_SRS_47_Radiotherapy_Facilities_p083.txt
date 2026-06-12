@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     T = 0.0625 (1/16);                                           
+                     F = 40 × 40 cm2 (the maximum field size is used for conservative
+                         reasons)                                                 
+                                                                                  
+                                 20¥10-6 ¥1¥6.22                                  
+                     B =                            = 3.61 × 10–4                 
+                      p 1.42¥10-2 ¥600¥0.25¥0.0625¥(40¥40/400)                    
+                                                                                  
+                     The required TVLs to produce this attenuation is determined from
+                  Eq. (6):                                                        
+                                                                                  
+                                                                                  
+                            Ê  1   ˆ                                              
+                     n = log 10Ë Á 3.61¥10-4¯ ˜ = 3.44                            
+                                                                                  
+                     Compared with the number of TVLs required to attenuate the primary
+                  beam (n = 3.96 + 2 × 0.301 = 4.56) calculated above, the thickness requirement
+                  to attenuate the worst case of patient scatter is more than one TVL lower.
+                  Therefore, the wall thickness determined for the primary barrier will be more
+                  than adequate to shield against scattered radiation.            
+                     For other gantry angles, the scatter fraction will be much reduced and the
+                  energy of the scatter radiation is much lower. Therefore, the barrier thickness
+                  required to attenuate the primary beam will be sufficient to attenuate all
+                  scattered radiation.                                            
+                                                                                  
+                  6.3.1.2. Treatment control area                                 
+                                                                                  
+                  Example 5: Primary barrier at location D                        
+                                                                                  
+                     For the treatment control area, the design dose limit P is 5 mSv/a, or
+                  0.1 mSv·week–1. Other input data values for Eq. (5) are:        
+                                                                                  
+                     d = 6.2 m, the distance from D to the isocentre;             
+                     W = 600 Gy·week–1;                                           
+                     U = 0.25;                                                    
+                     T = 1                                                        
+                                                                                  
+                        0.1¥10-3¥(6.2+1)2                                         
+                     B=             = 3.46 × 10–5                                 
+                          600¥0.25¥1                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                               69                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

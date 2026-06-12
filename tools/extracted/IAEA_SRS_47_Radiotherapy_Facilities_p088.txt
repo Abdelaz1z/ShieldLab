@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     α = 2.03 × 10–2, the concrete wall reflection coefficient for incident
+                      1                                                           
+                         angle 45° and reflection angle 0° for 0.5 MeV monoenergetic
+                         photons (Table 6).                                       
+                     The concrete wall reflection coefficient α is a function of the incident
+                                              1                                   
+                  beam energy and the incident angle. After scattering by the patient, the energy
+                  can be as low as 0.5 MeV due to Compton interactions. Table 6 demonstrates
+                  that the reflection coefficient increases as the energy decreases so using the
+                  0.5 MeV coefficient will not underestimate the dose to the maze door.
+                     Using input data values shown above, Eq. (13) is evaluated to obtain D :
+                                                               pH                 
+                         600¥0.25¥8.64¥10-4¥(40¥40/400)¥2.03¥10-2¥11.8            
+                     D  =                                                         
+                      pH              (1¥7.3¥9.99)2                               
+                        = 2.38 × 10–5 Gy·week–1                                   
+                  Wall scatter component D                                        
+                                 wH                                               
+                     The input data values used in Eq. (14) are:                  
+                                                                                  
+                     W = 600 Gy·week–1;                                           
+                     U = 0.25.                                                    
+                      H                                                           
+                     The distances as shown in Fig. 12 are:                       
+                                                                                  
+                     d = 4.2 m;                                                   
+                      H                                                           
+                     d = 5.9 m;                                                   
+                      r                                                           
+                     d = 6.8 m.                                                   
+                      z                                                           
+                     The wall reflection coefficients are:                        
+                     α = 1.62 × 10–3 (Table 7, normal incidence, 75° angle of reflection,
+                      H                                                           
+                         18 MV);                                                  
+                     α = 7.54 × 10–3 (Table 7, normal incidence, 75° angle of reflection,
+                      r                                                           
+                         0.5 MeV);                                                
+                     A = 2.82 m2, the maximum field size 40 × 40 cm2 projected onto wall H
+                      H                                                           
+                         (= 168 × 168 cm2);                                       
+                     A is 10.2 m2 the cross-sectional area of the inner maze entrance.
+                      r                                                           
+                     Equation (14) gives the value of D :                         
+                                          wH                                      
+                  74                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                           5.6 COMPUTED TOMOGRAPHY / 99             
+                                                                                    
+                        TABLE 5.2—Currently suggested default DLP values per procedure.a,b,c
+                       Foruse as a guide in planning shielding in cases where facility-specific
+                                   DLP values are not available.                    
+                                                                                    
+                                                    Scan                            
+                                            CTDI            DLP                     
+                              Procedure        vol  Length                          
+                                             (mGy)         (mGy cm)                 
+                                                    (L) (cm)                        
+                       Head                  60      20     1,200                   
+                       Chest                 15      35      525                    
+                       Abdomen               25      25      625                    
+                       Pelvis                25      20      500                    
+                       Body average (chest, abdomen          550                    
+                       or pelvis)                                                   
+                        aThese values result from reference values for DLP by EC (1999) and esti-
+                       mates of average values of CTDI in the United States derived from the Amer-
+                                        vol                                         
+                       ican College of Radiology accreditation program. As indicated in Section 5.6.1,
+                       these values are subject to change in the future.            
+                        bThe number of procedures will likely exceed the number of individual
+                       patients examined (Section 4.1.4).                           
+                        cFor the subset of procedures that is performed with and without contrast, the
+                       DLP value in Table 5.2 must be doubled.                      
+                        Secondly, there is an important caveat that the qualified expert
+                      needs to be aware of. A single procedure code is commonly used
+                      inthe case where the examination (e.g., abdomen, pelvis, chest, or
+                      head) isdone both with and without contrast media. This essen-
+                      tially represents two scans of the same anatomic area, and thereby
+                      doubles the DLP. The facility administrator should therefore be
+                      asked to provide not only the total number of head and body proce-
+                      dures, but also the number (or fraction) of those procedures that
+                      are performed both with and without contrast media. The default
+                      DLP values in Table 5.2 must be doubled for this subset of proce-
+                      dures. In the absence of such information, it is suggested that the
+                      qualified expert assume that 40 percent of all procedures are 
+                      repeated with contrast,13 resulting in an overall average DLP of 1.4
+                      times the default DLP value shown in Table 5.2.               
+                         Example: Assume that 150 “body” procedures and             
+                         30 head procedures are performed weekly at a site, with    
+                        13McCollough, C.H. (2004). Personal communication (Mayo Clinic,
+                      Rochester, Minnesota).                                        
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

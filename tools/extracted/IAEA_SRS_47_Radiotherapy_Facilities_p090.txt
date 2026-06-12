@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  Total dose due to scatter and leakage D                         
+                                         d                                        
+                     The total dose at the maze door due to scatter and leakage is, using
+                  Eq. (18), and f = 0.34 (from Table 8):                          
+                                                                                  
+                     D = 2.64 × (2.38 × 10–5 + 0.34 × 1.86 × 10–6 + 1.19 × 10–6 + 6.87 × 10–7)
+                      d                                                           
+                       = 6.95 × 10–5 Gy·week–1                                    
+                  6.3.3.2. Example 10: Capture gamma dose at the maze door        
+                                                                                  
+                     Assume again for this example that the workload is 600 Gy·week–1. The
+                  length of the maze from the inner maze point to the door is (d =) 8.5 m. To
+                                                        2                         
+                  determine the capture gamma dose D , Eq. (24) is used.          
+                                        ϕ                                         
+                     The total neutron fluence ϕ at the inner maze point is first determined
+                                      A                                           
+                  using Eq. (23). The accelerator is a Varian 18 MV machine, and from Table 9
+                  Q = 1.22 × 1012 neutrons per isocentre Gy. The distance from the isocentre to
+                   N                                                              
+                  the inner maze point is (d =) 6.4 m. The treatment room layout and dimensions
+                                 1                                                
+                  are shown in Figs 13 and 14.                                    
+                     The room surface area S for use in Eq. (23) is the sum of the areas of
+                  ceiling and floor, front and back walls, and left and right walls. The average
+                  room height is 3.65 m, the average width is 7.8 m, and the average length is
+                  7.8 m (see Section 5.6). The surface area of the room is therefore:
+                     S = 2 × (7.8 × 3.65 + 7.8 × 3.65 + 7.8 × 7.8) = 236 m2       
+                     The total neutron fluence per isocentre X ray Gy at the inner maze point
+                  A from Eq. (23) is:                                             
+                                                                                  
+                                                                                  
+                                    7.8m                                          
+                              1.1m                                                
+                                                                                  
+                                                                                  
+                        4.2m                                                      
+                                                                                  
+                                                                                  
+                                                                                  
+                            FIG. 13. Sectional diagram of the treatment room.     
+                                                                                  
+                                                                                  
+                  76                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

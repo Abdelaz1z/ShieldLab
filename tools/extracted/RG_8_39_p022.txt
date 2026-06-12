@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+               Solution: In this example, we will again calculate the dose using Equation B-5, Table A-1, and
+          Table B-1 to account for the elimination of iodine-131 from the body by using the effective half-lives
+          appropriate for hyperthyroidism. An occupancy factor, E, of 0.25 at 1 meter will be used for the second
+          and third components of the equation because patient-specific instructions were provided to justify the
+          occupancy factor (see Section B.1.2, “Occupancy Factors To Consider for Patient-Specific
+          Calculations”).                                                           
+               Substituting the appropriate values into Equation B-5, the dose to total decay is
+                                                                                    
+                                      {                    }                        
+                             34.6(2.2)(55)                                          
+                         D(∞)=        (0.75)(8.04)(0.8)(1−e −0.693(0.33)/8.04       
+                               (100cm)2                                             
+                            +e −0.693(0.33)/8.04(0.25)(0.20)(0.32)                  
+                            +e −0.693(0.33)/8.04(0.25)(0.80)(5.2)                   
+                        D(∞)=4.86mSv(0.486rem)                                      
+                                                                                    
+               Therefore, hyperthyroid patients administered 2,035 megabecquerels (55 millicuries) of
+          iodine-131 would not have to remain under licensee control and could be released under 10 CFR 35.75
+          when the occupancy factor of 0.25 in the second and third components of the equation is justified.
+               In the example above, the thyroidal fraction, F = 0.8, is a conservative assumption for persons
+                                           2                                        
+          who have this treatment for hyperthyroidism. If F has been measured for a specific patient, the measured
+                                        2                                           
+          value may be used.                                                        
+          B-3. Internal Dose                                                        
+               For some radionuclides, such as iodine-131, there may be concerns that the internal dose of an
+          individual from exposure to a released patient could be significant. A rough estimate of the maximum
+          likely committed effective dose equivalent from internal exposure can be calculated from Equation B-6.
+                                                                                    
+                                    D = Q (10-5)(DCF)            (Equation B-6)     
+                                     i                                              
+          Where D  = Maximum likely internal committed effective dose equivalent to the individual exposed
+                i                                                                   
+                    to the patient in rems                                          
+               Q   = Activity administered to the patient in millicuries            
+                                                                                    
+               10-5 = Assumed fractional intake                                     
+                                                                                    
+               DCF = Dose conversion factor to convert an intake in millicuries to an internal committed
+                    effective dose equivalent (such as tabulated in Reference B-2). 
+                                                                                    
+               Equation B-6 uses a value of 10-5 as the fraction of the activity administered to the patient that
+          would be taken in by the individual exposed to the patient. A common rule of thumb is to assume that no
+          more than 1 millionth of the activity being handled will become an intake to an individual working with
+          the material. This rule of thumb was developed in Reference B-3 for cases of worker intakes during
+          normal workplace operations, worker intakes from accidental exposures, and public intakes from
+          accidental airborne releases from a facility, but it does not specifically apply for cases of intake by an
+          individual exposed to a patient. However, two studies (Refs. B-4 and B-5) regarding the intakes of
+          individuals exposed to patients administered iodine-131 indicated that intakes were generally of the order
+          of 1 millionth of the activity administered to the patient and that internal doses were far below external
+                                                                                    
+                                Appendix B to RG-8.39, Page B-6                     
+                                                                                    
+                                                                                    

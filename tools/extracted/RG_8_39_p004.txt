@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                            C.  REGULATORY    POSITION                              
+                                                                                    
+          1.   Release Criteria                                                     
+                                                                                    
+               Licensees should use one of the following options to release a patient who has been administered
+          radiopharmaceuticals or permanent implants containing radioactive material in accordance with
+          regulatory requirements.                                                  
+                                                                                    
+          1.1  Release of Patients Based on Administered Activity                   
+                                                                                    
+               In compliance with the dose limit in 10 CFR 35.75(a), licensees may release patients from
+          licensee control if the activity administered is no greater than the activity in Column 1 of Table 1. The
+          activities in Table 1 are based on a total effective dose equivalent of 5 millisieverts (0.5 rem) to an
+          individual using conservative assumptions of (1) administered activity, (2) physical half-life,
+          (3) occupancy factor of 0.25 at 1 meter for physical half-lives greater than 1 day, and, for conservatism,
+          an occupancy factor of 1 at 1 meter for physical half-lives less than or equal to 1 day, and (4) no shielding
+          by tissue. The total effective dose equivalent is approximately equal to external dose because the internal
+          dose is a small fraction of the external dose (see Section B.3, “Internal Dose,” of Appendix B). In this
+          case, no record of the release of the patient is required unless the patient is breast-feeding an infant or
+          child as discussed in Regulatory Position 3.2, “Records of Instructions for Breast-Feeding Patients.” The
+          licensee may demonstrate compliance by using the records of activity that are already required by 10 CFR
+          35.32 and 35.53.                                                          
+               If the activity administered exceeds the activity in Column 1 of Table 1, the licensee may release
+          the patient when the activity has decayed to the activity in Column 1 of Table 1. In this case, a record is
+          required by 10 CFR 35.75(c) because the patient’s release is based on the retained activity rather than the
+          administered activity. The activities in Column 1 of Table 1 were calculated using either Equation 2 or 3,
+          depending on the physical half-life of the radionuclide.                  
+                                                                                    
+               If a radionuclide not listed in Table 1 is administered, the licensee can demonstrate compliance
+          with the regulation by maintaining, for NRC inspection, a calculation of the release activity that
+          corresponds to the dose limit of 5 millisieverts (0.5 rem). Equation 2 or 3 may be used, as appropriate, to
+          calculate the activity Q corresponding to 5 millisieverts (0.5 rem).      
+                                                                                    
+               The release activities in Column 1 of Table 1 do not include consideration of the dose to a breast-
+          feeding infant or child from ingestion of radiopharmaceuticals contained in a patient’s breast milk. When
+          the patient is breast-feeding an infant or child, the activities in Column 1 of Table 1 are not applicable to
+          the infant or child. In this case, it may be necessary to give instructions as described in Regulatory
+          Positions 2.2 and 2.3 as a condition for release. If failure to interrupt or discontinue could result in a dose
+          to the breast-feeding infant or child in excess of 5 millisieverts (0.5 rem), a record that instructions were
+          provided is required by 10 CFR 35.75(d).                                  
+                                                                                    
+          1.2  Release of Patients Based on Measured Dose Rate                      
+               Licensees may release patients to whom radionuclides have been administered in amounts greater
+          than the activities listed in Column 1 of Table 1 provided the measured dose rate at I meter (from the
+          surface of the patient) is no greater than the value in Column 2 of Table 1 for that radionuclide. In this
+          case, however, 10 CFR 35.75(c) requires a record because the release is based on considering shielding
+          by tissue.                                                                
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                     RG-8.39, Page 4                                
+                                                                                    
+                                                                                    

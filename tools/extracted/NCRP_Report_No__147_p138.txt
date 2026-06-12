@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    128 / APPENDIX B                                                
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      Fig. B.2. Primary broad-beam transmission through lead calculated
+                    for the clinical workload distributions in Table 4.2.           
+                                                                                    
+                                                                                    
+                                                                                    
+                    A barrier of thickness x will reduce the primary air kerma      
+                                    barrier                                         
+                    [K (x )] at d to the shielding design goal adjusted for the occu-
+                     P  barrier P                                                   
+                    pancy factor (i.e., P/T). Thus:                                 
+                                            2                                       
+                                          Pd                                        
+                                 Β(x  ) = -------------P----------. (B.8)           
+                                  P barrier Κ                                       
+                                          P                                         
+                                          1 U T N                                   
+                      The shielding task is then to find the barrier whose thickness
+                    x   satisfies Equation B.8. This may be achieved graphically    
+                     barrier                                                        
+                    using the transmission curves in Figures B.2 through B.6. Equiva-
+                    lently, the acceptable primary barrier thickness can be calculated
+                    in closed form by substituting the transmission from Equation B.8
+                    into Equation A.3. Thus:                                        
+                                                                                    
+                                                                                    
+                                                                                    

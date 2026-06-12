@@ -1,0 +1,62 @@
+{
+  "_comment": "Workload defaults: number of patients N (per week), workload per patient Wnorm, and unshielded PRIMARY air kerma per patient (NCRP 147). Also Saudi SFDA national DRL values for KSA-specific CT/X-ray/mammo defaults. All values editable - users should enter their own facility's patient load and technique where known.",
+
+  "diagnostic": {
+    "ref": "NCRP147",
+    "primary_kerma_per_patient": {
+      "_comment": "NCRP 147 Table 4.5: unshielded PRIMARY air kerma K1_P (mGy per patient at 1 m, normalized to d_P = 1 m) and Wnorm (mA*min/patient). Only distributions whose primary beam strikes a barrier are listed; others contribute secondary radiation only.",
+      "table": "Table 4.5 (PDF p.53)",
+      "rad_room_chest_bucky": {"wnorm_mA_min": 0.60, "K1_P_mGy_per_patient": 2.3},
+      "rad_room_floor_other": {"wnorm_mA_min": 1.9, "K1_P_mGy_per_patient": 5.2},
+      "rad_tube_rf":          {"wnorm_mA_min": 1.5, "K1_P_mGy_per_patient": 5.9},
+      "chest_room":           {"wnorm_mA_min": 0.22, "K1_P_mGy_per_patient": 1.2}
+    },
+    "patients_per_week": {
+      "_comment": "NCRP 147 Table 4.3 typical patient numbers N (per week) - EDITABLE defaults for 'average' and 'busy' facilities. Enter your facility's actual patient load for accurate workload. Values approximate; confirm against your site.",
+      "table": "Table 4.3 (PDF p.50)",
+      "needs_verification": true,
+      "radiographic_room": {"average": 112, "busy": 160},
+      "chest_room":        {"average": 200, "busy": 400},
+      "rf_room":           {"average": 20,  "busy": 30},
+      "mammography":       {"average": 80,  "busy": 160},
+      "cardiac_angio":     {"average": 20,  "busy": 30},
+      "peripheral_angio":  {"average": 20,  "busy": 30}
+    }
+  },
+
+  "saudi_ndrl": {
+    "_comment": "Saudi SFDA National Diagnostic Reference Levels (MDS-G-008-V2, 2022, Annex 2). Use these CTDIvol/DLP/DAP/MGD values as KSA-specific per-examination defaults for workload/scatter calculations.",
+    "ref": "SFDA_NDRL",
+    "ct_adult_20_70kg": {
+      "head_brain":          {"CTDIvol_mGy": 55, "DLP_mGy_cm": 1026},
+      "abdomen_pelvis":      {"CTDIvol_mGy": 14, "DLP_mGy_cm": 706},
+      "chest":               {"CTDIvol_mGy": 12, "DLP_mGy_cm": 430}
+    },
+    "ct_pediatric_head": {
+      "age_0_5y":  {"CTDIvol_mGy": 28, "DLP_mGy_cm": 482},
+      "age_6_15y": {"CTDIvol_mGy": 42, "DLP_mGy_cm": 697}
+    },
+    "general_xray_DAP_Gy_cm2": {
+      "abdomen_ap": 2.13,
+      "chest_pa_ap": 0.49
+    },
+    "mammography_MGD_mGy": {
+      "2D_CC_40_50mm": 1.44
+    }
+  },
+
+  "linac": {
+    "_comment": "Megavoltage workload W (Gy at isocentre per week) - EDITABLE. SRS 47 worked example used W = 384 Gy/week (high-throughput). Typical conventional LINAC ~ 250-1000 Gy/week at isocentre; IMRT inflates monitor units (apply IMRT factor on leakage).",
+    "ref": ["SRS47", "NCRP151"],
+    "default_W_Gy_per_week": 450,
+    "imrt_factor_default": 3.0,
+    "imrt_factor_note": "NCRP 151 IMRT factor C_I (ratio of MU delivered to MU at isocentre); applied to LEAKAGE workload. Typical 2-5 depending on technique.",
+    "use_factors_primary_default": {
+      "_comment": "NCRP 151 typical use factors U (fraction of beam-on time the primary beam points at a given barrier). Editable.",
+      "floor": 0.31, "wall_each": 0.213, "ceiling": 0.263,
+      "ref": "NCRP151"
+    },
+    "sad_m": 1.0,
+    "sad_note": "Source-axis distance, typically 1.0 m (SRS 47 example used 0.8 m for the Co-60 unit)."
+  }
+}

@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                      6. WORKED EXAMPLES  OF EXTERNAL  BEAM                       
+                                    FACILITIES                                    
+                                                                                  
+                                                                                  
+                                                                                  
+                  6.1. 60Co BEAM FACILITY                                         
+                                                                                  
+                     This example is based on a case published in Ref. [36]. Figure 10 shows
+                  the elevation and plan views of a 60Co radiation therapy vault. Note that the use
+                  of a maze allows for a 6.5 mm lead-lined door instead of a much heavier direct
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                        (a)                                                       
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                        (b)                                                       
+                                  B                                               
+                                              A                                   
+                                              1                                   
+                                                                                  
+                                        d     d                                   
+                                        1      2                                  
+                                                                                  
+                        C                                                         
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                  A                                               
+                                                                                  
+                    FIG. 10. Schematic layout of a 60Co room showing (a) elevation and (b) plan.
+                                                                                  
+                                                                                  
+                  50                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

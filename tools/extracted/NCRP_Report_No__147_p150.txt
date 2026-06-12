@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    140 / APPENDIX C                                                
+                                                                                    
+                    (Simpkin, 1996a), with total workload per patient (W ) equal to 
+                                                      norm                          
+                    the average workload per patient reported by the survey. The    
+                    unshielded secondary air kerma is seen to be due almost exclu-  
+                    sively to scattered radiation. It is, however, anticipated that beam
+                    hardening in the barrier will substantially increase the contribu-
+                    tion of leakage radiation to the air kerma in the shielded area, so it
+                    is prudent to not ignore leakage radiation in a shielding calculation.
+                      The ratio of the secondary air kerma behind a barrier of thick-
+                    ness x to the unshielded secondary air kerma, defines the second-
+                    ary transmission B (x):                                         
+                                sec                                                 
+                                        K (x)                                       
+                                   B (x) = -----s--e--c--------. (C.11)             
+                                   sec  K (0)                                       
+                                         sec                                        
+                      Figures C.2 through C.7 show the transmission of secondary    
+                    radiation through lead, concrete, gypsum wallboard, steel, plate
+                    glass, and wood for the surveyed clinical workload distributions
+                    inTable 4.2.14 The fitting parameters of the transmission curves in
+                    Figures C.2 through C.7 to Equation A.2 are given in Table C.1. 
+                    These curves assume 90 degree scattered radiation, that the trans-
+                    mission of scattered radiation matches that of the primary beam,
+                    and that distance d = d . Note that the choice of 90 degree scat-
+                                 S  L                                               
+                    tered radiation is conservatively safe, in that, the scatter fraction
+                    at 90 degrees is relatively small leading to a smaller scattered radi-
+                    ation contribution to the secondary air kerma. The secondary    
+                    transmission will be greater with the low value of the scattered
+                    radiation fraction, since the more penetrating leakage radiation
+                    will have a greater contribution to the secondary air kerma. At low
+                    (<100 kVp) operating potentials, the leakage radiation contribution
+                    through the tube housing is negligible so that the secondary trans-
+                    mission is little different from the primary transmission. At higher
+                    potentials, the increased penetration of leakage radiation makes
+                    the secondary transmission exceed the primary. This is most     
+                    pronounced for lead and steel. For 100 kVp x rays, the secondary
+                    transmission through a typical 1.58 mm (1/16 inch) lead barrier 
+                    exceeds the primary transmission by 50 percent.                 
+                      Given knowledge of the secondary air kerma per patient (or    
+                    known workload per patient W ) and the secondary transmis-      
+                                        norm                                        
+                    sion, a simple shielding protocol for secondary radiations may be
+                    developed. The unshielded secondary air kerma at 1 m for N      
+                    patients (or equivalently, total workload per week W ) is:      
+                                                     tot                            
+                      14The data given in Figures C.2 through C.7 for Peripheral Angiogra-
+                    phy also apply to Neuroangiography.                             
+                                                                                    

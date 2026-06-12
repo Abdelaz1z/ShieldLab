@@ -1,0 +1,81 @@
+{
+  "_comment": "Regulatory frameworks, design goals/constraints and occupancy factors. All values editable; every entry cites references.json. The UI lets the user pick a framework, then shows and allows overriding the design goal P.",
+
+  "frameworks": {
+    "NCRP": {
+      "name": "NCRP design goals (weekly air kerma)",
+      "description": "Shielding design goals P expressed as air kerma at the reference point (0.3 m beyond the barrier), per NCRP Report 147 Section 1.4 and NCRP Report 151. Controlled areas: occupationally exposed workers; uncontrolled: public and non-radiation workers.",
+      "quantity_diagnostic": "air kerma (mGy)",
+      "quantity_megavoltage": "dose equivalent (mSv)",
+      "controlled": {
+        "P_weekly": 0.1,
+        "P_annual": 5.0,
+        "unit_weekly": "mGy/week",
+        "unit_annual": "mGy/year",
+        "ref": "NCRP147",
+        "note": "Fraction of the 50 mSv/y occupational limit; consistent with cumulative-dose guidance (10 mSv x age)."
+      },
+      "uncontrolled": {
+        "P_weekly": 0.02,
+        "P_annual": 1.0,
+        "unit_weekly": "mGy/week",
+        "unit_annual": "mGy/year",
+        "ref": "NCRP147"
+      },
+      "reference_point_offset_m": 0.3,
+      "reference_point_ref": "NCRP147"
+    },
+    "IAEA_NRRC": {
+      "name": "IAEA GSR Part 3 / Saudi NRRC-R-01 (annual dose constraints)",
+      "description": "Annual dose limits from IAEA GSR Part 3 Schedule III as adopted in Saudi Arabia by NRRC-R-01 (2022) Section 10. Design uses a dose CONSTRAINT below the limit (NRRC-R-01 clause 20 requires practice-specific constraints but sets no generic number, so the recommended international values below are defaults the user may edit).",
+      "dose_limits": {
+        "occupational_effective_mSv_per_y": 20,
+        "occupational_averaging": "averaged over 5 consecutive years (100 mSv in 5 y), max 50 mSv in any single year",
+        "occupational_lens_mSv_per_y": 20,
+        "occupational_skin_extremities_mSv_per_y": 500,
+        "apprentices_16_18_effective_mSv_per_y": 6,
+        "pregnant_worker_embryo_mSv": 1,
+        "public_effective_mSv_per_y": 1,
+        "public_lens_mSv_per_y": 15,
+        "public_skin_mSv_per_y": 50,
+        "ref": ["NRRC_R01", "GSR_PART3"],
+        "nrrc_clauses": "NRRC-R-01 Section 10 clauses 22-24 (document pages 45-47)"
+      },
+      "design_constraints_default": {
+        "controlled_mSv_per_y": 6.0,
+        "controlled_note": "3/10 of the occupational limit - common international practice for designing controlled areas (IAEA SRS 47 Section 2; also used in pre-2004 IAEA BSS-115 methodology).",
+        "uncontrolled_mSv_per_y": 0.3,
+        "uncontrolled_note": "0.3 mSv/y public dose constraint per source/practice - value used by European codes (RPII 09/01) and consistent with IAEA guidance that a single source should not consume the whole 1 mSv/y public limit.",
+        "weeks_per_year": 50,
+        "ref": ["SRS47", "RPII09", "NRRC_R01"]
+      },
+      "reference_point_offset_m": 0.3,
+      "reference_point_ref": "NCRP147"
+    }
+  },
+
+  "linac_dose_rate_checks": {
+    "_comment": "Additional NCRP 151-style checks for megavoltage vaults, applied on top of the weekly/annual goal.",
+    "in_any_one_hour_uncontrolled_mSv": 0.02,
+    "description": "Time-averaged dose in any one hour (TADR-based check) for uncontrolled areas.",
+    "ref": ["NCRP151", "CFR20"]
+  },
+
+  "occupancy_factors": {
+    "_comment": "NCRP 147 Table 4.1 'Suggested occupancy factors (for use as a guide in planning shielding where other occupancy data are not available)'. Verified against the provided PDF, document page 31 (PDF page 41).",
+    "ref": "NCRP147",
+    "table": [
+      {"T": 1.0,    "fraction": "1",    "areas": "Administrative or clerical offices; laboratories, pharmacies and other work areas fully occupied by an individual; receptionist areas, attended waiting rooms, children's indoor play areas, adjacent x-ray rooms, film reading areas, nurse's stations, x-ray control rooms"},
+      {"T": 0.5,    "fraction": "1/2",  "areas": "Rooms used for patient examinations and treatments"},
+      {"T": 0.2,    "fraction": "1/5",  "areas": "Corridors, patient rooms, employee lounges, staff rest rooms"},
+      {"T": 0.125,  "fraction": "1/8",  "areas": "Corridor doors"},
+      {"T": 0.05,   "fraction": "1/20", "areas": "Public toilets, unattended vending areas, storage rooms, outdoor areas with seating, unattended waiting rooms, patient holding areas"},
+      {"T": 0.025,  "fraction": "1/40", "areas": "Outdoor areas with only transient pedestrian or vehicular traffic, unattended parking lots, vehicular drop off areas (unattended), attics, stairways, unattended elevators, janitor's closets"}
+    ],
+    "notes": [
+      "T is the fraction of beam-on time that the SINGLE most-exposed person spends in the area, not the fraction of time the area is occupied by anyone.",
+      "Controlled areas (x-ray rooms, control booths) are designed with T = 1.",
+      "When using a low T for an area immediately adjacent to the x-ray room, also check more distant fully-occupied areas - they may govern the design despite the larger distance."
+    ]
+  }
+}

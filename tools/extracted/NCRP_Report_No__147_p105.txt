@@ -1,0 +1,63 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                           5.6 COMPUTED TOMOGRAPHY / 95             
+                                                                                    
+                        Only secondary radiation (primarily scattered radiation and 
+                      some leakage radiation) is considered since the primary beam is
+                      normally attenuated to well below the scattered radiation levels by
+                      the detectors and gantry hardware. For an axial or helical scan
+                      series consisting of N total rotations, the scattered air kerma at
+                                    R                                               
+                      1m for a given phantom diameter is expected to be proportional to
+                      the line integral of the accumulated absorbed dose D(z) along the
+                      axial direction z [i.e., the dose-line integral (DLI)] (Dixon, 2003).
+                                    ∞             ∞                                 
+                               K 1 = κ∫ D(z)dz = κ DLI = κ N ∫ f(z)dz (5.1)         
+                                S                R                                  
+                                   –∞            –∞                                 
+                      where κ is a proportionality constant and f(z) is the dose profile
+                      resulting from a single axial rotation (with no phantom motion).
+                        The computed tomography dose index (CTDI ) measured with    
+                                                     100                            
+                      a single axial rotation using a 10 cm (100 mm) long ionization
+                      chamber (in units of air kerma) is defined (EC, 1999; IEC, 2002) as:
+                                            5 cm                                    
+                                          1 ∫                                       
+                                   CTDI = ----- f(z)dz        (5.2)                 
+                                      100 T                                         
+                                          b–5 cm                                    
+                      where T is the nominal beam width on the axis of rotation (for
+                            b                                                       
+                      multi-slice scanners where n slices of width T are acquired per
+                                                     n                              
+                      rotation, T = nT ).                                           
+                             b   n                                                  
+                        Thus, the scattered air kerma per patient at 1 m can be approx-
+                      imated by:                                                    
+                                 K 1 = κ DLI ≈κ N T CTDI ,    (5.3)                 
+                                  S         R b   100                               
+                      where the DLI is analogous to dose-length product (DLP), but  
+                      refers only to a single axis within the phantom, either the central
+                      axis or at the phantom periphery.                             
+                        This can be expressed in terms of the length of patient scanned
+                                                               τ                    
+                      L = N b, where b is the scan interval for axial scans and b = v is
+                          R                                                         
+                      the table advance per rotation for helical scans.             
+                                     K 1 = κ L --- CTDI ,     (5.4)                 
+                                      S   p   100                                   
+                        This methodology assumes an isotropic scattered radiation dis-
+                      tribution, rather than the “hourglass” shaped isodose distributions
+                      typically given by the CT manufacturers. In the plane of x-ray tube
+                      rotation, scattered radiation is greatly reduced due to attenuation
+                      by the gantry hardware. In fact, scattered radiation levels do not
+                      reach maximum value until an angle of about 30 degrees with this
+                      plane is reached. This will allow use of an obliquity factor (cosθ)
+                      reduction in the shielding thickness for the floor and ceiling if

@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     Fast neutrons are attenuated efficiently by materials with high hydrogen
+                  content. Concrete has a relatively high hydrogen content (water content is
+                  4–5% by weight) and the TVL of 0.34 MeV photoneutrons in concrete is about
+                  210 mm. This is about half the value of TVL in concrete for high energy X rays
+                  (10–25 MeV), which is 400–500 mm. Therefore, if the shielding is adequate for
+                  photons it will also be adequate for neutrons. However, although different
+                  densities of concrete affect the photon transmission they do not affect the
+                  transmission of neutrons so a TVL of 210 mm in concrete must be used
+                  regardless of its density. The neutron leakage specifications of all major
+                  medical linear accelerators are below 2–3 mSv per isocentre photon Gy, and
+                  the photon leakage specification used in room shielding calculations is 1 mGy
+                  per isocentre photon Gy (0.1%). Therefore, as long as the concrete shielding
+                  designed for photon leakage protection is at least one TVL, the same shielding
+                  will attenuate the neutron leakage to below the level of photon leakage.
+                     If heavy metal or high atomic number (Z) materials are used for room
+                  shielding, adequate photon shielding does not automatically imply adequate
+                  neutron shielding. If lead or iron are incorporated in all or part of the shielding,
+                  a moderator material will be necessary to capture the neutrons slowed down in
+                  the metal. Careful evaluation for neutron shielding must be performed to
+                  ensure safety. This evaluation may be complex and is outside the scope of this
+                  report. The reader should seek expert advice.                   
+                                                                                  
+                                                                                  
+                  5.7. CAPTURE GAMMA AND NEUTRON DOSES AT THE MAZE                
+                     ENTRANCE                                                     
+                                                                                  
+                     A typical linear accelerator treatment room utilizes a maze design to
+                  reduce the dose at the outer entrance so that heavy door shielding is not
+                  necessary. This is particularly important for high energy accelerators above
+                  10 MV because of scatter neutrons and the capture gamma photons generated
+                  by neutrons interacting with the maze door and the maze walls.  
+                     The dose at the outer maze entrance may be obtained by evaluating the
+                  three major components: the scatter and leakage photon dose, the capture
+                  gamma dose, and the neutron dose.                               
+                     The scatter and leakage photon dose may be estimated using methods
+                  described in Section 5.4. This is the most significant component for accelerators
+                  with energy lower than 10 MV. For higher accelerator energies the capture
+                  gamma and neutron dose components dominate as they increase rapidly with
+                  accelerator energy.                                             
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  36                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                        4.1 CONCEPTS AND TERMINOLOGY / 31           
+                                                                                    
+                       TABLE 4.1—Suggested occupancy factorsa (for use as a guide in planning
+                            shielding where other occupancy data are not available).
+                                                                                    
+                                                         Occupancy                  
+                                    Location                                        
+                                                         Factor (T)                 
+                       Administrative or clerical offices; laboratories, 1          
+                       pharmacies and other work areas fully occupied by            
+                       an individual; receptionist areas, attended waiting          
+                       rooms, children’s indoor play areas, adjacent x-ray          
+                       rooms, film reading areas, nurse’s stations, x-ray           
+                       control rooms                                                
+                       Rooms used for patient examinations and treatments 1/2       
+                       Corridors, patient rooms, employee lounges, staff rest 1/5   
+                       rooms                                                        
+                       Corridor doorsb                     1/8                      
+                       Public toilets, unattended vending areas, storage 1/20       
+                       rooms, outdoor areas with seating, unattended                
+                       waiting rooms, patient holding areas                         
+                       Outdoor areas with only transient pedestrian or 1/40         
+                       vehicular traffic, unattended parking lots, vehicular        
+                       drop off areas (unattended), attics, stairways,              
+                       unattended elevators, janitor’s closets                      
+                        aWhen using a low occupancy factor for a room immediately adjacent to an
+                       x-ray room, care should be taken to also consider the areas further removed
+                       from the x-ray room. These areas may have significantly higher occupancy fac-
+                       tors than the adjacent room and may therefore be more important in shielding
+                       design despite the larger distances involved.                
+                        bThe occupancy factor for the area just outside a corridor door can often be
+                       reasonably assumed to be lower than the occupancy factor for the corridor.
+                      more distant, fully occupied area, such as an office across the corri-
+                      dor. The qualified expert needs to therefore take a larger view of the
+                      facility in arriving at the appropriate limitations for shielding
+                      design.                                                       
+                        Radiation workers may be assumed to spend their entire work 
+                      period in controlled areas. Therefore, controlled areas such as x-ray
+                      rooms and control booths should be designed with an occupancy 
+                      factor of unity. Areas within the department or suite which are not
+                      directly related to the use of radiation should not be classified as
+                      controlled areas.                                             
+                        The interior spaces of unrelated offices or buildings adjacent to
+                      the x-ray facility that are not under the control of the administrator
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

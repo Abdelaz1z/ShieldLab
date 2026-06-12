@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    94 / 5. EXAMPLES OF SHIELDING CALCULATIONS                      
+                                                                                    
+                       3. solid-core wooden doors (e.g., American Woodwork Insti-   
+                         tute Type PC5, 43 mm thick doors) leading to corridors     
+                         outside a mammographic room may provide adequate           
+                         shielding. However, standard wooden doors may not be       
+                         sufficient if the shielded area has significant occupancy. 
+                         The adequacy of a standard thickness, solid-core wooden    
+                         door should be demonstrated by the qualified expert;       
+                       4. standard concrete construction provides adequate barriers 
+                         above and below mammographic facilities; and               
+                       5. lead-lined walls and doors are usually not required.      
+                               5.6 Computed Tomography                              
+                      Modern computed tomography (CT) scanners consist of a rotat-  
+                    ing x-ray tube that generates a fan beam of x rays collimated to a
+                    nominal width of T (centimeters) along the axis of rotation. X-ray
+                                b                                                   
+                    tube potentials of 120 to 140 kVp are typically employed and pro-
+                    duce relatively high levels of scattered radiation that may require
+                    significant shielding. During CT operation in a helical scan mode,
+                    the patient is positioned on the CT table and continuously moved
+                    along the axis of rotation with velocity v. The radiation beam traces
+                    out a helix on the surface of a cylindrical phantom (helical or spiral
+                    scanner) and the x-ray tube rotation time (τ) is on the order of 1 s
+                    or less per 360 degrees. If the patient translation per gantry rota-
+                    tion b = vτ is greater than the nominal beam width T , the pitch (p)
+                                                     b                              
+                    of the sequence (p = b/T ) is greater than unity. In a “multi-slice”
+                                    b                                               
+                    scanner, multiple detector rings along the axis of rotation may be
+                    used to collect several image sections per rotation that are thinner
+                    than the nominal collimated beam width (McCollough and Zink,    
+                    1999). For a single-slice acquisition scanner, the nominal beam 
+                    width (reconstructed slice thickness) is usually variable over the
+                    range of 1 to 10 mm. For a “multi-slice” or “multiple-row detector”11
+                    scanner, the nominal beam width may be 40 mm or more and        
+                    include n reconstructed slices. In each case, the total beam width
+                    determines the amount of scattered radiation per rotation.      
+                      The standard CT dosimetry phantoms (FDA, 2003d; Shope         
+                    etal., 1981) are assumed in this Report to reasonably represent a
+                    head and body, insofar as scattered radiation from a patient is 
+                    concerned. These phantoms are 16 and 32 cm diameter acrylic     
+                    cylinders for the head and body, respectively, with a length of 
+                    approximately 15 cm.                                            
+                      11In the literature, the reader may find multiple-row detector scan-
+                    ners identified as “MDCT” scanners.                             
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

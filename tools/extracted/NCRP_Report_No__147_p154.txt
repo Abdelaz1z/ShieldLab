@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    144 / APPENDIX C                                                
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      Fig. C.5. Transmission of secondary radiation through steel (data as
+                    in Figure C.2).                                                 
+                                                                                    
+                    The total air kerma through a barrier of thickness x [i.e., K (x)]
+                                                           tot                      
+                    from the x-ray tubes of the installation, each x-ray tube generating
+                    primary air kerma K , scattered air kerma K , and leakage       
+                                  P                S                                
+                                  tube              tube                            
+                    air kerma K from operation at potential kVp is:                 
+                            L                                                       
+                             tube                                                   
+                      K (x) = ∑ ∑ [K (x,kVp)+K (x,kVp)+K (x,kVp)]. (C.16)           
+                       tot       P       S        L                                 
+                                  tube    tube    tube                              
+                           tubes kVp                                                
+                    The task for the shielding designer is to determine the thickness
+                    x   that reduces K (x ) to P/T.                                 
+                     barrier     tot barrier                                        
+                      A simple technique is to use the methods of Appendices B and C
+                    to:                                                             
+                       1. calculate the unshielded air kermas from each x-ray tube, 
+                       2. sum the air kermas to determine the total unshielded air  
+                         kerma,                                                     
+                                                                                    
+                                                                                    
+                                                                                    

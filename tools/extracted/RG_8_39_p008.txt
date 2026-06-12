@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                 Table 2. Activities and Dose Rates Above Which Instructions Should be Given
+                               When Authorizing Patient Releasea                    
+                                                                                    
+                                                          COLUMN 2                  
+                                COLUMN 1          DOSE RATE AT 1 METER ABOVE        
+                          ACTIVITY ABOVE WHICH     WHICH INSTRUCTIONS ARE           
+                        INSTRUCTIONS ARE REQUIRED         REQUIRED                  
+           RADIONUCLIDE     (GBq)        (mCi)      (mSv/hr)     (mrem/hr)          
+           Ag-111            3.8         100          0.02          2               
+           Au-198            0.69         19          0.04          4               
+           Cr-51             0.96         26          0.004         0.4             
+           Cu-64             1.7          45          0.05          5               
+           Cu-67             2.9          77          0.04          4               
+           Ga-67             1.7          47          0.04          4               
+           I-123             1.2          33          0.05          5               
+           I-125             0.05          1          0.002         0.2             
+           I-125 implant     0.074         2          0.002         0.2             
+           I-131             0.24          7          0.02          2               
+           In-111            0.47         13          0.04          4               
+           Ir-192 implant    0.011         0.3        0.002         0.2             
+           P-32             (b)           (b)        (b)           (b)              
+           Pd-103 implant    0.3           8          0.007         0.7             
+           Re-186            5.7         150          0.03          3               
+           Re-188            5.8         160          0.04          4               
+           Sc-47             2.3          62          0.03          3               
+           Se-75             0.018         0.5        0.001         0.1             
+           Sm-153            5.2         140          0.06          6               
+           Sn-117m           0.21          6          0.009         0.9             
+           Sr-89            (b)           (b)        (b)           (b)              
+           Tc-99m            5.6         150          0.12         12               
+           Tl-201            3.1          85          0.04          4               
+           Y-90             (b)           (b)        (b)           (b)              
+           Yb-169            0.073         2          0.004         0.4             
+           a. The activity values were computed based on 1 millisievert (0.1 rein) total effective dose equivalent.
+           b. Activity and dose rate limits are not applicable in this case because of the minimal exposures to members of
+             the public resulting from activities normally administered for diagnostic or therapeutic purposes.
+           NOTES: The millicurie values were calculated using Equations 2 or 3 and the physical half-life. The
+           gigabecquerel values were calculated based on millicurie values and the conversion factor from millicuries to
+           gigabecquerels. The dose rate values were calculated based on millicurie values and exposure rate constants. In
+           general, values are rounded to two significant figures. However, values less than 0.37 gigabecquerel (10
+           millicuries) or 0.1 millisievert (10 millirems) per hour are rounded to one significant figure. Details of the
+           calculations are provided in NUREG-1492 (Ref. 2).                        
+                                                                                    
+           Although non-byproduct materials are not regulated by the NRC, information on non-byproduct material is
+           included in this regulatory guide for the convenience of the licensee.   
+           Agreement State regulations may vary. Agreement State licensees should check with their State regulations prior
+           to using these values.                                                   
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                     RG-8.39, Page 8                                
+                                                                                    
+                                                                                    

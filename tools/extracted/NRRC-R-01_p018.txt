@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  NRRC-R-01                                                       
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                Dose                                                              
+                1. A measure of the energy deposited by radiation in a target.    
+                                                                                  
+                                                                                  
+                2. Absorbed dose, committed equivalent dose, committed effective dose,
+                                                                                  
+                   effective dose, equivalent dose or organ dose, as indicated by the con-
+                   text.                                                          
+                                                                                  
+                                                                                  
+                Dose assessment                                                   
+                                                                                  
+                Assessment of the dose(s) to an individual or group of people.    
+                                                                                  
+                                                                                  
+                Dose constraint                                                   
+                                                                                  
+                A prospective and radiation source related value of individual dose that is
+                used in planned exposure situations as a parameter for the optimization
+                                                                                  
+                of protection and safety for the source, and that serves as a boundary in
+                                                                                  
+                defining the range of options in optimization.                    
+                                                                                  
+                                                                                  
+                Dose limit                                                        
+                The value of a quantity used in certain specified activities or circumstances
+                                                                                  
+                that must not be exceeded.                                        
+                                                                                  
+                                                                                  
+                Effective dose, E                                                 
+                                                                                  
+                The quantity E, defined as a summation of the tissue or organ equivalent
+                                                                                  
+                doses, each multiplied by the appropriate tissue weighting factor:
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                where  is the equivalent dose in tissue or organ T and is the tissue
+                weighting factor or tissue or organ T.                            
+                                                                                  
+                From the definition of equivalent dose, it follows that:          
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                 18                                                               
+                                                                                  
+                                                                                  
+                                                                                  

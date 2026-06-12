@@ -1,0 +1,72 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    136 / APPENDIX C                                                
+                                                                                    
+                    beams used by Trout and Kelley (1972) at 50 and 70 kVp are not  
+                    typical of x-ray systems used today, invalidating their results at
+                    these lower potentials. Dixon (1994) repeated their measurement 
+                    for 90 degree scatter over a range of operating potentials, and the
+                    results indicate a linear increase in a with kVp. The data from 
+                                             1                                      
+                    Trout and Kelley (1972) at 100, 125 and 150 kVp have been reana-
+                    lyzed (Simpkin and Dixon, 1998) for a , measured per cm2 of pri-
+                                             1                                      
+                    mary beam area at 1 m. The values for a at lower operating      
+                                                 1                                  
+                    potentials were obtained using linear extrapolation in kVp. The 
+                    scatter fraction a is broadly distributed over a range of beam sizes,
+                               1                                                    
+                    with coefficients of variation on the order of 30 percent. Figure C.1
+                    shows a scaled by 10–6 (i.e., values taken from Figure C.1 need to
+                         1                                                          
+                    be multiplied by 10–6) determined from Trout and Kelley (1972) at
+                    the mean plus one standard deviation level, as a function of scat-
+                    tering angle and operating potential. Figure C.1 also shows a for
+                                                            1                       
+                    mammographic beams measured by Simpkin (1996b).                 
+                      Consider the primary beam from an x-ray tube incident on a    
+                    patient. At 1 m primary distance, with an area of 1 cm2, this tube
+                    delivers primary air kerma Κ1 at operating potential kVp [i.e., 
+                                        P                                           
+                    Κ1 (kVp)]. By the definition of the scaled scatter fraction a , at
+                      P                                     1                       
+                    scattering angle θ, the unshielded air kerma 1 m from the center of
+                    the patient due to scattered radiation is:                      
+                             K (θ,kVp) = K 1 (kVp) a (θ,kVp)×10 –6 . (C.1)          
+                             S       P    1                                         
+                    Note that the scaled scatter fraction (a ) read from Figure C.1, has
+                                             1                                      
+                    values between 0.1 and 8.                                       
+                      At the scattered radiation distance d (meters) from the center
+                                              S                                     
+                    of the patient, the scattered air kerma is modified by d –2. As noted
+                                                       S                            
+                    above, it is assumed that the scattered air kerma scales linearly
+                    with the primary x-ray beam area. If the primary beam area size is
+                    F at primary radiation distance d (meters), then the field size at
+                                          F                                         
+                    1m primary radiation distance is F d –2. In medical x-ray imaging,
+                                            F                                       
+                    it is convenient to take F as the image-receptor area and d as the
+                                                          F                         
+                    source-to-image-receptor distance (SID). Thus, the unshielded   
+                    scattered air kerma K (θ, kVp) at the scattered radiation distance
+                                  S                                                 
+                    d from the patient is given by:                                 
+                     S                                                              
+                            K (θ,kVp) = -- K ----P- 1 --- ( -- k --- V ---- p --- ) -- -- a ---1--- ( -- θ --- , --- k --- V ---- p --- ) ---- × ---- 1 --- 0 ---- – -- 6 --- -- F ----. (C.2)
+                             S            2       2                                 
+                                          d       d                                 
+                                          S       F                                 
+                      Note that, as in Equation B.1, Κ1 (kVp) is Κ1 (kVp) W(kVp).   
+                                            P       W                               
+                    Behind a shielding barrier of thickness x having transmission   
+                    B(x,kVp), assumed identical to that of the primary beam, the scat-
+                    tered air kerma is:                                             

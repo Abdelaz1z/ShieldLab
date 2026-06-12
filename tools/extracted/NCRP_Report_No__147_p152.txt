@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    142 / APPENDIX C                                                
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      Fig. C.3. Transmission of secondary radiation through standard-
+                    weight concrete (data as in Figure C.2).                        
+                                                                                    
+                    An acceptable barrier thickness x is one that limits the trans- 
+                                         barrier                                    
+                    mitted secondary air kerma to P/T, so that:                     
+                                           2                                        
+                                 B (x ) = P --- --- d ---s--e--c----- --- (C.15)    
+                                  sec barrier T 1                                   
+                                          K  N                                      
+                                           sec                                      
+                    Using the fitting parameters to Equation A.3 in Table C.1 to    
+                    describe the secondary radiation transmission curves, the required
+                    barrier thickness may be determined algebraically.              
+                                 C.4 The General Case                               
+                      The techniques in the preceding sections provide methods for  
+                    calculating the air kerma in a shielded and unshielded occupied 
+                    area from an x-ray tube, given assumptions about the use of the 
+                    tube, room geometry, and type of occupancy. Only in the simplest
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    32 / 4. COMPUTATION OF SHIELDING REQUIREMENTS                   
+                                                                                    
+                    of the x-ray facility should normally be considered as fully occupied
+                    (T = 1), regardless of the nature of the adjacent interior area, since
+                    these areas are subject to change in function without the knowl-
+                    edge or control of the x-ray facility. This is also applicable to adja-
+                    cent space for which future occupancy is anticipated. This does not
+                    apply to the grounds of an adjacent building where fractional occu-
+                    pancy factors may be utilized.                                  
+                                                                                    
+                    4.1.4 Workload and Workload Distribution                        
+                                                                                    
+                      The workload (W) of a medical imaging x-ray tube is the time  
+                    integral of the x-ray tube current over a specified period and is con-
+                    ventionally given in units of milliampere-minutes. The most com-
+                    mon period of time in which the workload is specified is one week.
+                    However, it is also useful to define the normalized workload (W )
+                                                            norm                    
+                    as the average workload per patient. Note that W may include    
+                                                    norm                            
+                    multiple exposures depending on the type of radiographic examina-
+                    tion and clinical goal. The product of W and the average number 
+                                            norm                                    
+                    of patients per week (N) is the total workload per week (W ):   
+                                                         tot                        
+                                    W = N W .               (4.1)                   
+                                     tot  norm                                      
+                      It is important to distinguish between the number of patients 
+                    examined in a week (N) as used in this Report [on which is based
+                    the average workload per patient (W ) from the AAPM survey      
+                                            norm                                    
+                    (Simpkin, 1996a)] and the number of “examinations” performed in 
+                    a given x-ray room. An “examination” refers to a specific x-ray 
+                    procedure (as defined by a uniform billing or current procedural
+                    terminology code). A single patient may receive several such    
+                    “examinations” while in the x-ray room and that may even involve
+                    more than one image receptor (e.g., both the image receptor associ-
+                    ated with the x-ray table and the one associated with the chest 
+                    bucky). Although this may produce a notable patient-to-patient  
+                    workload variance, the average workload per patient for each room
+                    type is likely to be close to the W values of the AAPM survey.  
+                                          norm                                      
+                    The designer should be aware that workload information provided 
+                    by facility administrators stated in terms of a weekly number of
+                    “examinations” or “patient examinations” is not the proper value to
+                    use for N (and may be several times larger than N). Values of N 
+                    that may be used for various types of x-ray rooms as a guide, if the
+                    actual value of N is not available, are provided later is this Section.
+                      For a radiographic room, some patients are examined using     
+                    both the x-ray table and chest bucky, and the average workload per
+                                                                                    

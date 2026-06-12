@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     A   the cross-sectional area of the maze, is 2.0 m W × 3.0 m H to the
+                      1                                                           
+                         ceiling;                                                 
+                     d   the distance from the source to the maze centreline is 7.75 m (worst
+                      I                                                           
+                         case);                                                   
+                     d   centreline distance along the maze is 8.75 m.            
+                      m                                                           
+                     In this example the dose rate arising from leakage scattered to the maze
+                  entrance will be:                                               
+                          2.5¥60¥10-3¥(0.007¥2.0¥3.0)                             
+                     DR  =                    =1.4 mSv◊h-1                        
+                       L        (7.75¥8.75)2                                      
+                  6.2.3.4. Dose rate from head leakage transmission to the maze entrance DR
+                                                              T                   
+                     This is determined from Eq. (17), where:                     
+                                                                                  
+                     DR  is (2.5 × 60) Gy·h–1;                                    
+                       0                                                          
+                     L   the leakage is 10–3 as before;                           
+                      0                                                           
+                     B   the transmission through the secondary barrier to the maze
+                         entrance is 1.5 × 10–4;                                  
+                     d   the shortest distance from the source to the maze entrance is 6.0 m
+                      t                                                           
+                          2.5¥60¥10-3¥ ( 1.5¥10-4)                                
+                     DR  =                =0.6 mSv◊h-1                            
+                       L        (6.0)2                                            
+                     The total dose rate at the maze entrance DR will be the sum of these
+                                                 d                                
+                  components:                                                     
+                     DR = 3.6 + (0.75 × 10–3) + 1.4 + 0.6 = 5.6 mSv·h–1           
+                       d                                                          
+                  This is well below the limit of 7.5 mSv·h–1. The largest contribution arises from
+                  the radiation scattered from the patient.                       
+                                                                                  
+                  6.3. 18 MV LINEAR ACCELERATOR FACILITY                          
+                                                                                  
+                     Figure 12 shows a proposal for an 18 MV linear accelerator facility
+                  located in the USA. The design dose limits to be used are 1 mSv per year per
+                                                                                  
+                                                                                  
+                                                                                  
+                                                               65                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                        4.1 CONCEPTS AND TERMINOLOGY / 39           
+                                                                                    
+                      patients imaged in the x-ray room and correcting by the inverse
+                      square of the distance yields the unshielded air kerma in the occu-
+                      pied area. By determining the radiation transmission through a
+                      given barrier material for this specific workload distribution, the
+                      thickness of the barrier that reduces the unshielded air kerma to
+                      the desired value of P/T can be determined. This Section and infor-
+                      mation contained in the appendices contain the data necessary to
+                      perform these calculations.                                   
+                        Table 4.3 lists the typical number of patients for various types
+                      of medical x-ray imaging facilities including hospitals and clinics
+                      with different patient volume levels. These values may be     
+                      employed if more accurate information on the number of patients
+                      is not available. The qualified expert needs to keep in mind, how-
+                      ever, that the per patient values of W shown in Table 4.3 could
+                                              norm                                  
+                      change in the future or they may currently be different for the site
+                      being considered. For example, newer modalities such as digital
+                      radiography and digital mammography may use techniques that   
+                      could result in values of W different from those listed. In these
+                                        norm                                        
+                      cases, use of a modifying factor given by W /W is required,   
+                                                   site norm                        
+                      where W is the total workload per patient at the installation 
+                            site                                                    
+                      under consideration. Equation 4.1 may then be modified as follows:
+                                         W                                          
+                                     W = -------s--i-t-e---N W . (4.2)              
+                                      tot W   norm                                  
+                                          norm                                      
+                        The following discussions in this Report will utilize       
+                      Equation4.1 and the values in Table 4.3. However, adjustments to
+                      W   shall be made by the qualified expert when appropriate.   
+                        norm                                                        
+                      4.1.5 Use Factor                                              
+                        The use factor (U) is the fraction of the primary beam workload
+                      that is directed toward a given primary barrier. The value of U will
+                      depend on the type of radiation installation and the barrier of con-
+                      cern. In radiographic and R&F rooms, the equipment is arranged
+                      to allow many different beam orientations, so that different barri-
+                      ers may have different use factors. For example, the workload rep-
+                      resented by the Rad Room (chest bucky) distribution is directed
+                      entirely toward the wall-mounted chest bucky. Therefore U = 1 for
+                      the area of the wall behind that image receptor and the Rad Room
+                      (chest bucky) workload distribution contributes only secondary
+                      radiation to all other barriers in the room. These other barriers,
+                      which include the floor, door(s), and walls (except the wall on which
+                                                                                    
+                                                                                    
+                                                                                    

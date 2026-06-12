@@ -1,0 +1,33 @@
+   /   141
+C.3TOTAL SECONDARY BARRIER
+Fig. C.2. Transmission of secondary radiation through lead for the
+clinical workload distributions given in Table 4.2. This assumes 90 degree
+scattered radiation, primary beam sizes listed in Table 4.7, and leakage
+radiation technique factors of 150 kVp at 3.3 mA.
+ W
+11
+K N = K---------t-o--t--.(C.12)
+secsecW
+norm
+An inverse square correction is needed to extrapolate the
+unshielded secondary air kerma to distance d:
+sec
+K1 N
+()----s--e--c------
+K0 = .(C.13)
+sec
+2
+d
+sec
+The secondary air kerma will be attenuated in a barrier of sec-
+ondary transmission [B(x)], so that the transmitted secondary air
+sec
+kerma through the shielding barrier is:
+1
+K N
+()-----s-e--c--------()
+Kx= Bx. (C.14)
+secsec
+2
+d
+sec

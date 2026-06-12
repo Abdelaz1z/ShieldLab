@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    34 / 4. COMPUTATION OF SHIELDING REQUIREMENTS                   
+                                                                                    
+                    No. 9 (AAPM TG9). Workload distributions were determined at 14  
+                    medical institutions involving approximately 2,500 patients and 
+                    seven types of radiology installations. Values for the kVp distribu-
+                    tion of workload in 5 kVp intervals for each type of installation are
+                    reported in Table 4.2. These distributions form the basis of a theo-
+                    retical model that will be used in this Report. Figure 4.1 compares
+                    the workload distribution from the survey for the primary x-ray 
+                    beam directed at the floor of a radiographic room [i.e., Rad Room
+                    (floor or other barriers)] with the single 100 kVp “spike” that results
+                    from the assumption that all exposures are made at the same kVp.
+                      The surveyed clinical workload distributions are specific for a
+                    given type of radiological installation. They will be referred to as:
+                      (cid:127) Rad Room (all barriers) (used only for secondary barriers)
+                      (cid:127) Rad Room (chest bucky)                              
+                      (cid:127) Rad Room (floor or other barriers)                  
+                      (cid:127) Fluoroscopy Tube (R&F room)                         
+                      (cid:127) Rad Tube (R&F room)                                 
+                      (cid:127) Chest Room                                          
+                      (cid:127) Mammography Room                                    
+                      (cid:127) Cardiac Angiography                                 
+                      (cid:127) Peripheral Angiography9                             
+                                                                                    
+                    where “Rad Room” indicates a room with radiographic equipment   
+                    only, and “R&F room” refers to a room that contains both radio- 
+                    graphic and fluoroscopic equipment.                             
+                      The workload distribution designated Rad Room (all barriers)  
+                    was measured by the AAPM-TG9 survey (Simpkin, 1996a) for all    
+                    exposures made in standard radiography rooms which contained a  
+                    chest bucky and radiographic table but no fluoroscopy capability.
+                    This may be broken into the workload directed solely toward the 
+                    chest bucky and that directed toward all other barriers in the room.
+                    There is a significant difference between these two distributions;
+                    imaging is performed with the chest bucky typically using higher
+                    operating potentials (often >100 kVp) compared with radiation   
+                    fields directed toward other barriers in the room. Note that the
+                    bulk of the Rad Room (floor or other barriers) workload distribution
+                    is significantly below 100 kVp. The Rad Room (all barriers) work-
+                    load distribution describes all radiation exposures produced in the
+                    radiographic room. It is composed of the sum of Rad Room (chest 
+                      9In this Report, the workload distributions for Peripheral Angiography
+                    also apply to Neuroangiography.                                 
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

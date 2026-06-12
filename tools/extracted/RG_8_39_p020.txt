@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+               However, simple exponential excretion models do not account for (a) the time for the iodine-131
+          to be absorbed from the stomach to the blood and (b) the holdup of iodine in the urine while in the
+          bladder. Failure to account for these factors could result in an underestimate of the dose to another
+          individual. Therefore, this guide makes a conservative approximation to account for these factors by
+          assuming that, during the first 8 hours after the administration, about 80 percent of the iodine-131
+          administered is removed from the body at a rate determined only by the physical half-life of iodine-131.
+               Thus, an equation to calculate the dose from a patient administered iodine-131 may have three
+          components. The first component is the dose for the first 8 hours (0.33 day) after administration. This
+          component comes directly from Equation B-1 using the physical half-life and a factor of 80 percent. The
+          second component is the dose from the extrathyroidal component from 8 hours to total decay. In this
+          component, the first exponential factor represents the activity at t = 8 hours based on the physical half-life
+          of iodine-131. The second exponential factor represents the activity from t = 8 hours to total decay based
+          on the effective half-life of the extrathyroidal component. The third component, the dose from the
+          thyroidal component for 8 hours to total decay, is calculated in the same manner as the second
+          component. The full equation is shown as Equation B-5.                    
+                                                                                    
+                                       {                }                           
+                            D(∞)= 34.6ΓQ 0 E T (0.8)(1−e −0.693(0.33)/T p)          
+                                 (100cm)2 1 p                                       
+                                +e −0.693(0.33)/T p E F T +e −0.693(0.33)/T pE F T (Equation B-5)
+                                          2 1 1eff      2 2 2eff                    
+               F   = Extrathyroidal uptake fraction                                 
+                1                                                                   
+               F   = Thyroidal uptake fraction                                      
+                2                                                                   
+               E   = Occupancy factor for the first 8 hours                         
+                l                                                                   
+               E   = Occupancy factor from 8 hours to total decay.                  
+                2                                                                   
+               All the other parameters are as defined in Equations B-1, B-3, and B-4. Acceptable values for F ,
+                                                                         1          
+          T , F , and T are shown in Table B-1 for thyroid ablation and treatment of thyroid remnants after
+           1eff 2  2eff                                                             
+          surgical removal of the thyroid for thyroid cancer. If these values have been measured for a specific
+          individual, the measured values may be used.                              
+               The record of the patient’s release required by 10 CFR 35.75(c) is described in Regulatory
+          Position 3.1 of this guide.                                               
+               Example 2, Thyroid Cancer: Calculate the maximum likely dose to an individual exposed to a
+          patient who has been administered 7,400 megabecquerels (200 millicuries) of iodine-131 for the treatment
+          of thyroid remnants and metastases.                                       
+               Solution: In this example, we will calculate the dose by using Equation B-5 to account for the
+          elimination of iodine-131 from the body, based on the effective half-lives appropriate for thyroid cancer.
+          The physical half-life and the exposure rate constant are from Table A-1. The uptake fractions and
+          effective half-lives are from Table B-1. An occupancy factor, E, of 0.75 at 1 meter will be used for the
+          first component because the time period under consideration is less than 1 day. However, for the second
+          and third components, an occupancy factor of 0.25 will be used because (1) the effective half-life
+          associated with the dominant component is greater than 1 day and (2) patient-specific questions were
+          provided to the patient to justify the occupancy factor (see Section B.1.2, “Occupancy Factors To
+          Consider for Patient-Specific Calculations,” of this Appendix B).         
+                                                                                    
+                                                                                    
+                                Appendix B to RG-8.39, Page B-4                     
+                                                                                    
+                                                                                    

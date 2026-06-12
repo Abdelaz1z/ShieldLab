@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                    APPENDIX   B                                    
+                                                                                    
+                      PROCEDURES    FOR  CALCULATING    DOSES                       
+                       BASED  ON PATIENT-SPECIFIC   FACTORS                         
+                                                                                    
+               A licensee may release a patient who has been administered an activity higher than the values
+          listed in Column 1 of Table 1 of this regulatory guide if dose calculations using patient-specific
+          parameters, which are less conservative than the conservative assumptions, show that the potential total
+          effective dose equivalent to any individual would be no greater than 5 millisieverts (0.5 rem).
+                                                                                    
+               If the release of a patient is based on a patient-specific calculation that considered retained
+          activity, an occupancy factor less than 0.25 at 1 meter, effective half-life, or shielding by tissue, a record
+          of the basis of the release is required by 10 CFR 35.75(c).               
+                                                                                    
+               The following equation can be used to calculate doses:               
+                                                                                    
+                                    34.6 Γ Q TE (1−e −0.693t/Tp)                    
+                               D(t)=     0                       (Equation B-1)     
+                                            r2                                      
+          Where D(t) = Accumulated dose to time t, in rems                          
+                                                                                    
+               34.6 = Conversion factor of 24 hrs/day times the total integration of decay (1.44)
+                                                                                    
+               F   = Exposure rate constant for a point source, R/mCi × hr at 1 cm  
+                                                                                    
+               Q   = Initial activity at the start of the time interval             
+                0                                                                   
+               T   = Physical half-life in days                                     
+                p                                                                   
+               E   = Occupancy factor that accounts for different occupancy times and distances when an
+                    individual is around a patient                                  
+                                                                                    
+               r   = Distance in centimeters. This value is typically 100 cm        
+                                                                                    
+               t   = exposure time in days                                          
+          B-1. Occupancy Factor                                                     
+                                                                                    
+          B-1.1 Rationale for Occupancy Factors Used To Derive Table 1              
+                                                                                    
+               In Table 1 in Regulatory Guide 8.39, the activities at which patients could be released were
+          calculated using the physical half-life of the radionuclide and an occupancy factor at 1 meter of either
+          0.25 (if the radionuclide has a half-life longer than 1 day) or 1.0 (if the radionuclide has a half-life less
+          than or equal to 1 day). The basis for the occupancy factor of 0.25 at 1 meter is that measurements of
+          doses to family members as well as considerations of normal human behavior (as discussed in the
+          supporting regulatory analysis (Ref. B-1)) suggest that an occupancy factor of 0.25 at 1 meter, when used
+          in combination with the physical half-life, will produce a generally conservative estimate of the dose to
+          family members when instructions on minimizing doses to others are given. 
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                Appendix B to RG-8.39, Page B-1                     
+                                                                                    
+                                                                                    

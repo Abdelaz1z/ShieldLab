@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     A   the cross-sectional area of the maze, is 3.0 m H × 2.0 m W (the
+                      2                                                           
+                         ceiling height is reduced in the maze to reduce the scattered
+                         radiation at the maze entrance);                         
+                     d   the distance from the source to patient, is 1 m;         
+                      sca                                                         
+                     d   the mean distance to the wall (CD), is 4 m;              
+                      1                                                           
+                     d   the distance to the maze entrance, is 7.2 m              
+                      2                                                           
+                          2.5¥ 60 ¥ (0.0006 ¥ 1) ¥ (0.022 ¥ 3.3¥ 3.5) ¥ (0.022 ¥ 2.0 ¥ 3.0)
+                     DR =                                                         
+                       p                 (1¥ 4 ¥ 7..2)2                           
+                        =3.6 mSv◊h-1                                              
+                  6.2.3.2. Dose rate arising from the primary beam DR             
+                                                 w                                
+                     The transmission of the primary beam into the maze through the maze
+                  wall must be accounted for using Eq. (15), where:               
+                     DR  the IDR is (2.5 × 60 × 106) mGy·h–1;                     
+                       0                                                          
+                     B   the transmission of the primary beam through the maze barrier is
+                      pr                                                          
+                         1.8 × 10–6;                                              
+                     α   the reflection coefficient for the 75° scatter from the attenuated
+                      P                                                           
+                         primary beam striking the outer maze wall is 0.0003 (Table 7);
+                     A   the projection of the maximum field size on the far side of the maze
+                      P                                                           
+                         wall is 4.0 m wide and the height is limited by the height of the
+                         room 3.0 m;                                              
+                     d   the distance from the source to the outer maze wall is 8.0 m;
+                      P                                                           
+                     d"  the distance from the centre of area A to the maze entrance is 4.5 m.
+                                               p                                  
+                           2.5¥60¥1.8¥10-6(0.0003¥4.0¥3.0)                        
+                     DR  =                       =0.75¥10-3mSv◊hh-1               
+                       wT          (8¥4.5)2                                       
+                  6.2.3.3. Dose rate of head leakage scattered to the maze entrance DR
+                                                          L                       
+                     The contribution of scattered head leakage radiation is determined from
+                  Eq. (16), where:                                                
+                     DR  the dose rate at the isocentre is (2.5 × 60 × 106) mGy·h–1;
+                       0                                                          
+                     L   leakage at 1.0 m is 10–3 (0.1%);                         
+                      0                                                           
+                     α   the reflection coefficient at the concrete wall for 6 MV X rays is
+                      1                                                           
+                         0.007;                                                   
+                  64                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

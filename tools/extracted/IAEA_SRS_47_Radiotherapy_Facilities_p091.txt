@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                             1.2m                                                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                         9m                                                       
+                                                                                  
+                                                                                  
+                                                                                  
+                                     7.8m                                         
+                                                                                  
+                                                                                  
+                             1.2m                                                 
+                                                                                  
+                                                                                  
+                                                                                  
+                               FIG. 14. Treatment room dimensions.                
+                                                                                  
+                                                                                  
+                                                                                  
+                         1.22¥1012 5.4¥1.22¥1012 1.26¥1.22¥1012                   
+                     j =       +          +                                       
+                      A  4p ¥6.42  2p ¥236    2p ¥2336                            
+                       = 7.85×109 neutrons·m–2                                    
+                     The capture gamma dose at the maze door is, from Eq. (24):   
+                                                                                  
+                     D =5.7¥10-16 ¥7.85¥109 ¥10-(8.5/6.2) =1.9 × 10–7 Gy/isocentre Gy
+                      j                                                           
+                     The weekly dose at the maze door D is, from Eq. (25):        
+                                           c                                      
+                     D = 600 × 1.9 × 10–7 = 1.14 × 10–4 Sv·week–1                 
+                      c                                                           
+                  6.3.3.3. Example 11: Neutron dose at the maze door              
+                                                                                  
+                     To determine the neutron dose at the maze entrance for the treatment
+                  room described in Example 10, the area of the inner maze opening A, and the
+                                                           r                      
+                  cross-sectional area of the maze S , as shown in Fig. 12, are needed. The values
+                                      1                                           
+                  for this room are:                                              
+                                                               77                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

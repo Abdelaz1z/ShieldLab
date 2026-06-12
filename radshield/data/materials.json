@@ -1,0 +1,85 @@
+{
+  "_comment": "Material library. 'density_kg_m3' is used for weight/equivalent-thickness calculations. 'mu_rho' is the NIST mass attenuation coefficient (cm^2/g) on the 'energy_MeV' grid, used by the GENERIC mono-energetic engine (B = buildup * exp(-(mu/rho)*rho*x)) for arbitrary materials and energies. Materials without a mu_rho grid still work with the modality-specific Archer/TVL data. Users may add materials or paste their own mu/rho grid. Sources: XCOM, HUBBELL (NIST).",
+  "_mu_rho_units": "cm^2/g",
+  "_energy_units": "MeV",
+  "_thickness_units": "mm (engine converts using density)",
+
+  "energy_grid_MeV": [0.01, 0.015, 0.02, 0.03, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 1.0, 1.25, 1.5, 2.0, 3.0, 5.0, 10.0],
+
+  "materials": {
+    "lead": {
+      "label": "Lead (Pb)",
+      "density_kg_m3": 11350,
+      "density_ref": "NCRP147 / standard (11.35 g/cm3)",
+      "mu_rho_ref": "HUBBELL (NIST, Z=82)",
+      "mu_rho": [130.6, 111.6, 86.36, 30.32, 8.041, 5.021, 2.419, 5.549, 2.014, 0.9985, 0.4031, 0.1614, 0.07102, 0.05876, 0.05222, 0.04606, 0.04234, 0.04272, 0.04972]
+    },
+    "concrete": {
+      "label": "Ordinary (Portland) concrete",
+      "density_kg_m3": 2350,
+      "density_ref": "SRS47 (2350 kg/m3); NCRP147 uses 2350; varies 2250-2450",
+      "mu_rho_ref": "HUBBELL (NIST, ordinary concrete)",
+      "mu_rho": [20.45, 6.351, 2.806, 0.9601, 0.3412, 0.2660, 0.2014, 0.1738, 0.1436, 0.1282, 0.1097, 0.08915, 0.06495, 0.05807, 0.05288, 0.04557, 0.03701, 0.02908, 0.02278]
+    },
+    "barite_concrete": {
+      "label": "Barite (barytes) heavy concrete",
+      "density_kg_m3": 3450,
+      "density_ref": "SRS47 (3400-3500 kg/m3)",
+      "mu_rho_ref": "Approximate - use density scaling of ordinary concrete or supply XCOM grid for exact barite composition.",
+      "mu_rho": null,
+      "note": "High-density concrete for compact vaults; for exact mu/rho enter a barite-specific XCOM grid. Density scaling of TVL: TVL_barite ~ TVL_concrete * (2350/3450) as a first approximation for the photon-dominant regime."
+    },
+    "steel": {
+      "label": "Steel / iron (Fe)",
+      "density_kg_m3": 7800,
+      "density_ref": "SRS47 (7800 kg/m3)",
+      "mu_rho_ref": "HUBBELL (NIST, Z=26 iron)",
+      "mu_rho": [170.6, 57.08, 25.68, 8.176, 1.958, 1.205, 0.5952, 0.3717, 0.1964, 0.1460, 0.1099, 0.08414, 0.05995, 0.05350, 0.04883, 0.04265, 0.03621, 0.03146, 0.02994]
+    },
+    "gypsum": {
+      "label": "Gypsum wallboard (CaSO4*2H2O)",
+      "density_kg_m3": 800,
+      "density_ref": "NCRP147 (gypsum wallboard ~0.8 g/cm3 board; solid gypsum ~2.32)",
+      "mu_rho_ref": "Use NCRP147 Archer fit (archer_diagnostic.json) for diagnostic; generic mu/rho not stored.",
+      "mu_rho": null,
+      "note": "Diagnostic transmission handled by the Archer fit. Wallboard density varies; verify the board areal density for your product."
+    },
+    "plate_glass": {
+      "label": "Plate glass (soda-lime)",
+      "density_kg_m3": 2500,
+      "density_ref": "NCRP147 (plate glass ~2.5 g/cm3)",
+      "mu_rho_ref": "Use NCRP147 Archer fit for diagnostic; generic mu/rho not stored.",
+      "mu_rho": null
+    },
+    "lead_glass": {
+      "label": "Lead glass (leaded viewing window)",
+      "density_kg_m3": 5200,
+      "density_ref": "Typical 4.8-6.2 g/cm3 depending on PbO content; verify product spec (lead-equivalence usually quoted in mm Pb).",
+      "mu_rho_ref": "Manufacturer lead-equivalence preferred; or supply XCOM grid.",
+      "mu_rho": null,
+      "note": "Lead-glass windows are normally specified by lead equivalence (mm Pb) at a stated kVp - enter that directly as a lead layer for design."
+    },
+    "wood": {
+      "label": "Wood (soft)",
+      "density_kg_m3": 560,
+      "density_ref": "NCRP147 (wood, fitting basis); varies 0.4-0.8 g/cm3",
+      "mu_rho_ref": "Use NCRP147 Archer fit for diagnostic; generic mu/rho not stored.",
+      "mu_rho": null
+    },
+    "brick": {
+      "label": "Brick (clay, solid)",
+      "density_kg_m3": 1800,
+      "density_ref": "Typical solid clay brick 1.6-2.0 g/cm3",
+      "mu_rho_ref": "Approximate by ordinary concrete mu/rho (similar effective Z) or supply XCOM grid.",
+      "mu_rho": null,
+      "note": "For screening, brick is often approximated using concrete mu/rho scaled by density. Verify mortar/void fraction for a real wall."
+    },
+    "water": {
+      "label": "Water (tissue-equivalent reference)",
+      "density_kg_m3": 1000,
+      "density_ref": "1.0 g/cm3",
+      "mu_rho_ref": "HUBBELL (NIST, water)",
+      "mu_rho": [5.329, 1.673, 0.8096, 0.3756, 0.2269, 0.2059, 0.1837, 0.1707, 0.1505, 0.1370, 0.1186, 0.09687, 0.07072, 0.06323, 0.05754, 0.04942, 0.03969, 0.03031, 0.02219]
+    }
+  }
+}

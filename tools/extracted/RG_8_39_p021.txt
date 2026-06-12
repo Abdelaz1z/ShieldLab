@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                Table B-1. Uptake Fractions and Effective Half-Lives for Iodine-131 Treatments
+                                                                                    
+                           Extrathyroidal Component    Thyroidal Component          
+                                                                                    
+                        Uptake Fraction Effective Half-Life Uptake Fraction Effective Half-Life
+          Medical Condition  F1        T  (day)       F2        T  (day)            
+                                        1eff                     2eff               
+          Hyperthyroidism   0.20a        0.32b        0.80a       5.2a              
+          Postthyroidectomy 0.95c        0.32b        0.05c       7.3b              
+          for Thyroid Cancer                                                        
+          a. M. G. Stabin et al., “Radiation Dosimetry for the Adult Female and Fetus from Iodine-131 Administration in
+             Hyperthyroidism,” Journal of Nuclear Medicine, Volume 32, Number 5, May 1991. The thyroid uptake
+             fraction of 0.80 was selected as one that is seldom exceeded by the data shown in Figure 1 in this referenced
+             document. The effective half-life of 5.2 days for the thyroidal component was derived from a biological half-
+             life of 15 days, which was obtained from a straight-line fit that accounts for about 75 percent of the data
+             points shown in Figure 1 of this Journal of Nuclear Medicine document. 
+          b. International Commission on Radiological Protection (ICRP), “Radiation Dose to Patients from
+             Radiopharmaceuticals,” ICRP Publication No. 53, March 1987. (Available for sale from Pergamon Press,
+             Inc., Elmsford, NY 10523.) The data in this ICRP document suggest that the extrathyroidal component
+             effective half-life in normal subjects is about 0.32 days. Lacking other data, this value is applied to
+             hyperthyroid and thyroid cancer patients. For thyroid cancer, the thyroidal component effective half-life of
+             7.3 days is based on a biological half-life of 80 days (adult thyroid) as suggested in this ICRP document.
+          c. The thyroidal uptake fraction of 0.05 was recommended by Dr. M. Pollycove, M.D., NRC medical visiting
+             fellow, as an upper limit postthyroidectomy for thyroid cancer.        
+                                                                                    
+               Substituting the appropriate values into Equation B-5, the dose to total decay is
+                                                                                    
+                                      {                     }                       
+                             34.6(2.2)(200)                                         
+                        D(∞)=          (0.75)(8.04)(0.8)(1−e −0.693(0.33)/8.04)     
+                              (100cm)2                                              
+                            +e −0.693(0.33)/8.04(0.25)(0.95)(0.32)                  
+                            +e −0.693(0.33)/8.04(0.25)(0.05)(7.3)                   
+                        D(∞) = 4.53 millisieverts (0.453 rem)                       
+               Therefore, thyroid cancer patients administered 7,400 megabecquerels (200 millicuries) of
+          iodine-131 or less would not have to remain under licensee control and could be released under
+          10 CFR 35.75, assuming that the foregoing assumptions can be justified for the individual patient’s case
+          and that the patient is given instructions. Patients administered somewhat larger activities could also be
+          released immediately if the dose is not greater than 5 millisieverts (0.5 rem).
+                                                                                    
+               In the example above, the thyroidal fraction, F = 0.05, is a conservative assumption for persons
+                                           2                                        
+          who have had surgery to remove thyroidal tissue. If F has been measured for a specific patient, the
+                                           2                                        
+          measured value may be used.                                               
+               Example 3, Hyperthyroidism: Calculate the maximum likely dose to an individual exposed to a
+          patient who has been administered 2,035 megabecquerels (55 millicuries) of iodine-131 for the treatment
+          of hyperthyroidism (i.e., thyroid ablation).                              
+                                                                                    
+                                                                                    
+                                                                                    
+                                Appendix B to RG-8.39, Page B-5                     
+                                                                                    
+                                                                                    

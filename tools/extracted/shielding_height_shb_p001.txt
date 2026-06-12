@@ -1,0 +1,60 @@
+                                                                                     
+                                                                                     
+                                                                             Chapter2
+                                                                                     
+                                                                                     
+                         1 : Specify shielding for scatter                           
+                          component (to)                                             
+                                                                                     
+                                                                                     
+                          2:Calculate scatter transm lsslon at                       
+                         position X (Kx,s)                                           
+                                                                                     
+                                                                                     
+                          3: Calculate primary transmission at                       
+                         position X based full beam directed I I 6: Add lead (or concrete)
+                          at barrier <Kxp)                equivalence of components to to
+                                                                                     
+                                                                     Yes             
+                                                         I                           
+                          4: Is total air kerma at X greater than 5: Additional attenuation In Detector.
+                                                  Yes                                
+                          dose constraint?              -1 Bucky assembly. etc?      
+                         (Kx,P+ Kx,s) >(Del Wx)                                      
+                                                                      No             
+                                     No                                              
+                                     '                ~   7: Any other mitigating factors?
+                          No additional shielding required                           
+                                                                     No              
+                                                         I                           
+                                                                     •               
+                                                          Specify Increased shielding for
+                                                          primary beam barrier       
+                         Figure 2.5 Recommended method for specification of primary shielding for wall bucky in radiography.
+                        2.4  Tertiary scatter from ceilings and walls                
+                                                                                     
+                        Although air kerma levels from tertiary scatter off solid ceiling slabs and walls are
+                        only a few percent of those from direct exposure, they can become significant when
+                        workloads are high. Protection against tertiary scatter will almost always need to be
+                        provided for current multislice helical CT scanners and may need to be considered
+                        for interventional suites with heavy workloads (see Figure 2.6). Dose levels are
+                        strongly dependent on the height of the ceiling and that of the protective barrier. This
+                        is illustrated by a plot of scatter level versus ceiling height for different barrier heights
+                                                                                     
+                        in interventional and CT scanner rooms (see Figure 2.7). A methodology employing
+                        a linear equation has been developed to allow scatter levels to be estimated for
+                        standard configurations representing a CT room with a scanner operating at 120 kV
+                        and an interventional radiology or cardiology room with an average tube potential of
+                        85 kV (Martin et al, 2012). The amount of radiation scattered from walls increases
+                        substantially with tube potential, so choice of a higher tube potential represents a
+                        conservative approach.                                       
+                         The method employs an equation to derive tertiary scatter Scemns of the form:
+                                                                                     
+                                S .. =(C-mxb)xD                              (2.4)   
+                                 rnhng                                               
+                        20                                    Radiation Shielding for Diagnostic Radiology
+                                                                                     
+                                                                                     
+                                                                                     
+                                                                                     
+                                                                                     

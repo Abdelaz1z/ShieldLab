@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                     C       A                                    
+                                                                                  
+                                     d c = 7.2m    A 1                            
+                                     6.2m                                         
+                                      A                                           
+                                       H                                          
+                                               Ar                                 
+                                           d                                      
+                                           r                                      
+                                                    S                             
+                                  d H    d sec       1                            
+                                             d1                                   
+                       E                           d                              
+                                         d          M                             
+                                          i                                       
+                                         d                                        
+                                          sca                                     
+                                                    d                             
+                                                     Z                            
+                                           d                                      
+                                           t                                      
+                                                      d                           
+                                                       2                          
+                                                 t                                
+                            3m      D       B                                     
+                             FIG. 12. Schematic layout of an 18 MV facility.      
+                  installation for public areas, and 5 mSv per year for the treatment control area
+                  [9]. The dose in any hour limit (R ) is 20 mSv. The expected workload is 40
+                                       h                                          
+                  patients per eight hour day, five days per week and a dose of 3 Gy delivered at
+                  the isocentre per patient. The accelerator has a maximum dose output rate of
+                  12 Gy·min–1, and the normal rate used is 5 Gy·min–1.            
+                  6.3.1. Primary barrier                                          
+                  6.3.1.1. Public area at location C                              
+                  Example 1: Primary barrier                                      
+                     To determine the required barrier thickness at location C, an unattended
+                  parking lot, Eq. (5) is used:                                   
+                                                                                  
+                     P  the design limit for a public area is 20 mSv·week–1 (1 ÷ 50 =
+                        20 mSv·week–1);                                           
+                     d  the distance from the isocentre, is 6.2 m;                
+                      C                                                           
+                                                                                  
+                  66                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+             Table 3. Activities of Radiopharmaceuticals that Require Instructions and Records When
+                    Administered to Patients Who Are Breast-Feeding an Infant or Child
+                                                                                    
+                                  COLUMN 1     COLUMN 2       COLUMN 3              
+                                  ACTIVITY     ACTIVITY      EXAMPLES OF            
+                                ABOVE WHICH  ABOVE WHICH    RECOMMENDED             
+                                INSTRUCTIONS  A RECORD IS    DURATION OF            
+                                ARE REQUIRED   REQUIRED    INTERRUPTION OF          
+          RADIOPHARMACEUTICAL   (MBq)  (mCi)  (MBq) (mCi)  BREAST-FEEDINGa          
+          I-131 NaI               0.01 0.0004   0.07 0.002 Complete cessation (for  
+                                                          this infant or child)     
+          I-123 NaI               20   0.5    100    3                              
+          I-123 OIH              100   4      700   20                              
+          I-123 mIBG              70   2      400   10    24 hr for 370 MBq         
+                                                          (10 mCi)                  
+          I-125 OIH                3   0.08    10    0.4                            
+          I-131 OIH               10   0.30    60    1.5                            
+          Tc-99m DTPA           1,000 30     6,000  150                             
+          Tc-99m MAA              50   1.3    200    6.5  12.6 hr for 150 MBq       
+                                                          (4 mCi)                   
+          Tc-99m Pertechnetate   100   3      600   15    24 hr for 1,100 MBq       
+                                                          (30 mCi)                  
+                                                          12 hr for 440 MBq         
+                                                          (12 mCi)                  
+          Tc-99m DISIDA         1,000 30     6,000  150                             
+          Tc-99m Glucoheptonate 1,000 30     6,000  170                             
+          Tc-99m HAM             400  10     2,000  50                              
+          Tc-99m MIBI           1,000 30     6,000  150                             
+          Tc-99m MDP            1,000 30     6,000  150                             
+          Tc-99m PYP             900  25     4,000  120                             
+          Tc-99m Red Blood Cell In Vivo 400 10 2,000 50   6 hr for 740 MBq          
+          Labeling                                        (20 mCi)                  
+          Tc-99m Red Blood Cell In Vitro 1,000 30 6,000 150                         
+          Labeling                                                                  
+          Tc-99m Sulphur Colloid 300   7     1,000  35    6 hr for 440 MBq          
+                                                          (12 mCi)                  
+          Tc-99m DTPA Aerosol   1,000 30     6,000  150                             
+          Tc-99m MAG3           1,000 30     6,000  150                             
+          Tc-99m White Blood Cells 100 4      600   15    24 hr for 1,100 MBq       
+                                                          (5 mCi)                   
+                                                          12 hr for 440 MBq         
+                                                          (2 mCi)                   
+          GA-67 Citrate            1   0.04     7    0.2  1 month for 150 MBq       
+                                                          (4 mCi)                   
+                                                          2 weeks for 50 MBq        
+                                                          (1.3 mCi)                 
+                                                          1 week for 7 MBq          
+                                                          (0.2 mCi)                 
+                                                                                    
+                                                                                    
+                                                                                    
+                                     RG-8.39, Page 9                                
+                                                                                    
+                                                                                    

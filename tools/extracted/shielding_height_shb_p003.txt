@@ -1,0 +1,68 @@
+                                                                                     
+                                                                                     
+                                                                            Chapter2 
+                                                                                     
+                                                                                     
+                                -                                                    
+                             a)                                                      
+                               f  0014 1                                             
+                                u 0.012                                              
+                                >i                                                   
+                                ~                                                    
+                                > .. i 0.010 1            Ceiling height             
+                                (!)                                                  
+                                ..:::.                      -3m                      
+                                < 0.. 0.008                                          
+                                ~...                                                 
+                                                            --4m                     
+                                Q)                                                   
+                                Q. 0.006                                             
+                                It                                                   
+                                E                ....                                
+                                                  ....                               
+                                .. G l.l. I : 0.004 .. . .. . .. ....                
+                                ·;.. .            .  '                               
+                                  0.002             ····-~- ..                       
+                                :Q:)                    ....~             ..         
+                                I u t                      ...... · .:::::::·.::··-············-··-- ...,
+                                (I) 0.000                                            
+                                     1.5   2    2.5   3    3.5   4   4.5   5         
+                                                     Barrier height (m)              
+                                 -                                                   
+                             b)                                                      
+                                   1.4 ..,                                           
+                                 ~                                                   
+                                 u                                                   
+                                   1.2                                               
+                                 ->i                                                 
+                                 (!)                                                 
+                                 ..                                                  
+                                 ( > !) i 1.0             Ceiling height             
+                                 -=                                                  
+                                                            -3m                      
+                                 0.. o.a                                             
+                                 ~                                                   
+                                 Q...                                                
+                                                            --4m                     
+                                 Q)                                                  
+                                 Q. 0.6 1                                            
+                                 It                         ·····5 m                 
+                                 i                                                   
+                                                 "" ....                             
+                                                   ....                              
+                                 .l..l.: 0.4                                         
+                                                    ....                             
+                                 '.i.i.i             .... ....                       
+                                 ...                                                 
+                                 Q) 0.2                                              
+                                                       :,.,,..~x-                    
+                                 IV                ----...• :::::·::::_· ....· --......· -······
+                                 u                                                   
+                                 (I)                                                 
+                                   0.0 ~--~-------..!~--~--          T--·""l         
+                                     1.5   2    2.5  3    3.5   4    4.5  5          
+                                                    Barrier height (m)               
+                       Figure 2. 7 Variation of tertiary scatter air kerma incident on an operator 1.5 m from a barrier as a
+                       function of ceiling height in (a) an interventional suite and (b) a CT room. Scatter kerma is per-patient KAP
+                       in (a) and per-patient OLP in (b).                            
+                       22                                    Radiatfon Shielding for Diagnostic Radiology

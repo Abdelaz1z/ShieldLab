@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+          doses. To account for the most highly exposed individual and to add a degree of conservatism to the
+          calculations, a fractional transfer of 10-5 has been assumed.             
+                                                                                    
+               Example 4, Internal Dose: Using the ingestion pathway, calculate the maximum internal dose
+          to a person exposed to a patient who has been administered 1,110 megabecquerels (33 millicuries) of
+          iodine-131. The ingestion pathway was selected since it is likely that most of the intake would be through
+          the mouth or through the skin, which is most closely approximated by the ingestion pathway.
+               Solution: This is an example of the use of Equation B-6. The dose conversion factor DCF for
+          the ingestion pathway is 53 rems/millicurie from Table 2.2 of Reference B-2.
+                                                                                    
+               Substituting the appropriate values into Equation B-6, the maximum internal dose to the person is
+                                                                                    
+                                  Di = (33 mCi)(10-5)(53 rem/mCi)                   
+                                                                                    
+                                  Di = 0.17 mSv (0.017 rem)                         
+                                                                                    
+               In this case, the external dose to the other person would be no greater than 5 millisieverts (0.5
+          rem), while the internal dose would be about 0.17 millisievert (0.017 rem). Thus, the internal dose is
+          about 3 percent of the external gamma dose. Internal doses may be ignored in the calculations if they are
+          likely to be less than 10 percent of the external dose since the internal dose would be significantly less
+          than the uncertainty in the external dose.                                
+                                                                                    
+               The conclusion that internal contamination is relatively unimportant in the case of patient release
+          was also reached by the NCRP. The NCRP addressed the risk of intake of radionuclides from patients’
+          secretions and excreta in NCRP Commentary No. 11, “Dose Limits for Individuals Who Receive
+          Exposure from Radionuclide Therapy Patients” (Ref. B-6). The NCRP concluded, “Thus, a
+          contamination incident that could lead to a significant intake of radioactive material is very unlikely.”
+          For additional discussion on the subject, see Reference B-1.              
+                           REFERENCES    FOR APPENDIX   B                           
+                                                                                    
+                                                                                    
+          B-1. S. Schneider and S.A. McGuire, “Regulatory Analysis on Criteria for the Release of Patients
+               Administered Radioactive Material,” USNRC, NUREG-1492, February 1997.3
+                                                                                    
+          B-2. K. F. Eckerman, A. B. Wolbarst, and A. C. B. Richardson, Limiting Values of Radionuclide
+               Intake and Air Concentration and Dose Conversion Factors for Inhalation, Submersion, and
+               Ingestion, Federal Guidance Report No. 11, U. S. Environmental Protection Agency, Washington,
+               DC, 1988.                                                            
+          B-3. A. Brodsky, “Resuspension Factors and Probabilities of Intake of Material in Process (or ‘Is 10-6
+               a Magic Number in Health Physics?’),” Health Physics, Volume 39, Number 6, 1980.
+                                                                                    
+          B-4. R. C. T. Buchanan and J. M. Brindle, “Radioiodine Therapy to Out-patients–The Contamination
+               Hazard,” British Journal of Radiology, Volume 43, 1970.              
+                                                                                    
+                                                                                    
+          3    Copies may be purchased at current rates from the U.S. Government Printing Office, P. 0. Box 37082, Washington, DC
+               20402-9328 (telephone (202) 512-2249; or from the National Technical Information service by writing NTIS at 5285
+               Port Royal Road, Springfield, VA 22161. Copies of drafts are also available for inspection and copying for a fee from
+               the NRC Public Document Room at 2120 L Street NW. (Lower Level), Washington, DC. The PDR’s mailing address is
+               Mail Stop LL-6, Washington, DC 20555; telephone (202) 634-3273; fax (202) 634- 3343.
+                                                                                    
+                                Appendix B to RG-8.39, Page B-7                     
+                                                                                    
+                                                                                    

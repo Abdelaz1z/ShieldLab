@@ -1,0 +1,46 @@
+44 | / | .4 | NOITATUPMOC | FO | GNIDLEIHS | STNEMERIUQER
+ettessac | sredloh | yltnacifingis | ecuder | eht | ytisnetni | fo | yramirp | -idar
+noita | tnedicni | no | eht | .reirrab | ehT | noitaunetta | dedivorp | yb | siht
+gnigami | erawdrah | nac | eb | desserpxe | sa | na | tnelaviuqe | ssenkciht | fo
+a | gnidleihs | .lairetam | sihT | tnelaviuqe | ssenkciht | fo | ”gnidleihserp“
+lairetam | si | detangised | x | . | elbaT | 6.4 | swohs | eht | muminim | -aviuqe
+erp
+tnel | eulav | fo | x | taht | yam | eb | desu | htiw | yna | fo | eht | daolkrow | -irtsid
+erp
+snoitub | ni | elbaT | 2.4 | rof | elbat | ro | detnuom-llaw | ettessac | ,sredloh | ro
+rof | eht | dirg | dna | .ettessac
+fI | eht | deifilauq | trepxe | smrifnoc | taht | eseht | egami | srotpecer | era
+tneserp | ni | eht | ,maeb | eht | ten | larutcurts | reirrab | deriuqer | yam | eb
+denimreted | yb | gnitcartbus | x | morf | eht | detupmoc | latot | yramirp
+erp
+reirrab | ssenkciht | deniatbo | yb | gnimussa | taht | eht | war | yramirp | maeb
+segnipmi | yltcerid | no | eht | .reirrab
+,revewoH | eht | esu | fo | gnidleihserp | lairetam | dluohs | eb | ylluferac
+detaulave | yb | eht | deifilauq | trepxe | ot | erusne | taht | ti | si | elbacilppa | ot
+eht | reirrab | rednu | .noitaredisnoc | roF | elbat | yhpargoidar | htiw | eht
+maeb | detcerid | ta | eht | ,roolf | eht | esu | fo | gnidleihserp | si | yllamron
+etairporppa | nottuS( | dna | ,smailliW | .)0002 | nI | emos | ,sesac | ,revewoh
+ti | yam | eb | tnedurp | ot | erongi | eht | .gnidleihserp | roF | ,elpmaxe | ni
+elbat-ssorc | laretal | snoitanimaxe | eht | maeb | yam | ton | syawla | eb | ylluf
+detamilloc | ot | eht | tneitap | dna | .ettessac | A | tsehc | rotpecer | ni | emos
+llams | scinilc | yam | tsisnoc | ylno | fo | a | llaw | detnuom | ettessac | redloh
+hcihw | lliw | ton | niatnoc | lla | fo | eht | detaicossa | ykcub-tsehc | erawdrah
+detsil | ni | elbaT | .6.4 | ehT | selpmaxe | nevig | ni | noitceS | 5 | wohs | -atupmoc
+snoit | fo | reirrab | stnemeriuqer | htiw | dna | tuohtiw | gnidleihserp | rof
+.ssenetelpmoc | ehT | noisiced | no | rehtehw | eht | esu | fo | gnidleihserp | si
+ELBAT | tnelaviuqE—6.4 | ssenkciht | fo | yramirp | maeb | gnidleihserp | x( | )
+erp
+,noxiD( | b,a.)4991
+x | ni( | )mm
+erp
+noitacilppA
+daeL | etercnoC | leetS
+egamI | rotpecer | ni | cihpargoidar | elbat | 58.0 | 27 | 7
+ro | detnuom-llaw | ettessac | redloh
+noitaunetta( | yb | ,dirg | ,ettessac | dna
+rotpecer-egami | gnitroppus | )serutcurts
+elbat-ssorC | laretal | noitaunetta( | yb | 3.0 | 03 | 2
+dirg | dna | ettessac | )ylno
+ecniSa | tneitap | noitaunetta | si | ,derongi | laitnetop | snoitairav | ni | rotpecer-egami
+noitaunetta | morf | tnereffid | srerutcafunam | si | ton | a | tnacifingis | .rotcaf
+staevaCb | rof | eht | esu | fo | gnidleihserp | era | dessucsid | ni | noitceS | .2.6.1.4

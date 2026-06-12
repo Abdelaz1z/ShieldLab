@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    44 / 4. COMPUTATION OF SHIELDING REQUIREMENTS                   
+                                                                                    
+                    cassette holders significantly reduce the intensity of primary radi-
+                    ation incident on the barrier. The attenuation provided by this 
+                    imaging hardware can be expressed as an equivalent thickness of 
+                    a shielding material. This equivalent thickness of “preshielding”
+                    material is designated x . Table 4.6 shows the minimum equiva-  
+                                    pre                                             
+                    lent value of x that may be used with any of the workload distri-
+                             pre                                                    
+                    butions in Table 4.2 for table or wall-mounted cassette holders, or
+                    for the grid and cassette.                                      
+                      If the qualified expert confirms that these image receptors are
+                    present in the beam, the net structural barrier required may be 
+                    determined by subtracting x from the computed total primary     
+                                       pre                                          
+                    barrier thickness obtained by assuming that the raw primary beam
+                    impinges directly on the barrier.                               
+                      However, the use of preshielding material should be carefully 
+                    evaluated by the qualified expert to ensure that it is applicable to
+                    the barrier under consideration. For table radiography with the 
+                    beam directed at the floor, the use of preshielding is normally 
+                    appropriate (Sutton and Williams, 2000). In some cases, however,
+                    it may be prudent to ignore the preshielding. For example, in   
+                    cross-table lateral examinations the beam may not always be fully
+                    collimated to the patient and cassette. A chest receptor in some
+                    small clinics may consist only of a wall mounted cassette holder
+                    which will not contain all of the associated chest-bucky hardware
+                    listed in Table 4.6. The examples given in Section 5 show computa-
+                    tions of barrier requirements with and without preshielding for 
+                    completeness. The decision on whether the use of preshielding is
+                      TABLE 4.6—Equivalent thickness of primary beam preshielding (x
+                                                           pre                      
+                                                            )                       
+                                     (Dixon, 1994).a,b                              
+                                                  x (in mm)                         
+                                                   pre                              
+                             Application                                            
+                                              Lead Concrete Steel                   
+                     Image receptor in radiographic table 0.85 72 7                 
+                     or wall-mounted cassette holder                                
+                     (attenuation by grid, cassette, and                            
+                     image-receptor supporting structures)                          
+                     Cross-table lateral (attenuation by 0.3 30 2                   
+                     grid and cassette only)                                        
+                      aSince patient attenuation is ignored, potential variations in image-receptor
+                     attenuation from different manufacturers is not a significant factor.
+                      bCaveats for the use of preshielding are discussed in Section 4.1.6.2.
+                                                                                    
+                                                                                    
+                                                                                    

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+               If a radionuclide not listed in Table 1 is administered and the licensee chooses to release a patient
+          based on the measured dose rate, the licensee should first calculate a dose rate that corresponds to the
+          5 millisievert (0.5-rem) dose limit. If the measured dose rate at 1 meter is no greater than the calculated
+          dose rate, the patient may be released. A record of the release is required by 10-CFR 35.75(c). The dose
+          rate at 1 meter may be calculated from Equation 2 or 3, as appropriate, because the dose rate at 1 meter is
+          equal to ΓQ/10,000 cm2.                                                   
+          1.3  Release of Patients Based on Patient-Specific Dose Calculations      
+                                                                                    
+               Licensees may release patients based on dose calculations using patient-specific parameters.
+          With this method, based on 10 CFR 35.75(a), the licensee must calculate the maximum likely dose to an
+          individual exposed to the patient on a case-by-case basis. If the calculated maximum likely dose to an
+          individual is no greater than 5 millisieverts (0.5 rem), the patient may be released. Using this method,
+          licensees may be able to release patients with activities greater than those listed in Column 1 of Table 1
+          by taking into account the effective half-life of the radioactive material and other factors that may be
+          relevant to the particular case. If the dose calculation considered retained activity, an occupancy factor
+          less than 0.25 at 1 meter, effective half-life, or shielding by tissue, a record of the basis for the release is
+          required by 10 CFR 35.75(c).                                              
+                                                                                    
+               Appendix B contains procedures for performing patient-specific dose calculations, and it
+          describes how various factors may be considered in the calculations.      
+                                                                                    
+          2.   Instructions                                                         
+                                                                                    
+          2.1  Activities and Dose Rates Requiring Instructions                     
+                                                                                    
+               Based on 10 CFR 35.75(b), for some administrations the released patients must be given
+          instructions, including written instructions, on how to maintain doses to other individuals as low as is
+          reasonably achievable after the patients are released.1 Licensees may use Column 1 of Table 2 to
+          determine the activity above which instructions must be given to patients. Column 2 provides
+          corresponding dose rates at 1 meter, based on the activities in Column 1. If the patient is breast-feeding
+          an infant or child, additional instructions may be necessary (see Regulatory Position 2.2, “Additional
+          Instructions for Release of Patients Who Could be Breast-Feeding After Release”).
+               The activities or dose rates in Table 2 may be used for determining when instructions must be
+          given. When patient-specific calculations (as described in Appendix B) are used, instructions must be
+          provided if the calculation indicates a dose that is greater than 1 millisievert (0.1 rem).
+                                                                                    
+               If a radionuclide not listed in Table 2 is administered, the licensee may calculate the activity or
+          dose rate that corresponds to 1 millisievert (0.1 rem). Equation 2 or 3, as appropriate, may be used.
+                                                                                    
+          2.2  Additional Instructions for Release of Patients Who Could be Breast-Feeding After Release
+                                                                                    
+               The requirement in 10 CFR 35.75(b) that a licensee provide instructions on the discontinuation or
+          the interruption period of breast-feeding, and the consequences of failing to follow the recommendation,
+          presumes that the licensee will inquire, as appropriate, regarding the breast-feeding status of the patient.1
+          The purpose of the instructions (e.g., on interruption or discontinuation) is to permit licensees to release a
+          patient who could be breast-feeding an infant or child when the dose to the infant or child could exceed
+          5 millisieverts (0.5 rem) if there is no interruption of breast-feeding.  
+                                                                                    
+          1    The NRC does not intend to enforce patient compliance with the instructions nor is it the licensee’s responsibility to do
+               so.                                                                  
+                                                                                    
+                                     RG-8.39, Page 6                                
+                                                                                    
+                                                                                    

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    126 / APPENDIX B                                                
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      Fig. B.1. The primary beam air kerma per unit workload at 1 m 
+                    [Κ1 (kVp)].                                                     
+                      W                                                             
+                               Κ1(kVp) = Κ1 (kVp) W(kVp).   (B.1)                   
+                                P      W                                            
+                    At distance d from the focal spot of an x-ray tube, the total primary
+                            P                                                       
+                    air kerma due to use factor-corrected workload [U W(kVp)] is:   
+                                      Κ1 (kVp) U W(kVp)                             
+                              Κ(0,kVp) = -----W------------------------------------------------. (B.2)
+                               P           2                                        
+                                           d                                        
+                                           P                                        
+                    Behind a barrier of total thickness x , whose transmission to pri-
+                                           tot                                      
+                    mary x rays at this operating potential is B (x ,kVp), the shielded
+                                                P tot                               
+                    air kerma is:                                                   
+                                   Κ1(kVp) U W(kVp)                                 
+                          Κ(x ,kVp) = ------W-----------------------------------------------B (x ,kVp), (B.3)
+                           P tot         2     P tot                                
+                                        d                                           
+                                         P                                          
+                                                                                    
+                                                                                    
+                                                                                    

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      Appendix       D                                              
+                                                                                    
+                                                                                    
+                                                                                    
+                           Instrumentation          for                             
+                                                                                    
+                           Performing        Radiation                              
+                                                                                    
+                           Protection       Surveys                                 
+                                                                                    
+                                                                                    
+                                                                                    
+                        An ionization-chamber survey meter is the most desirable    
+                      instrument for evaluating the adequacy of protective barriers, due
+                      to its relatively flat energy response and air-kerma-rate indepen-
+                      dence. When the radiation source is a radiographic x-ray unit, an
+                      integrating ionization-chamber survey meter of adequate sensitiv-
+                      ity is more useful than a device intended to measure air-kerma
+                      rate. This is because the response time (time constant) in the “expo-
+                      sure-rate mode” on the lowest ranges for most ionization-chamber
+                      survey meters is 3 to 8 s, which is a longer exposure time than
+                      many radiographic generators can produce (even at low x-ray tube
+                      beam current). In addition, a survey meter in the “exposure-rate
+                      mode” will not give an accurate result with a falling load or capac-
+                      itive discharge x-ray generator. The surveyor must measure the
+                      barrier transmission factor B(x), which is the ratio of the air kerma
+                      beyond the barrier to the unattenuated air kerma at the same  
+                      distance. When using the primary beam to determine the barrier
+                      transmission, a portable ionization-chamber survey meter may not
+                      be suitable for making the unattenuated air-kerma measurement.
+                      These portable survey meters are usually large volume ionization
+                      chambers with relatively low bias voltages, and collection efficiency
+                      will be reduced at the higher air-kerma rates in the unattenuated
+                      primary beam. Such portable ionization-chamber survey meters  
+                      may be limited to air-kerma rates below 0.5 Gy h–1, necessitating a
+                      very low x-ray tube beam current for the unattenuated air-kerma
+                      measurement. The unattenuated primary air kerma is therefore  
+                      best measured using a calibrated ionization-chamber/electrometer
+                      system designed for primary beam measurements such as is rou- 
+                      tinely used for measuring x-ray tube outputs. Only one such unat-
+                      tenuated measurement is required, usually at 1 m for a 1 mA min
+                                          149                                       
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

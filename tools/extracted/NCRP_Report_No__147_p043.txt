@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                        4.1 CONCEPTS AND TERMINOLOGY / 33           
+                                                                                    
+                      patient has been divided into two components. These components
+                      represent the division of the total workload per patient (as well as
+                      its kVp distribution) between the x-ray table and the chest bucky
+                      for the “average patient” in the survey. It is therefore unnecessary
+                      to separately specify the number of patients undergoing chest 
+                      examinations. Rather the same value of N should be used for both
+                      the chest bucky and x-ray table calculations, since the fraction of
+                      patients who receive examinations on the x-ray table or at the chest
+                      bucky is already accounted for by the value of the workload per
+                      patient for each image receptor. This methodology also renders
+                      unnecessary the incorporation of a fractional use factor for the pri-
+                      mary beam against the chest bucky (i.e., U = 1) when using the Rad
+                      Room (chest bucky) workload distribution with the same value of N
+                      as is used for all of the calculations for that room. These concepts
+                      are demonstrated in Sections 5.3 and 5.4.                     
+                        At a given x-ray tube operating potential and a given distance,
+                      the air kerma at a given reference point from the primary beam is
+                      directly proportional to the workload.                        
+                        Traditional shielding methods have assumed that a conserva- 
+                      tively high total workload per week is performed at a single high
+                      operating potential, for example, 1,000 mA min week–1 at 100 kVp.
+                      This assumption ignores the fact that the medical imaging     
+                      workload is spread over a wide range of operating potentials. For
+                      example, in a general purpose radiographic room, extremity exam-
+                      inations (typically about one-third of the total examinations done
+                      in the room) are normally performed at about 50 to 60 kVp, abdom-
+                      inal examinations at about 70 to 80 kVp, and chest examinations
+                      at >100 kVp, but with a very low tube current-time (milliampere-
+                      minutes) product.                                             
+                        For shielding design, the distribution of workload as a function
+                      of kVp is much more important than the magnitude of the workload
+                      since the attenuation properties of barriers exhibit a strong kVp
+                      dependence. For example, the radiation level on the protected side
+                      of a 1 mm lead barrier varies exponentially with kVp (three orders
+                      of magnitude over the range of 60 to 100 kVp), whereas it varies
+                      only linearly with the workload. Leakage radiation from the x-ray
+                      tube housing shows an even more dramatic change with kVp,     
+                      decreasing by more than eight orders of magnitude over the range
+                      from 150 to 50 kVp.                                           
+                        Simpkin (1996a) published the results of a nationwide survey
+                      measuring the kVp distribution of workload and use factors using
+                      data provided by the American Association of Physicists in Medi-
+                      cine (AAPM) Diagnostic X-Ray Imaging Committee Task Group     
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

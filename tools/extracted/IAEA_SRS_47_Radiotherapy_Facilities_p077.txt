@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     T the occupancy factor is 1 for one secondary barrier (control area),
+                       and 0.1 for the other barrier;                             
+                     F is 400 cm2 (the maximum field size is 40 cm × 40 cm but the use of a
+                       field size of 20 cm × 20 cm is more realistic).            
+                                                                                  
+                                                                                  
+                                6 ¥ 12 ¥ 52                                       
+                     B =                                                          
+                      p  0.0006 ¥ 103 ¥ 106 ¥ 1¥ (400 400)                        
+                       =2.5¥ 10-4 (or 2.5¥ 10-3 ffor T=0.1)                       
+                                                                                  
+                                  Ê   1  ˆ                                        
+                     No. of TVLs=log 10Ë Á 2.5¥10-4¯ ˜ =3.6 (or 2.6 TVLs for T=0.1)
+                                                                                  
+                     These TVL values are the same as those determined to shield against
+                  leakage radiation. Therefore, an additional HVL should be added to the wall
+                  thickness (see Section 5.2.2). For a TVL of 279 mm, one HVL will be 84 mm, so
+                  the secondary barrier thicknesses will be (1060 + 84 =) 1150 mm and (780 + 84 =)
+                  870 mm with occupancies of 1 and 0.1, respectively.             
+                                                                                  
+                  6.2.3. Dose rate at maze entrance                               
+                                                                                  
+                     In this example, the IDR has been determined by substituting the values
+                  W and U with the dose rate at the isocentre DR . The following example
+                                                 0                                
+                  determines the dose rate at the maze entrance when the beam is directed at the
+                  maze wall which will be the worst case.                         
+                  6.2.3.1. Dose rate arising from patient DR                      
+                                           p                                      
+                     The dose rate produced by radiation scattered by patient DR is
+                                                              p                   
+                  determined from Eq. (13), where:                                
+                     DR  the dose rate is 2.5 Gy·min–1 (2.5 × 60 × 106 mGy·h–1) at the isocentre;
+                       0                                                          
+                     a   the scatter primary ratio is 0.0006 for 6 MV X rays at 90º (Table 5);
+                     F   the field size, is 20 cm × 20 cm;                        
+                     α   the reflection coefficient for 0.5 MeV X rays, is 0.022 (value
+                         rounded from Table 6 for a 45° reflection;               
+                     A   the area of wall contributing scatter to the maze, is 3.3 m L (CD)
+                      1                                                           
+                         and 3.5 m H;                                             
+                                                                                  
+                                                                                  
+                                                               63                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

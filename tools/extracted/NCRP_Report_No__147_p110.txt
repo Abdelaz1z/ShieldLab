@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    100 / 5. EXAMPLES OF SHIELDING CALCULATIONS                     
+                                                                                    
+                       40 percent of both head and body procedures having a         
+                       pre- and post-contrast scan. The area to be protected is     
+                       afully-occupied real estate office behind an adjoining       
+                       wall 3 m from the CT unit isocenter.                         
+                        The “body average” and head DLP values from Table 5.2       
+                       of 550 and 1,200 mGy cm, respectively, are therefore to be   
+                       increased by a factor of 1.4, to 770 and 1,680 mGy cm, as    
+                       illustrated below. From Equation 5.10, the secondary         
+                       air-kerma values at 1 m, adjusted for the procedures with    
+                       pre- and post-contrast scans, are:                           
+                          K 1 (body) = (1.2) (3×10 –4 cm –1)(550 mGy cm×1.4)        
+                           sec                                                      
+                                 = 0.28 mGy procedure                               
+                                             –1                                     
+                           K 1 (head) = (9×10 –5 cm –1)(1,200 mGy cm×1.4)           
+                            sec                                                     
+                                  = 0.15 mGy procedure                              
+                                              –1                                    
+                       For a workload consisting of the procedures listed in this   
+                       example, the unshielded weekly secondary air kerma at 3      
+                       m distance from the isocenter would be:                      
+                        K sec =   1 3 ---- - m m ----  2 [(150 procedures week –1) (0.28 mGy procedure –1)
+                       + (30 procedures week –1)(0.15 mGy procedure –1)] = 5.2 mGy week –1
+                       with a required barrier transmission for a public (uncon-    
+                       trolled) area with T = 1 of:                                 
+                                          –1                                        
+                                B = 0 ---- . - 0 --- 2 --- -- m ----- G ---- y --- - w ----- e -- e --- k ------- = 3.9×10 –3 .
+                                          –1                                        
+                                  5.2 mGy week                                      
+                       and a corresponding barrier thickness from the CT scan-      
+                       ner attenuation curves (Figure A.2 in Appendix A) of:        
+                                   x   = 1.5 mm lead.                               
+                                    barrier                                         
+                    5.6.2 The Isodose Map Method                                    
+                      As an alternative method of calculation (Sutton and Williams, 
+                    2000), scattered radiation isodose contour maps provided by the 
+                    manufacturer may be utilized. Care must be taken, however, to   
+                    note the total slice width (T ) and the technique (i.e., kVp and mAs)
+                                     b                                              
+                    utilized for the measurement of these distributions in order that
+                    they may be normalized to the appropriate clinical techniques.  
+                    Also, the appropriateness of the phantom utilized should be     
+                    evaluated.                                                      
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

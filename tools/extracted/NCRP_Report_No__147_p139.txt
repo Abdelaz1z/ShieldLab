@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                             B. COMPUTATION OF PRIMARY BARRIER THICKNESS / 129      
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                        Fig. B.3. Primary broad-beam transmission through concrete  
+                      calculated for the clinical workload distributions in Table 4.2.
+                                                                                    
+                                                                                    
+                                         Κ1 U T N γ β                             
+                                         ------P--------------------  +---        
+                                 x  = -- 1 ---- ln  ---------- P ---- d ----P 2 --------------  ------------ α --- . (B.9)
+                                 barrier αγ    β                                    
+                                             1+---                                  
+                                               α                                    
+                      If, as discussed in Section 4.1.6.2, the image receptor is available
+                      toprovide attenuation of the primary beam before it strikes the
+                      structural barrier, the thickness of the required structural barrier
+                      may be reduced by the equivalent “preshielding” material x    
+                                                                pre                 
+                      (Table4.6).                                                   
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

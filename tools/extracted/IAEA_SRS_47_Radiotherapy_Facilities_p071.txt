@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                         384¥0.25 4.06¥10-3¥(0.16)¥7.54¥10-3¥(1.5¥2.5)            
+                     D  =      ¥                                                  
+                      w   1.62           (4.3)2 ¥¥(2.5)2                          
+                        =5.96¥10-6Gy·week 1                                       
+                                                                                  
+                     The IDR will be:                                             
+                                                                                  
+                          48¥106 4.06¥10-3¥(0.16)¥7.54¥10-3¥(1.5¥2.5)             
+                     IDR =      ¥                                                 
+                        w   1.62         (4.3)2 ¥¥(2.5)2                          
+                         =2.98 mSv◊h-1                                            
+                                                                                  
+                                                                                  
+                     The leakage scattered down the maze D is determined from Eq. (16):
+                                            L                                     
+                     L  is 0.001 (0.1% of the primary beam);                      
+                      0                                                           
+                     a  is 1.07 × 10–2 for 45° incidence and 15° reflection for 60Co (Table 6);
+                      1                                                           
+                     A  is 7.5 m2 (2.5 m H × 3.0 m W);                            
+                      1                                                           
+                     d  is 5.0 m;                                                 
+                      i                                                           
+                     d  is 3.0 m.                                                 
+                      m                                                           
+                     The dose at the maze entrance from head leakage scattered down the
+                  maze D for all gantry rotations (Eq. (16)) is:                  
+                      L                                                           
+                         0.001¥384¥0.0107¥7.5                                     
+                     D =               =1.37¥10-4 Gy·week-1                       
+                      L      (5.0¥3.0)2                                           
+                  and the IDR is:                                                 
+                          0.001¥48¥106¥0.0107¥7.5                                 
+                     IDR =                  =17 mSv◊h-1                           
+                        L       (5.0¥3.0)2                                        
+                     The dose at the maze entrance arising from leakage transmitted through
+                  the maze wall D is given by Eq. (17):                           
+                           T                                                      
+                     B  is the transmission factor for the barrier (1.06 × 10–4); 
+                     d  is 5.0 m.                                                 
+                      t                                                           
+                                                                                  
+                                                                                  
+                                                               57                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  shielded door. The figure also shows that the room requires primary thick
+                  barriers on the walls and ceiling wherever the 60Co beam may aim since there is
+                  no beam-stopper attached to this unit. If there were space below the floor, then
+                  the floor would also need to be a very thick primary barrier. However, because
+                  of the weight of the treatment unit and its shielding it is always best to put such
+                  a facility on unexcavated ground.                               
+                                                                                  
+                  6.1.1. Design dose limits                                       
+                                                                                  
+                     In the United Kingdom, a design dose limit of 6 mSv/a is used for
+                  controlled areas [6, 7]. If no special procedures are to be performed, then the
+                  dose will be distributed evenly throughout the year and the weekly dose limit
+                  will be (6 ∏ 50 =) 0.12 mSv·week–1. For public areas a design limit of 0.3 mSv/a
+                  is used, or (0.3 ÷ 50 =) 6 mSv·week–1 [6, 7]. This example illustrates barrier
+                  calculations based on this set of limits. Depending on local regulations, other
+                  limits may be applied and different barrier requirements will be obtained.
+                                                                                  
+                  6.1.2. Source specification                                     
+                                                                                  
+                     If the source specification is 0.8 Gy/min at 1 m, and the isocentric distance
+                  of the treatment unit (SAD) is 80 cm, then the dose rate at the isocentre is
+                  (0.8 × (100/80)2 × 60 =)75 Gy·h–1. The dose rate at 1 m is (0.8 × 60 =) 48 Gy·h–1.
+                                                                                  
+                  6.1.3. Workload                                                 
+                                                                                  
+                     For a 60Co treatment facility, 40 patients/d (8 h) is a reasonable
+                  assumption. If the dose delivered per patient at the isocentre is 3 Gy and the
+                  facility is used five days per week, then the workload is (40 × 3 × 5 =)
+                  600 Gy·week–1 at the isocentre (SAD = 80 cm) or (600 × 0.82 =) 384 Gy·week–1
+                  at 1 m.                                                         
+                     The total dose delivered at the isocentre per day is (40 × 3 =)120 Gy. So
+                  the total beam-on time per day is (120 ÷ 75) = 1.6 h. The TADR for this
+                  example is determined from Eq. (1):                             
+                                                                                  
+                                                                                  
+                               1.6¥U                                              
+                     TADR=IDR¥                                                    
+                                 8                                                
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                               51                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

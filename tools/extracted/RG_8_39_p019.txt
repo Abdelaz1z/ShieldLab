@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+               Solution: The dose to total decay (t = ∞) is calculated based on the physical half-life using
+          Equation B-1. (This calculation illustrates the use of physical half-life. To account for biological
+          elimination, calculations described in the next section should be used.)  
+                                                                                    
+                                        34.6 Γ Q T E                                
+                                   D(∞)=     0 p                                    
+                                            r2                                      
+               Since the patient has been provided with instructions for reducing exposure as recommended for
+          an occupancy factor of E = 0.125, the occupancy factor of 0.125 at 1 meter may be used.
+                                                                                    
+                            34.6(2.2R•cm2 /mCi•hr)(60mCi)(8.04d)(0.125)             
+                      D(∞) =                                                        
+                                          (100cm)2                                  
+                      D(∞) = 4.59 millisieverts (0.459 rem)                         
+                                                                                    
+               Since the dose is less than 5 millisieverts (0.5 rem), the patient may be released, but 10 CFR
+          35.75(b) requires that instructions be given to the patient on maintaining doses to others as low as is
+          reasonably achievable. A record of the calculation must be maintained pursuant to 10 CFR 35.75(c)
+          because an occupancy factor less than 0.25 at 1 meter was used.           
+                                                                                    
+          B-2. Effective Half-Life                                                  
+                                                                                    
+               A licensee may take into account the effective half-life of the radioactive material to demonstrate
+          compliance with the dose limits for individuals exposed to the patient that are stated in 10 CFR 35.75.
+          The effective half-life is defined as:                                    
+                                                                                    
+                                          T ×T                                      
+                                      T  = b  p                  (Equation B-2)     
+                                       eff T +T                                     
+                                           b  p                                     
+          Where T  = biological half-life of the radionuclide                       
+                b                                                                   
+               T   = physical half-life of the radionuclide.                        
+                p                                                                   
+               The behavior of iodine-131 can be modeled using two components: extrathyroidal iodide (i.e.,
+          existing outside of the thyroid) and thyroidal iodide following uptake by the thyroid. The effective half-
+          lives for the extrathyroidal and thyroidal fractions (i.e., F1 and F2, respectively) can be calculated with
+          the following equations.                                                  
+                                          T ×T                                      
+                                     T  =  b1 p                  (Equation B-3)     
+                                      1eff T +T                                     
+                                           b1 p                                     
+                                          T ×T                                      
+                                      T  = b2 p                  (Equation B-4)     
+                                      2eff T +T                                     
+                                           b2 p                                     
+               T = biological half-life for extrathyroidal iodide                   
+                b1                                                                  
+               T = biological half-life of iodide following uptake by the thyroid   
+                b2                                                                  
+               T = physical half-life of iodine-131.                                
+                p                                                                   
+                                Appendix B to RG-8.39, Page B-3                     
+                                                                                    

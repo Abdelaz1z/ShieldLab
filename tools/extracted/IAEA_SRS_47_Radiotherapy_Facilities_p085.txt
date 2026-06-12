@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  and                                                             
+                                                                                  
+                     n (patient scatter) = 2.56                                   
+                                                                                  
+                  From Table 11, the TVL for 30° patient scatter is 288 mm concrete. Therefore,
+                  the patient scatter barrier thickness is (2.56 × 288 =) 737 mm  
+                     The difference between the scatter and leakage barrier thickness require-
+                  ments (737 mm–515 mm) is less than one TVL. Therefore, one HVL should be
+                  added to the higher value (see Section 5.2.2). For a TVL of 330 mm, one HVL
+                  is 99 mm. Therefore, the barrier thickness required for location A is
+                  (737 + 99 =) 836 mm. This thickness equates to 2.90 TVLs for 30º scatter
+                  (Table 11) and an attenuation B of 1.25 × 10–3. The same thickness equates to
+                                     p                                            
+                  2.53 TVLs for leakage and an attenuation B of 2.93 × 10–3.      
+                                            L                                     
+                  Example 7: TADR R considerations                                
+                              h                                                   
+                     To determine if the dose in any hour limit is met, the maximum dose
+                  output rate at isocentre 12 Gy·min–1 should be used. At this dose output rate,
+                  the expected dose rate at location A is the sum of the IDR contributed by
+                  patient scatter and leakage. Using the scatter fraction a = 2.53 × 10–3 from
+                  Table 5, the patient scatter dose rate is:                      
+                                                                                  
+                          12¥60¥2.53¥10-3¥(40¥40/400)¥1.25¥10-3                   
+                     IDR =                                                        
+                        p              7.22                                       
+                         = 1.76 × 10–4 Gy·h–1                                     
+                  and the leakage dose rate is:                                   
+                                                                                  
+                          12¥60¥2.93¥10-3                                         
+                     IDR =             = 4.07 × 10–5 Gy·h–1                       
+                        L    1000¥7.22                                            
+                                                                                  
+                     The total IDR at location A is:                              
+                                                                                  
+                     IDR = IDR + IDR = 1.76 × 10–4 + 4.07 × 10–5 = 2.2 × 10–4 Gy·h–1
+                            p    L                                                
+                     Using 36 Gy·h–1 as the value for W as described in example 2, and from
+                                          h                                       
+                  Eq. (4), the dose in any hour is:                               
+                                                                                  
+                                                                                  
+                                                                                  
+                                                               71                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

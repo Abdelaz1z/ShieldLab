@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      5.   Examples       of  Shielding                             
+                                                                                    
+                           Calculations                                             
+                                                                                    
+                                                                                    
+                                                                                    
+                        This Section demonstrates how the theoretical information and
+                      data contained in this Report may be used to determine the mini-
+                      mum barrier thickness required to shield different types of medical
+                      x-ray imaging rooms. However, it is important to stress that these
+                      examples and the methodology used are not intended to represent
+                      the only techniques and assumptions capable of providing accept-
+                      able radiation protection. Alternate methods may prove equally
+                      satisfactory. The professional judgement of the qualified expert is
+                      required in each design specification to ensure that the necessary
+                      degree of radiation protection is achieved as effectively and eco-
+                      nomically as possible.                                        
+                        The final assessment of the adequacy of the design and con- 
+                      struction of structural shielding is based on the radiation survey of
+                      the completed installation as described in Section 6 of this Report.
+                      To ensure that the appropriate shielding design goals for controlled
+                      and uncontrolled areas are not exceeded, direct measurements are
+                      recommended. If the assessment survey shows deficiencies, addi-
+                      tional shielding or modification of equipment and procedures are
+                      required. To avoid such deficiencies, the qualified expert needs to
+                      consider the ALARA principal and use a conservatively safe    
+                      approach in specifying radiation barriers. The cost of adding shield-
+                      ing to an existing facility is many times greater than increasing it
+                      in the initial phase of construction.                         
+                        Table 5.1 provides a summary of the resources in this Report
+                      that are included to assist the qualified expert in specifying shield-
+                      ing requirements. For completeness and as an instructional tool,
+                      many of these examples contain more than one method of deter- 
+                      mining one particular barrier requirement. Figures 4.5, 4.6, 4.7
+                      and 4.8, for example, provide a simplified method of finding the
+                      required thickness of each barrier in radiographic and R&F rooms.
+                      As shown in the examples, similar results for these barriers can be
+                      obtained using the figures in Appendices B and C with conven- 
+                      tional computational methods. These computational methods are 
+                      also employed for cardiac and peripheral angiography, and mam-
+                      mography rooms. Finally, the data and information contained in
+                                           69                                       
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

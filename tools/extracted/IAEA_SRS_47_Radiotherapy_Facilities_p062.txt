@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  TABLE 8. SUGGESTED TRANSMISSION FACTORS (PERCENTAGE             
+                  DEPTH DOSES FOR A 10 cm × 10 cm FIELD, 100 cm SSD AT A DEPTH    
+                  OF 30 cm)[21]                                                   
+                                                                                  
+                  Energy       Co-60 6 MV  10 MV 15 MV 18 MV 25 MV                
+                  Transmission, f 0.15 0.23 0.28  0.33  0.34 0.38                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  TABLE 9. APPARENT NEUTRON SOURCE STRENGTH, Q , IN 1012          
+                                                         N                        
+                  NEUTRONS PER X RAY · Gy AT ISOCENTRE [14, 29]                   
+                  Manufacturer  Model    Stated MV NAPa MV   Q                    
+                                                              N                   
+                  Varian        1800       10      Unknown  0.06                  
+                  GE           Saturne 41  12       11.2    0.24                  
+                  GE           Saturne 41  15       12.5    0.47                  
+                  Varian       2100 EX     15       13      0.50b                 
+                  Philips       SL-20      17       17      0.69                  
+                  Varian        1800       15       13      0.76                  
+                  Siemens       KD         20       16.5    0.92                  
+                  Varian        1800       18       16.8    1.22                  
+                  GE           Saturne 43  18       14      1.50                  
+                                                                                  
+                  Philips       SL-25      22       20.4    2.37                  
+                  GE           Saturne 43  25       18.5    2.40                  
+                  a NAP is the nominal accelerating potential defined in the TG21 protocol [35].
+                  b Ref. [29].                                                    
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  48                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

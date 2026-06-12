@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    98 / 5. EXAMPLES OF SHIELDING CALCULATIONS                      
+                                                                                    
+                    values or CTDI for a given scan series on the scanner monitor   
+                              vol                                                   
+                    (Nagel, 2002) where:                                            
+                                   DLP = CTDI L             (5.7)                   
+                                          vol                                       
+                    and                                                             
+                                1/3 CTDI  +2/3 CTDI                                 
+                          CTDI = ------------------------1---0--0--,-- -c--e--n---t--e--r--------------------------------1--0---0--,-- -p--e---r--i-p--h---e--r--y- (5.8)
+                             vol           p                                        
+                    and the length of patient scanned L is given by:                
+                                     L = N b                (5.9)                   
+                                         R                                          
+                    It may become more convenient to use the DLP to establish the rel-
+                    evant techniques and to compute shielding requirements directly 
+                    from DLP rather than CTDI . This Section will therefore review  
+                                      100                                           
+                    how shielding can be determined using DLP.                      
+                      Assuming that the CTDI for the peripheral axis in the body    
+                                      100                                           
+                    phantom is twice that of the central axis, and that the CTDI for
+                                                           100                      
+                    the two axes are equal in the head phantom, the relevant equations
+                    become:                                                         
+                                 K 1 (head) = κ DLP       (5.10a)                   
+                                 sec     head                                       
+                               K 1 (body) = 1.2 κ DLP     (5.10b)                   
+                                sec       body                                      
+                      Regarding clinical usage, first note that most CT facilities uti-
+                    lize multiple “procedure codes” on many patients. For example, the
+                    abdomen and pelvis are commonly scanned together, but are       
+                    counted as two “procedures” for billing purposes by the administra-
+                    tor. As in the case of radiography previously discussed in Section
+                    4.1.4, the number of procedures will exceed the number of patients.
+                    However, for the special case of CT, it is reasonable and informative
+                    to use the number of procedures as a total weekly workload value
+                    rather than the number of patients. Table 5.2 illustrates some cur-
+                    rently suggested default DLP values per “procedure.” The DLP val-
+                    ues (in Table 5.2) result from reference values for DLP by EC (1999)
+                    and estimates of average values of CTDI in the United States    
+                                               vol                                  
+                    derived from the American College of Radiology accreditation pro-
+                    gram.13 These values are subject to change as the clinical applica-
+                    tions of CT technology continue to be developed.                
+                      13McCollough, C.H. (2004). Personal communication (Mayo Clinic,
+                    Rochester, Minnesota).                                          
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

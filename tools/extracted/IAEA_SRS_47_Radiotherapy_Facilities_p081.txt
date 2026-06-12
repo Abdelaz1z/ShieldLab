@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     W  the workload for a five day week is 600 Gy (40 × 3 × 5);  
+                     U  the use factor is 0.25;                                   
+                     T  the occupancy factor is 0.0625 (1/16) from Table 3        
+                                                                                  
+                                                                                  
+                        20¥10-6 ¥(6.2+1)2                                         
+                     B=             = 1.11 × 10–5                                 
+                        600¥0.25¥0.0625                                           
+                     The required number of TVLs to produce this attenuation is determined
+                  from Eq. (6):                                                   
+                                                                                  
+                                                                                  
+                            Ê  1   ˆ                                              
+                     n = log 10Ë Á 2.76¥10-5¯ ˜ =3.96                             
+                                                                                  
+                     The TVL for 18 MV X rays in concrete is 445 mm (Table 4), and therefore
+                  the required barrier thickness is (3.96 × 445 =) 1762 mm.       
+                                                                                  
+                  Example 2: TADR considerations                                  
+                                                                                  
+                     To determine if the dose in-any-hour limit is met, the maximum dose
+                  output rate at isocentre 12 Gy·min–1 is used. At this dose output rate, the
+                  expected dose rate at location C, with attenuation B = 1.11 × 10–4, is:
+                                                                                  
+                         12¥60¥1.11¥10-4                                          
+                     IDR=            = 1.54 × 10–3 Gy·h–1                         
+                              7.22                                                
+                                                                                  
+                     It is determined that in an hour, no more than 12 patients can be
+                  irradiated, which corresponds to a workload of 36 Gy. Comparing an hourly
+                  workload figure of 600 Gy if the weekly work is to be done in one hour, with
+                  the maximum hourly workload of 36 Gy, the lower value of 36 is taken as the
+                  value for W .                                                   
+                         h                                                        
+                     From Equation (4), the dose in any hour is:                  
+                                                                                  
+                                36¥0.25                                           
+                     R =1.54¥10-3¥    = 1.93 × 10–5 Sv                            
+                      h         12¥60                                             
+                  which meets the 20 mSv in any hour requirement.                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                               67                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    38 / 4. COMPUTATION OF SHIELDING REQUIREMENTS                   
+                                                                                    
+                    because the workload distributions are scaled per patient. Further-
+                    more, just as a single kVp produces a continuous bremsstrahlung 
+                    photon spectrum with a corresponding transmission curve for a   
+                    given shielding material, the workload distribution also produces
+                    acontinuous spectrum, the attenuation properties of which can   
+                    also be represented by a single transmission curve. Figure 4.2  
+                    shows the primary beam transmission through lead for x rays pro-
+                    duced at 100 kVp and also for the Rad Room (floor or other barriers)
+                    workload distribution shown in Figure 4.1.                      
+                      The required barrier thickness is that where the transmitted air
+                    kerma in the occupied area beyond the barrier does not exceed the
+                    weekly shielding design goal scaled by the occupancy factor (i.e.,
+                    P/T). Using the workload distributions, the unshielded primary or
+                    secondary air kerma per patient (or total workload per patient) at
+                    1 m may be calculated. Scaling these by the weekly number of    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      Fig. 4.2. The primary beam transmission through lead for x rays
+                    produced at 100 kVp and also for the Rad Room (floor or other barriers)
+                    workload distribution shown in Figure 4.1.                      
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

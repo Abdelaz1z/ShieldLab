@@ -1,0 +1,47 @@
+                                                                                                              
+                                                                                                              
+                                                                                                              
+                                                                                                              
+                                                                                                              
+                                                                                                              
+                                                                                                              
+                                                                                                              
+                                                                                                              
+            ill                                                                                               
+                                                                                                          ~   
+            ~                                                                                             l   
+            ~                                                                                                 
+            I                                                                                             ~   
+                                                                                                          'ti 
+                                                                                                          ~·  
+            I . eQ . r                                                                                    ~   
+                                                                                                          aII>
+            0                                                                                                 
+            iii                                                                                               
+            1                                                                                             ~   
+                                                                                                          :::.
+                                                                                                          !   
+            <;-                                                                                               
+            QI                                                                                                
+                                                                                                          iil 
+            i                                                                                                 
+                                                                                                          ~   
+               Table 2.5 Values for the coefficients based on room ceiling height that can be substituted into Equation 2.4 to predict levels of tertiary scatter air kerma from the [
+               ceiling incident on persons behind protective barriers of different heights                    
+               Ceiling height (m)  3.0   3.2   3.4   3.6    3.8   4.0   4.2   4.4   4.6   4.8    5.0          
+               Coefficient-        Value                                                                      
+               Fluoroscopy/radiography 85 kV                                                                  
+                mlW' [µGy (Gycm2t1Jm-1 0.0101 0.0081 0.0066 0.0053 0.0044 0.0036 0.0030 0.0024 0.0020 0.0017 0.0015
+                CKAP (µGy (Gycm2)-1) 0.0297 0.0254 0.0217 0.0186 0.0160 0.0137 0.0119 0.0103 0.0090 0.0078 0.0069
+               CT120kV                                                                                        
+                mllU' (µGy (Gycm)-1Jm-' 1.10 0.836 0.636 0.490 0.382 0.296 0.234 0.180 0.143 0.114 0.093      
+                C                                                                                             
+                 0                                                                                            
+                 1.P [µGy (Gycm)-1] 3.24 2.64  2.14  1.75   1.44  1.19  0.988 0.801 0.669 0.562  0.478        
+               •m and C are constants for a particular ceiling height.                                        
+            Cl                                                                                                
+                                                                                                              
+                                                                                                              
+                                                                                                              
+                                                                                                              
+                                                                                                              

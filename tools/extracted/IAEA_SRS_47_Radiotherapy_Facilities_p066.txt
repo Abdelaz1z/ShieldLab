@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  6.1.4. Primary barrier                                          
+                                                                                  
+                     The required attenuation B is determined from Eq. (5), where 
+                                                                                  
+                     P   the design limit for a controlled area is 0.12 mSv·week–1;
+                     SAD is 0.8 m;                                                
+                     d   the distance from the isocentre to the point of interest (A and B in
+                         Fig. 10) is 3.0 m;                                       
+                     W   is 384 × 103 mGy·week–1;                                 
+                     U   the use factor is 0.25;                                  
+                     T   the occupancy is 1.                                      
+                                                                                  
+                        0.12¥(3.0+0.8)2                                           
+                     B=            =1.81¥10-5                                     
+                        384¥103¥0.25¥1                                            
+                                                                                  
+                     From Eq. (6), the number of TVLs of concrete density 2350 kg·m–3 can be
+                  determined:                                                     
+                              Ê   1  ˆ                                            
+                     nTVLs=log 10Ë Á 1.81¥10-5¯ ˜ =4.74                           
+                                                                                  
+                                                                                  
+                  The TVL for 60Co in concrete (density 2350 kg·m–3) is 218 mm (Table 4).
+                  Therefore, the required thickness for the primary barriers is (4.74 × 218 =)
+                  1033 mm.                                                        
+                     For this barrier thickness the IDR beyond the barrier is determined. The
+                  dose rate DR is obtained from the specification of the source at 1 m. If the
+                          0                                                       
+                  source specification is 0.8 Gy/min at 1 m (DR = 48 Gy·h–1 = 48 ×106 mGy·h–1), the
+                                            0                                     
+                  IDR outside this primary barrier will be:                       
+                          48¥106 ¥1.81¥10-5                                       
+                     IDR=             =60 mSv·h-1                                 
+                             (3+0.8)2                                             
+                     The TADR (R ) may be determined from this IDR value. The total
+                              8                                                   
+                  beam-on time per day has previously been estimated to be 1.6 h per 8 h day.
+                  Assuming a use factor of 0.25, the TADR beyond this barrier will be:
+                                                                                  
+                                 1.6¥0.25                                         
+                     TADR ( R ) =60¥  =3 mSv·h-1                                  
+                           8       8                                              
+                                                                                  
+                  52                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

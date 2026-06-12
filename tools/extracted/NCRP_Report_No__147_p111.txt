@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                       5.7 BONE MINERAL DENSITY UNITS / 101         
+                                                                                    
+                      5.6.3 Cautionary Notes                                        
+                                                                                    
+                        Several notes of caution regarding CT shielding design are in
+                      order here. Attempting to utilize a workload expressed in mA min
+                      week–1 is not recommended. This is because a multi-slice scanner
+                      acquiring a 2 cm total slice width per rotation will require only
+                      one-half of the mA min week–1 of a single-slice scanner acquiring a
+                      1 cm width, but the scattered air kerma will be approximately the
+                      same.                                                         
+                        Finally, regardless of the methodology ultimately used, it is
+                      essential that the qualified expert stay abreast of the rapidly
+                      changing developments in CT imaging and consider future       
+                      advances to ensure that the required degree of radiation protection
+                      is achieved both in the short and the long term.              
+                                                                                    
+                                5.7 Bone Mineral Density Units                      
+                            (Dual Energy X-Ray Absorption Scanners)                 
+                        Bone densitometry x-ray units utilize dual energy x-ray absorp-
+                      tion. The spine and hip (femur) or both hips of the patient are
+                      typically scanned either with a narrowly collimated x-ray fan beam
+                      or a pencil beam which emanates from under the table and which
+                      is intercepted by an over-table detector or detector array. Some
+                      units are also capable of making lateral exposures. In either case,
+                      only scattered radiation from the patient is relevant for shielding
+                      purposes. The x-ray tube is switched between a high- and a low-kVp
+                      during the scan (e.g., 140 and 70 kVp), and the beam is heavily
+                      filtered.                                                     
+                        A fan beam scanner may generate scattered air-kerma rates of
+                      up to 0.04 mGy h–1 at 1 m, whereas the scattered radiation rates for
+                      pencil beam scanners are around 2 × 10–3 mGy h–1. However, scan
+                      acquisition times are generally shorter for fan beam units. The
+                      manufacturers generally provide scattered radiation rates at 1 m
+                      and typical scan times for various examinations (e.g., hip, spine,
+                      whole body, and forearm).                                     
+                         Example: The manufacturer of a fan beam unit states        
+                         that the scattered air-kerma rate at 1 m is <0.04 mGy h–1  
+                         and that a spine and hip scan can each be done in 15 s. If 
+                         a facility is planning to examine 60 patients per week     
+                         with both a spine and hip scan being performed on each     
+                         patient (0.5 h scan time per week), then the air kerma at  
+                         1 m is <0.02 mGy week–1. This is below the shielding       
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  TABLE 10. NEUTRON DOSE EQUIVALENT H AT 1 m FROM THE             
+                                                 1                                
+                  TARGET (IN mSv PER X RAY · Gy AT ISOCENTRE)                     
+                  Accelerator                                                     
+                                Model   Stated MV  NAP MV    H                    
+                  manufacturer                                1                   
+                  Varian         1800     10       Unknown  0.08                  
+                  GE Saturne      41      12        11.2    0.18                  
+                  Siemens        MD       15       Unknown  0.34                  
+                  GE Saturne      41      15        12.5    0.64                  
+                  Philips/Elekta SL-20     20       17      0.87                  
+                  GE Saturne      43      18        14      1.09                  
+                  Varian         1800     15       Unknown 1.57–2.58              
+                  Varian         1800     18        16.8   2.03–3.18              
+                  Siemens        KD        20       16.5   2.19–2.47              
+                                                                                  
+                  GE Saturne      43      25        18.5    2.74                  
+                  Philips/Elekta SL-25     25       22      3.98                  
+                  Note: Prepared from the H values from (Table 2) [14] by multiplying the H values with
+                                0                         0                       
+                     1.412. H is the neutron dose equivalent at 1.41 m from target per unit dose of X ray
+                         0                                                        
+                     at the isocentre.                                            
+                  TABLE 11. FIRST TVLa (IN mm OF CONCRETE) FOR PATIENT            
+                  SCATTER RADIATION AT VARIOUS SCATTERED ANGLESb                  
+                  Scatter                                                         
+                         Co-60 4 MV 6 MV 10 MV 15 MV 18 MV 20 MV 24 MV            
+                  angle                                                           
+                  15     223  320   367  410  436  449  457  477                  
+                  30     213  248   261  275  285  288  290  293                  
+                  45     197  223   229  233  237  238  239  240                  
+                  60     189  201   205  209  211  211  212  212                  
+                  90     151  169   171  173  174  174  174  175                  
+                                                                                  
+                  135    128  143   144  144  145  145  145  145                  
+                  a First TVL values are greater than approximate TVL values based on large atten-
+                   uation. Values are valid for shielding design purposes and are conservative in nature.
+                  b TVL values for a scattered angle of 15° are primary beam TVL values by Nelson and
+                   LaRiviere. [22] TVL values for scattered angles of 30–135° were derived from Figs 10
+                   and 15 in Ref. [2], based on the assumption that the TVLs for the scatter radiation are
+                   closely related to the energies of the monochromatic photon scattered due to
+                   Compton interaction.                                           
+                                                                                  
+                                                               49                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

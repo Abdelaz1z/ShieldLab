@@ -1,0 +1,83 @@
+{
+  "_comment": "Megavoltage (LINAC / Co-60) shielding data from IAEA Safety Reports Series No. 47 (2006). Transmission uses the TVL model: n = x1/TVL1 + (x - x1)/TVLe, B = 10^(-n). When only one TVL is given (SRS 47 Table 4), TVL1 = TVLe = that value. All thicknesses in MILLIMETRES. See references.json: SRS47, NCRP151. Every value editable.",
+  "_model": "Tenth-value-layer attenuation (IAEA SRS 47 Eq. 6).",
+  "ref": "SRS47",
+
+  "energies": ["Co-60", "4 MV", "6 MV", "10 MV", "15 MV", "18 MV", "20 MV", "24 MV"],
+
+  "tvl_primary": {
+    "_comment": "SRS 47 Table 4: TVL (mm) for PRIMARY beam, approximate values based on large attenuation. Arrays ordered as 'energies'. SRS 47 Table 4 gives a single TVL (used as both TVL1 and TVLe). Densities: concrete 2350, steel 7800, lead 11360 kg/m3.",
+    "ref": "SRS47",
+    "table": "Table 4",
+    "concrete": [218, 290, 343, 389, 432, 445, 457, 470],
+    "steel":    [71, 91, 98, 105, 108, 111, 111, 107],
+    "lead":     [41, 53, 55, 56, 57, 56, 55, 52]
+  },
+  "tvl_leakage": {
+    "_comment": "SRS 47 Table 4: TVL (mm) for LEAKAGE/secondary gamma & X rays (90 degrees). Used for leakage-radiation secondary barriers.",
+    "ref": "SRS47",
+    "table": "Table 4",
+    "concrete": [218, 254, 279, 305, 330, 330, 343, 356],
+    "steel":    [69, 79, 80, 85, 87, 87, 88, 89],
+    "lead":     [40, 47, 45, 46, 47, 47, 49, 51]
+  },
+  "tvl_patient_scatter_concrete": {
+    "_comment": "SRS 47 Table 11: first TVL (mm of concrete) for PATIENT-SCATTERED radiation at various scatter angles. Rows = angle (deg); columns ordered as 'energies'. Conservative for shielding design.",
+    "ref": "SRS47",
+    "table": "Table 11",
+    "angles_deg": [15, 30, 45, 60, 90, 135],
+    "values": {
+      "15":  [223, 320, 367, 410, 436, 449, 457, 477],
+      "30":  [213, 248, 261, 275, 285, 288, 290, 293],
+      "45":  [197, 223, 229, 233, 237, 238, 239, 240],
+      "60":  [189, 201, 205, 209, 211, 211, 212, 212],
+      "90":  [151, 169, 171, 173, 174, 174, 174, 175],
+      "135": [128, 143, 144, 144, 145, 145, 145, 145]
+    }
+  },
+
+  "scatter_fraction_a": {
+    "_comment": "SRS 47 Table 5: scatter fraction a (fraction of incident dose scattered to 1 m) for a 400 cm2 incident beam at the patient. Co-60 column is measured; MV columns use the conservative 'Max a' values. Scale by (actual field area / 400 cm2). Rows = angle.",
+    "ref": "SRS47",
+    "table": "Table 5",
+    "reference_field_cm2": 400,
+    "energies": ["Co-60", "6 MV", "10 MV", "18 MV", "24 MV"],
+    "angles_deg": [10, 20, 30, 45, 60, 90, 135, 150],
+    "values": {
+      "10":  [1.1e-2, 1.68e-2, 1.69e-2, 2.43e-2, 2.74e-2],
+      "20":  [8.0e-3, 1.15e-2, 1.03e-2, 1.17e-2, 1.27e-2],
+      "30":  [6.0e-3, 5.36e-3, 6.73e-3, 7.13e-3, 7.21e-3],
+      "45":  [3.7e-3, 2.97e-3, 3.25e-3, 3.05e-3, 3.06e-3],
+      "60":  [2.2e-3, 1.74e-3, 1.84e-3, 1.42e-3, 1.37e-3],
+      "90":  [9.1e-4, 7.27e-4, 7.14e-4, 3.75e-4, 3.53e-4],
+      "135": [5.4e-4, 4.88e-4, 3.70e-4, 2.59e-4, 2.33e-4],
+      "150": [1.5e-4, 3.28e-4, 3.16e-4, 2.26e-4, 2.12e-4]
+    }
+  },
+
+  "patient_transmission_f": {
+    "_comment": "SRS 47 Table 8: patient transmission f = percentage depth dose for 10x10 cm field, 100 cm SSD at 30 cm depth. Fraction of primary beam transmitted THROUGH the patient (used for primary barrier where patient attenuates the beam).",
+    "ref": "SRS47",
+    "table": "Table 8",
+    "energies": ["Co-60", "6 MV", "10 MV", "15 MV", "18 MV", "25 MV"],
+    "f": [0.15, 0.23, 0.28, 0.33, 0.34, 0.38]
+  },
+
+  "leakage_fraction": {
+    "_comment": "Head leakage radiation specification used in vault shielding: 0.1 % of the useful beam dose at 1 m from the target (IAEA SRS 47 / IEC 60601 limit).",
+    "value": 0.001,
+    "ref": "SRS47"
+  },
+
+  "neutron_note": {
+    "_comment": "PHOTONEUTRON WARNING. For accelerators operated ABOVE 10 MV, photoneutrons are produced and become the dominant dose at the maze/door. This tool models PHOTONS ONLY (per project scope). SRS 47 reference data retained below for awareness; full neutron/capture-gamma design is OUT OF SCOPE and requires a qualified expert.",
+    "ref": "SRS47",
+    "photoneutron_tvl_concrete_mm": 210,
+    "photoneutron_tvl_concrete_note": "TVL of 0.34 MeV photoneutrons in concrete ~210 mm, independent of concrete density (SRS 47 5.6).",
+    "capture_gamma_tvl_lead_mm_short_maze": 61,
+    "capture_gamma_tvl_lead_mm_long_maze": 6,
+    "neutron_tvl_polyethylene_mm": 45,
+    "neutron_tvl_borated_polyethylene_note": "Borated polyethylene (5% wt) much more effective for thermal neutrons.",
+    "guidance": "If photons are adequately shielded by concrete (>= 1 TVL), neutron leakage is generally also attenuated below photon-leakage levels. If lead or steel is used, a hydrogenous moderator (e.g. BPE) is required to capture neutrons. Seek expert advice."
+  }
+}

@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    30 / 4. COMPUTATION OF SHIELDING REQUIREMENTS                   
+                                                                                    
+                    average of 1 h week–1 in that area (while the x-ray beam is acti-
+                    vated) every week for a year. A factor of 1/40 would certainly be con-
+                    servatively safe for most outdoor areas used only for pedestrian or
+                    vehicular traffic (e.g., sidewalks, streets, vehicular drop-off areas,
+                    or lawn areas with no benches or seating). The occupancy factor for
+                    an area is not the fraction of the time that it is occupied by any
+                    persons, but rather is the fraction of the time it is occupied by the
+                    single person who spends the most time there. Thus, an unattended
+                    waiting room might be occupied at all times during the day, but 
+                    have a very low occupancy factor since no single person is likely to
+                    spend >50 h y–1 in a given waiting room. Occupancy factors in   
+                    uncontrolled areas will rarely be determined by visitors to the facil-
+                    ity or its environs who might be there only for a small fraction of a
+                    year. The maximally exposed individuals will normally be employ-
+                    ees of the facility itself or residents or employees of an adjacent
+                    facility. For example, if a staff member typically spent 4 h d–1 in a
+                    room a physician uses for patient examinations, the resulting occu-
+                    pancy factor would be one-half.                                 
+                      In some cases, a clinic may plan to operate radiographic equip-
+                    ment longer than a normal work day. Two common examples are a   
+                    radiographic room in an emergency department and a CT facility. 
+                    The workload utilized should be that which occurs during the pri-
+                    mary work shift, since the maximally exposed individuals are those
+                    working during that shift. For example, the primary 40 h work shift
+                    may occur from 8 a.m. to 5 p.m., 5 d week–1.                    
+                      Note that the use of T less than one allows the average air   
+                    kerma in a partially occupied area to be higher than that for a 
+                    fully-occupied area by a factor of T–1.                         
+                      The qualified expert should make reasonable and realistic     
+                    assumptions concerning occupancy factors, since each facility will
+                    have its own particular circumstances. For example, an outdoor  
+                    area that has benches where employees can eat lunch will have an
+                    occupancy factor influenced by the climate of the locale. It must be
+                    stressed that the occupancy factors in Table 4.1 are general guid-
+                    ance values that may be utilized if more detailed information on
+                    occupancy is not available. The designer of a new facility should,
+                    however, keep in mind that the function of adjacent areas may   
+                    change over time. For example, a storage room may be converted  
+                    into an office without anyone reconsidering the adequacy of the 
+                    existing shielding, particularly if the conversion is made in an adja-
+                    cent uncontrolled area.                                         
+                      Care must also be taken when assigning a low occupancy factor 
+                    to an uncontrolled area such as a corridor immediately adjacent to
+                    an x-ray room. The actual limitation for shielding design may be a
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

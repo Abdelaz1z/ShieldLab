@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                        4.1 CONCEPTS AND TERMINOLOGY / 43           
+                                                                                    
+                        TABLE 4.5—Unshielded primary air kerma per patient [K1      
+                                                         P                          
+                                                          (inmGy                    
+                        patient–1)] for the indicated workload [W (mAminpatient–1)] and
+                                               norm                                 
+                        workload distribution, normalized to primary beam distance d =1m.
+                                                           P                        
+                                             W            K1                        
+                         Workload Distributiona norm       P                        
+                                         (mA min patient–1)b,c (mGy patient–1)d     
+                       Rad Room (chest bucky) 0.6         2.3                       
+                       Rad Room (floor or other 1.9       5.2                       
+                       barriers)                                                    
+                       Rad Tube (R&F Room)    1.5         5.9                       
+                       Chest Room             0.22        1.2                       
+                        aThe workload distributions are those surveyed by AAPM TG9 (Simpkin,
+                       1996a), given in Table 4.2.                                  
+                        bAs discussed in Section 4.1.4, values of W given in this Table can be mod-
+                                              norm                                  
+                       ified by use of a multiplier term W /W if necessary to allow for different
+                                         site norm                                  
+                       workloads per patient at a particular site.                  
+                        cFor the indicated clinical installations, W is the average workload per
+                                               norm                                 
+                       patient.                                                     
+                        dThese values for primary air kerma ignore the attenuation available in the
+                       radiographic table and image receptor.                       
+                      where d is the distance (in meters) from the x-ray tube to the occu-
+                            P                                                       
+                      pied area.                                                    
+                      4.1.6.2 Preshielding. For primary barrier shielding calculations, it
+                      has been traditionally assumed that the unattenuated primary  
+                      beam is incident on the floor or walls that constitute primary bar-
+                      riers. In fact, the primary beam intensity is substantially reduced
+                      due to attenuation by the patient, the image receptor, and the
+                      structures supporting the image receptor. The primary beam is not,
+                      however, always totally intercepted by the patient since part of it
+                      may fall off the patient and impinge directly on the grid or cassette
+                      for some projections and patients. The area in which this occurs
+                      will, however, be spatially averaged over the primary beam area
+                      when the total patient population is considered. Thus, shielding
+                      provided by the patient remains a significant factor. Often, a suit-
+                      ably safe approach is to ignore the significant attenuation provided
+                      by the patient, and consider only attenuation by the imaging hard-
+                      ware in the x-ray beam. Dixon (1994) and Dixon and Simpkin    
+                      (1998) have shown that for properly collimated primary beams, the
+                      x-ray film cassettes, grids, radiographic tables, and wall-mounted
+                                                                                    
+                                                                                    

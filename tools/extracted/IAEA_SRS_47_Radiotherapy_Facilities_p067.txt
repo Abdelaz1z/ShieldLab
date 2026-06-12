@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     The TADR2000 [6] may also be determined by averaging the design dose
+                  limit over 2000 h (6 mSv ÷ 2000 =) 3 mSv·h–1. The use factor has already been
+                  accounted for in this value, but the occupancy has been assumed to be unity. If
+                  the area beyond this barrier is an office with a high occupancy, then it would
+                  need to be a controlled area. However, if the area only has a low occupancy of
+                  0.05 with no public access the TADR2000 would be (6 mSv ÷ 2000 × 0.05 =)
+                  0.15 mSv·h–1. At this level of occupancy the area should be designated a
+                  supervised area under the guidance notes in the United Kingdom [6].
+                     If the area beyond the primary barrier is intended to be a public area,
+                  then a design limit of 0.3 mSv·a–1, or an IDR of 7.5 mSv·h–1 may be used [6]. The
+                  barrier thickness required to limit the IDR is therefore determined.
+                     The same values are used, except that P the design limit is 7.5 mSv·h–1 and
+                  DR the dose rate at 1 m is used in place of (WUT).              
+                    0                                                             
+                     From Eq. (7) the required attenuation B is given by:         
+                                             IDR                                  
+                          7.5(3.0+0.8)2                                           
+                     B   =         =2.26¥10-6                                     
+                      IDR  1¥48¥106                                               
+                                                                                  
+                              Ê   1  ˆ                                            
+                     nTVLs=log 10Ë Á 2.26¥10-6¯ ˜ =5.65                           
+                                                                                  
+                     The wall thickness required to reduce the IDR to 7.5 mSv·h–1 is therefore
+                  (5.65 × 218 =) 1232 mm concrete. Based on IDR considerations, the thickness
+                  of 1232 mm would be required for the primary barriers if they are shielding
+                  public areas.                                                   
+                     An alternative method is to use a design dose limit of 0.3 mSv·a–1 (Table 2).
+                  Using Eq. (5) and applying the input data of:                   
+                                                                                  
+                     P = (0.3 × 103 mSv·a–1 / 50 =) 6 µSv·week–1;                 
+                     d = 3 m;                                                     
+                     SAD = 0.8 m;                                                 
+                     W = 384 × 106 µGy·week–1;                                    
+                     U = 0.25;                                                    
+                     T = 1                                                        
+                                                                                  
+                                                                                  
+                         6¥(3+0.8)2                                               
+                     B=            = 9.03 × 10–7                                  
+                        384¥106 ¥0.25¥1                                           
+                                                                                  
+                                                                                  
+                                                               53                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

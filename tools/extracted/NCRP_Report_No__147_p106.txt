@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    96 / 5. EXAMPLES OF SHIELDING CALCULATIONS                      
+                                                                                    
+                    necessary, as discussed by Sutton and Williams (2000). The angle θ
+                    is the angle of incidence with the barrier.                     
+                      In this Report, the peripheral phantom axis 1 cm below the sur-
+                    face is used as the reference axis. The scatter fraction per centime-
+                    ter (κ) for the peripheral axis of the FDA (2003d) head and body
+                    phantoms has been measured and the following values were        
+                    obtained:12                                                     
+                                  κ  = 9×10 –5 cm –1       (5.5a)                   
+                                   head                                             
+                                  κ  = 3×10 –4 cm –1.      (5.5b)                   
+                                  body                                              
+                      Since these measured κ values include a small tube leakage    
+                    radiation component, the air kerma calculated from them is      
+                    denoted as K . Values of the CTDI for various CT scanner mod-   
+                            sec           100                                       
+                    els have been tabulated and are available on the Imaging Perfor-
+                    mance Assessment of Computed Tomography Scanners web site       
+                    (ImPACT, 2004). These values scale to other kVp values approxi- 
+                    mately as the square of the kVp (e.g., the CTDI at 140 kVp can  
+                                                   100                              
+                    be obtained by multiplying the 120 kVp value by 1.4, if it is deter-
+                    mined that the facility commonly uses 140 kVp). The ImPACT      
+                    (2004) web site contains the actual measured values of CTDI per 
+                                                          100                       
+                    100 mAs at various kVp settings and is periodically updated as new
+                    scanner models become available. One must be careful, however, to
+                    use the peripheral axis value of CTDI with the scatter fractions
+                                            100                                     
+                    provided in this Report.                                        
+                      If CTDI is defined as the CTDI normalized per mAs, then:      
+                       n   100             100                                      
+                         K 1 = κ N T mAs CTDI = κ L --- mAs CTDI . (5.6)            
+                          sec   R b  n   100 p   n   100                            
+                      CTDI  values are also obtainable from the manufacturers,      
+                          100                                                       
+                    however, care should be taken not to confuse CTDI with CTDI     
+                                                    100     FDA                     
+                    (FDA, 2003d), which is also provided (often as an unsubscripted 
+                    CTDI) (McNitt-Gray, 2002).                                      
+                       Example: As a simplified illustrative example using          
+                       CTDI , consider a multi-slice scanner. The site antici-      
+                           100                                                      
+                       pates a workload of 100 patients per 40 h week, of which     
+                       60 patients receive one body scan and 40 patients receive    
+                       one head scan. The average technique is 120 kVp, with        
+                       T = 2 cm (e.g., four 5 mm slices are acquired per rotation), 
+                        b                                                           
+                      12Shearer, D.R. (2000). Personal communication (Rhode Island Hospi-
+                    tal, Providence, Rhode Island).                                 

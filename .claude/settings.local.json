@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import pypdf; print\\('pypdf', pypdf.__version__\\)\")",
+      "Bash(python -c \"import pdfplumber; print\\('pdfplumber ok'\\)\")",
+      "PowerShell(py -3.11 \"D:\\\\Projects\\\\Master\\\\Master-26\\\\Control Claude Program\\\\tools\\\\identify_pdfs.py\")",
+      "WebSearch",
+      "WebFetch(domain:www.ncbi.nlm.nih.gov)",
+      "WebFetch(domain:oncologymedicalphysics.com)",
+      "WebFetch(domain:pmc.ncbi.nlm.nih.gov)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://nrrc.gov.sa/media/vyflxp4s/nrrc-r-01-radiation-safety.pdf\" -OutFile \"D:\\\\Projects\\\\Master\\\\Master-26\\\\Control Claude Program\\\\References\\\\NRRC-R-01_Radiation_Safety_KSA.pdf\" -UseBasicParsing; \\(Get-Item \"D:\\\\Projects\\\\Master\\\\Master-26\\\\Control Claude Program\\\\References\\\\NRRC-R-01_Radiation_Safety_KSA.pdf\"\\).Length)",
+      "WebFetch(domain:nrrc.gov.sa)",
+      "WebFetch(domain:ionactive.co.uk)",
+      "WebFetch(domain:www.irpa.net)",
+      "WebFetch(domain:aapm.confex.com)",
+      "WebFetch(domain:physics.nist.gov)",
+      "PowerShell($env:BROWSER=\"none\"; Start-Job -Name rs -ScriptBlock { Set-Location \"D:\\\\Projects\\\\Master\\\\Master-26\\\\Control Claude Program\"; py -3.11 -m streamlit run app.py --server.headless true --server.port 8533 2>&1 | Out-File \"D:\\\\Projects\\\\Master\\\\Master-26\\\\Control Claude Program\\\\tools\\\\streamlit_log.txt\" } | Out-Null; Start-Sleep -Seconds 12; Get-Content \"D:\\\\Projects\\\\Master\\\\Master-26\\\\Control Claude Program\\\\tools\\\\streamlit_log.txt\" -ErrorAction SilentlyContinue)",
+      "mcp__visualize__show_widget",
+      "Bash(git init *)"
+    ]
+  }
+}

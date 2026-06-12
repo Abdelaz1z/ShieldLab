@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                         600¥0.25¥1.62¥10-3¥2.82¥7.54¥10-3¥10.2                   
+                     D  =                                                         
+                      wH           (4.2¥5.9¥6.8)2                                 
+                        = 1.86 × 10–6 Gy·week–1                                   
+                  Head leakage wall scatter component D                           
+                                          LH                                      
+                     Input data values used in Eq. (16) are as follows:           
+                                                                                  
+                     L = 1 × 10–3;                                                
+                      0                                                           
+                     W = 600 Gy·week–1;                                           
+                     U = 0.25;                                                    
+                      H                                                           
+                     α = 4.11 × 10–3 (Table 6, 45° incidence, 0° reflection angle, 18 MV);
+                      1                                                           
+                     A = 11.8 m2;                                                 
+                      1                                                           
+                     d = 7.9 m;                                                   
+                      i                                                           
+                     d = 9.9 m.                                                   
+                      m                                                           
+                     The dose at the maze door from head leakage scattered by the wall A is:
+                                                              1                   
+                          1¥10-3¥600¥0.25¥4.11¥10-3¥11.8                          
+                     D  =                                                         
+                      LH          (7.9¥9.9)2                                      
+                        = 1.19 × 10–6 Gy·week–1                                   
+                  Head leakage through the maze wall D                            
+                                         TH                                       
+                     The input data values used in Eq. (17) are:                  
+                     L = 1 × 10–3;                                                
+                      0                                                           
+                     W = 600 Gy·week–1;                                           
+                     U = 0.25;                                                    
+                      H                                                           
+                     d = 7.1 m.                                                   
+                      t                                                           
+                     The oblique thickness of the maze wall t is 1200 mm concrete. Since the
+                  TVL in concrete for leakage radiation is 330 mm (Table 4), the transmission B is:
+                     B = 10–1200/330 = 2.31 × 10–4                                
+                     The dose D from Eq. (17) is:                                 
+                            TH                                                    
+                         1¥10-3¥600¥0.25¥2.31¥10-4                                
+                     D  =                    =6.87 × 10–7 Gy·week–1               
+                      TH         (7.1)2                                           
+                                                               75                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

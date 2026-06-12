@@ -1,0 +1,369 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    36 / 4. COMPUTATION OF SHIELDING REQUIREMENTS                   
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    bmooR                                                           
+                                                                                    
+                     yhpargoidaR                                                    
+                       dy                                                           
+                      l h a                                                         
+                       p re a h r p go                                              
+                      ir i e g P nA                                                 
+                       yhp                                                          
+                      ca                                                            
+                       a i r d g r o a ig C                                         
+                       nA                                                           
+                      .o                                                            
+                       m m                                                          
+                       o m o a R                                                    
+                      M                                                             
+                       mooR                                                         
+                       tsehC                                                        
+                       c)m                                                          
+                      eb                                                            
+                       o u o T r                                                    
+                      d F a &                                                       
+                      R R(                                                          
+                       c e ) b m u o T o . r o                                      
+                      r F o & u                                                     
+                       R lF                                                         
+                       (                                                            
+                       mooR                                                         
+                       daR                                                          
+                       mooR                                                         
+                       daR                                                          
+                       mooR                                                         
+                       daR                                                          
+                       apVk                                                         
+                        rehto                                                       
+                        ro roolf(                                                   
+                        )ykcub                                                      
+                        tsehc(                                                      
+                        )sreirrab                                                   
+                        lla(                                                        
+                         )sreirrab                                                  
+                           35.1                                                     
+                           04.7                                                     
+                           0                                                        
+                           2–01                                                     
+                           ×                                                        
+                           10.3                                                     
+                           2–01                                                     
+                           ×                                                        
+                           78.5                                                     
+                           21.1                                                     
+                           2–01                                                     
+                           × 64.1                                                   
+                           4–01                                                     
+                           ×                                                        
+                           48.8                                                     
+                           2–01                                                     
+                           ×                                                        
+                           55.1                                                     
+                           001                                                      
+                             2–01                                                   
+                             ×                                                      
+                             72.9                                                   
+                             20.7                                                   
+                             0                                                      
+                             0                                                      
+                             2–01                                                   
+                             ×                                                      
+                             50.1                                                   
+                             1–01 ×                                                 
+                             46.9                                                   
+                             3–01                                                   
+                             × 15.1                                                 
+                             3–01                                                   
+                             ×                                                      
+                             79.1                                                   
+                             3–01                                                   
+                             ×                                                      
+                             84.3                                                   
+                             501                                                    
+                               2–01                                                 
+                               ×                                                    
+                               50.3                                                 
+                               95.6                                                 
+                               0                                                    
+                               2–01                                                 
+                               ×                                                    
+                               41.2                                                 
+                               2–01                                                 
+                               ×                                                    
+                               64.6                                                 
+                               1–01 ×                                               
+                               74.7                                                 
+                               4–01                                                 
+                               × 15.5                                               
+                               3–01                                                 
+                               ×                                                    
+                               19.9                                                 
+                               2–01                                                 
+                               ×                                                    
+                               50.1                                                 
+                               011                                                  
+                                 0                                                  
+                                 101                                                
+                                 × 83.1                                             
+                                 0                                                  
+                                 2–01                                               
+                                 ×                                                  
+                                 63.9                                               
+                                 2–01                                               
+                                 ×                                                  
+                                 09.2                                               
+                                 44.1                                               
+                                 3–01                                               
+                                 × 96.3                                             
+                                 2–01                                               
+                                 ×                                                  
+                                 47.3                                               
+                                 2–01                                               
+                                 ×                                                  
+                                 01.4                                               
+                                 511                                                
+                                   0                                                
+                                   53.3                                             
+                                   0                                                
+                                   2–01                                             
+                                   ×                                                
+                                   47.4                                             
+                                   1–01                                             
+                                   ×                                                
+                                   40.1                                             
+                                   1–01 ×                                           
+                                   73.9                                             
+                                   2–01                                             
+                                   × 78.1                                           
+                                   2–01                                             
+                                   ×                                                
+                                   21.5                                             
+                                   2–01                                             
+                                   ×                                                
+                                   99.6                                             
+                                   021                                              
+                                     0                                              
+                                     57.2                                           
+                                     0                                              
+                                     0                                              
+                                     2–01                                           
+                                     ×                                              
+                                     31.8                                           
+                                     1–01 ×                                         
+                                     83.1                                           
+                                     4–01                                           
+                                     × 74.3                                         
+                                     2–01                                           
+                                     ×                                              
+                                     18.4                                           
+                                     2–01                                           
+                                     ×                                              
+                                     48.4                                           
+                                     521                                            
+                                       0                                            
+                                       2–01                                         
+                                       × 1.3                                        
+                                       0                                            
+                                       0                                            
+                                       2–01                                         
+                                       ×                                            
+                                       64.4                                         
+                                       1–01 ×                                       
+                                       35.1                                         
+                                       4–01                                         
+                                       × 52.1                                       
+                                       3–01                                         
+                                       ×                                            
+                                       17.1                                         
+                                       3–01                                         
+                                       ×                                            
+                                       48.1                                         
+                                       031                                          
+                                         0                                          
+                                         0                                          
+                                         0                                          
+                                         0                                          
+                                         3–01                                       
+                                         ×                                          
+                                         74.9                                       
+                                         1–01 ×                                     
+                                         64.1                                       
+                                         0                                          
+                                         3–01                                       
+                                         ×                                          
+                                         37.7                                       
+                                         3–01                                       
+                                         ×                                          
+                                         37.7                                       
+                                         531                                        
+                                           0                                        
+                                           0                                        
+                                           0                                        
+                                           0                                        
+                                           3–01                                     
+                                           ×                                        
+                                           62.4                                     
+                                           2–01 ×                                   
+                                           29.1                                     
+                                           0                                        
+                                           0                                        
+                                           0                                        
+                                           041                                      
+                                              latoT                                 
+                                               46                                   
+                                               061                                  
+                                               7.6                                  
+                                               22.0                                 
+                                               5.1                                  
+                                               31                                   
+                                               9.1                                  
+                                               06.0                                 
+                                               5.2                                  
+                                               e:daolkrow                           
+                                                 stneitaP                           
+                                                  12                                
+                                                  91                                
+                                                  74                                
+                                                  012                               
+                                                  32                                
+                                                  81                                
+                                                  )mooR                             
+                                                  yhpargoidaR(                      
+                                                  011                               
+                                                  f:keew                            
+                                                  rep                               
+                                                    .nib                            
+                                                    ediw-pVk                        
+                                                    5                               
+                                                    eht                             
+                                                    ni laitnetop                    
+                                                    gnitarepo                       
+                                                    tsehgih                         
+                                                    eht                             
+                                                    ot                              
+                                                    srefer                          
+                                                    pVk                             
+                                                    ehTa                            
+                                                      eht                           
+                                                      gnidloh                       
+                                                      llaw                          
+                                                      eht                           
+                                                      tsuj                          
+                                                      rof                           
+                                                      ,moor                         
+                                                      eht                           
+                                                      ni                            
+                                                      sreirrab                      
+                                                      lla                           
+                                                      rof                           
+                                                      noitubirtsid                  
+                                                      daolkrow                      
+                                                      eht                           
+                                                      etalubat                      
+                                                      mooR                          
+                                                      yhpargoidaR                   
+                                                      rednu                         
+                                                      snmuloc                       
+                                                      eerht                         
+                                                     ehTb                           
+                                                       .ykcub                       
+                                                       tsehc                        
+                                                       eht                          
+                                                       htiw                         
+                                                       llaw                         
+                                                       eht                          
+                                                       fo evisulcxe                 
+                                                       sreirrab                     
+                                                       rehto                        
+                                                       lla                          
+                                                       rof dna                      
+                                                       ,ykcub                       
+                                                       tsehc                        
+                                                        .tnempiuqe                  
+                                                        cipocsoroulf                
+                                                        dna                         
+                                                        cihpargoidar                
+                                                        htob                        
+                                                        sniatnoc                    
+                                                        taht                        
+                                                        moor                        
+                                                        a                           
+                                                        si                          
+                                                        F&Rc                        
+                                                          .yhpargoignaorueN         
+                                                          ot                        
+                                                          ylppa                     
+                                                          osla                      
+                                                          yhpargoignA               
+                                                          larehpireP                
+                                                          rof                       
+                                                          elbaT                     
+                                                          siht                      
+                                                          ni                        
+                                                          atad                      
+                                                         ehTd                       
+                                                           .)1–tneitap              
+                                                           nim Am                   
+                                                           ni(                      
+                                                           epyt                     
+                                                           moor                     
+                                                           eht                      
+                                                           rof                      
+                                                           )                        
+                                                           W(                       
+                                                           tneitap                  
+                                                           rep                      
+                                                           daolkrow                 
+                                                           latot                    
+                                                           ehTe                     
+                                                            mron                    
+                                                             .)a6991                
+                                                             ,nikpmiS(              
+                                                             yevrus                 
+                                                             eht                    
+                                                             morf                   
+                                                             eulav                  
+                                                             naem                   
+                                                             eht                    
+                                                             si keew                
+                                                             rep                    
+                                                             stneitap               
+                                                             fo                     
+                                                             rebmun                 
+                                                            ehTf                    

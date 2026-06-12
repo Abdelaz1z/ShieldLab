@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                        4.1 CONCEPTS AND TERMINOLOGY / 41           
+                                                                                    
+                      the chest bucky is attached) may serve as primary barriers to some
+                      fraction U of the Rad Room (floor or other barriers) workload dis-
+                      tribution. The primary beam use factors measured by the       
+                      AAPM-TG9 survey (Simpkin, 1996a) applicable to the Rad Room   
+                      (floor or other barriers) workload distribution are shown in  
+                      Table4.4. For convenience, the qualified expert may choose to 
+                      round these values up to unity for the floor and 0.1 for the  
+                      cross-table wall. Note that the ceiling and control booth are gener-
+                      ally considered secondary barriers in a radiographic room. The
+                      AAPM-TG9 survey (Simpkin, 1996a) observed U = 0 for those bar-
+                      riers. Since the image-receptor assemblies for mammography and
+                      image-intensified fluoroscopy act as a primary beam stop, U = 0
+                      forthose applications, and only secondary radiation need be   
+                      considered.                                                   
+                      4.1.6 Primary Barriers                                        
+                                                                                    
+                        A primary barrier is one designed to attenuate the primary  
+                      beam to the shielding design goal. Primary protective barriers are
+                      found in radiographic rooms, dedicated chest installations and
+                      radiographic/fluoroscopic rooms. Primary barriers include the por-
+                      tion of the wall on which the vertical cassette holder or “chest-
+                      bucky” assembly is mounted, the floor, and those walls toward 
+                      which the primary beam may occasionally be directed. Figure 4.3
+                      illustrates the relationship of the x-ray source and patient to the
+                      primary barrier and shows the primary distance d measured from
+                                                      P                             
+                      the source to 0.3 m beyond the barrier.                       
+                       TABLE 4.4–Primary beam use factors (U) for a general radiographic room
+                          determined from the survey of clinical sites (Simpkin, 1996a).a
+                                      Use Factor    Apply to                        
+                            Barrier                                                 
+                                       (U)b      Workload Distribution              
+                        Floor          0.89  Rad Room (floor or other barriers)     
+                        Cross-table wall 0.09 Rad Room (floor or other barriers)    
+                        Wall No. 3c    0.02  Rad Room (floor or other barriers)     
+                        Chest image receptor 1.00 Rad Room (chest bucky)            
+                         aNote that the Rad Room (all barriers) workload distribution is not listed in
+                        this Table because it is only used for secondary barrier calculations.
+                         bThe values for U represent the fraction of the workload from the particular
+                        distribution that is directed at individual barriers.       
+                         cWall No. 3 is an unspecified wall other than the cross-table wall or the wall
+                        holding the upright image receptor (chest bucky).           
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

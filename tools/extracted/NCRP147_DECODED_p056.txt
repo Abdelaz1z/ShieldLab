@@ -1,0 +1,102 @@
+64 | / | .4 | NOITATUPMOC | FO | GNIDLEIHS | STNEMERIUQER
+distri- | er
+are | known | are | 10–2 | 10–3 | 10–2 | 10–1 | 10–2
+Leakage | Forward/ | tt | c
+)
+h–1 | mA. | and | sca
+sites | radiations | sec
+Κ1 | × | × | × | × | ×
+workload | ck
+is | mGy | 4.9 | 7.3 | 3.3 | 4.6 | 4.0
+5 | Ba | (
+clinical
+cm2) | at
+m
+0.876 | kVp | Backscatter
+1 | 10–2 | 10–3 | 10–2 | 10–1 | 10–2
+(in | backscattered | Forward/
+at
+indicated | indicated | 50
+F | patient–1)
+achieve | × | × | × | × | ×
+size
+of | 4.8 | 6.9 | 3.3 | 4.4 | 3.9
+factors
+field
+the | to
+the | (mGy | Side- | 10–2 | 10–3 | 10–2 | 10–1 | 10–2
+Leakage | Scatter | )b
+primary | and | mA
+for | for | technique
+sec
+Kerma | (Κ1 | × | × | × | × | ×
+patient–1) | Forward- | 3.3 | and
+) | 3.4 | 5.3 | 2.3 | 3.2 | 2.9
+norm
+at
+The
+(W | Air
+kVp | radiation | 10–2 | 10–3 | 10–2 | 10–1 | 10–2
+patient | 4.2. | Scatter
+Unshielded | Side-
+mGy | scatter. | 150
+× | × | × | × | ×
+Table
+3.4 | 4.9 | 2.3 | 3.1 | 2.8
+(in | are
+per
+leakage
+degree
+kermas | in | factors
+workloads
+listed | 10–4 | 10–4 | 10–4 | 10–2 | 10–4
+Leakage
+90 | assumes
+technique | × | × | × | × | ×
+air
+1996a), | for | 5.3 | 3.9 | 1.4 | 1.2 | 9.4
+secondary | calculated
+total
+which
+(Simpkin,
+and | radiation
+(m) | 1.00 | 1.83 | 1.00 | 0.80 | 1.00
+mammography,
+total | distributions | F
+is | d
+radiation | at
+and | TG9 | Leakage | (cm2)
+1,535d | 730e
+1,000 | 1,000 | 1,000
+scattered | AAPM
+F
+Side-scattered
+workload | scatter.a
+except
+by
+patient–1)
+min
+leakage, | surveyed | norm
+2.5 | 0.60 | 1.9 | 1.5
+13
+degree | tubes | (mA
+The | W
+m.
+4.7—Unshielded | . | all
+patient | F | 135
+d
+1 | for
+= | distance | or
+L | for | Tube
+d | (100mRh–1) | Distribution | (floor
+= | per | calculated | Workload | barriers)
+S | barriers) | bucky)
+d | Fluoroscopy | room) | room)
+average | primary | Room | Room | Room
+at | Tube
+butions
+TABLE | (chest | (R&F | (R&F
+other
+Rad | Rad | Rad | Rad
+the | (all
+at

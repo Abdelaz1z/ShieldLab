@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+               An occupancy factor of 0.25 at 1 meter is not considered appropriate when the physical half-life
+          is less than or equal to 1 day, and hence, the dose is delivered over a short time. Specifically, the
+          assumptions regarding patient behavior that led to an occupancy factor of 0.25 at 1 meter include the
+          assumption that the patient will not be in close proximity to other individuals for several days. However,
+          when the dose is from a short-lived radionuclide, the time that individuals spend in close proximity to the
+          patient immediately following release will be most significant because the dose to other individuals could
+          be a large fraction of the total dose from the short-lived radionuclide. Thus, to be conservative when
+          providing generally applicable release quantities that may be used with little consideration of the specific
+          details of a particular patient’s release, the values calculated in Table I were based on an occupancy factor
+          of 1 at 1 meter when the half-life is less than or equal to 1 day.        
+          B-1.2 Occupancy Factors To Consider for Patient-Specific Calculations     
+                                                                                    
+               The selection of an occupancy factor for patient-specific calculations will depend on whether the
+          physical or effective half-life of the radionuclide is used and whether instructions are provided to the
+          patient before release. The following occupancy factors, E, at 1 meter, may be used for patient-specific
+          calculations.                                                             
+                                                                                    
+          •    E = 0.75 when a physical half-life, an effective half-life, or a specific time period under
+               consideration (e.g., bladder holding time) is less than or equal to 1 day.
+                                                                                    
+          •    E = 0.25 when an effective half-life is greater than 1 day if the patient has been given instructions,
+               such as,                                                             
+                                                                                    
+               -    Maintain a prudent distance from others for at least the first 2 days,
+                                                                                    
+               -    Sleep alone in a room for at least the first night, Do not travel by airplane or mass
+                    transportation for at least the first day,                      
+                                                                                    
+               -    Do not travel on a prolonged automobile trip with others for at least the first 2 days,
+               -    Have sole use of a bathroom for at least the first 2 days,      
+                                                                                    
+               -    Drink plenty of fluids for at least the first 2 days.           
+                                                                                    
+          •    E = 0.125 when an effective half-life is greater than 1 day if the patient has been given
+               instructions, such as,                                               
+                                                                                    
+               -    Follow the instructions for E = 0.25 above,                     
+               -    Live alone for at least the first 2 days,                       
+               -    Have few visits by family or friends for at least the first 2 days.
+                                                                                    
+          •    In a two-component model (e.g., uptake of iodine-131 using thyroidal and extrathyroidal
+               components), if the effective half-life associated with one component is less than or equal to one
+               day but is greater than one day for the other component, it is more justifiable to use the
+               occupancy factor associated with the dominant component for both components.
+                                                                                    
+               Example 1: Calculate the maximum likely dose to an individual exposed to a patient who has
+          received 2,220 megabecquerels (60 millicuries) of iodine-131. The patient has been provided with
+          instructions to maintain a prudent distance from others for at least 2 days, lives alone, drives home alone,
+          and stays at home for several days without visitors.                      
+                                                                                    
+                                                                                    
+                                Appendix B to RG-8.39, Page B-2                     
+                                                                                    
+                                                                                    

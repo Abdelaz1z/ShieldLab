@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    42 / 4. COMPUTATION OF SHIELDING REQUIREMENTS                   
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                      Fig. 4.3. A typical medical imaging x-ray room layout. For the
+                    indicated tube orientation, the individual in Area 1 would need to be
+                    shielded from the primary beam, with the distance from the x-ray source
+                    to the shielded area equal to d . The person in Area 2 would need to be
+                                      P                                             
+                    shielded from scattered and leakage radiations, with the indicated
+                    scattered radiation distance d and leakage radiation distance d . The
+                                      S                    L                        
+                    primary x-ray beam has area F at distance d . It is assumed that
+                                                 F                                  
+                    individuals in occupied areas reside 0.3 m beyond barrier walls, 1.7 m
+                    above the floor below, and 0.5 m above occupied floor levels in rooms above
+                    the imaging room. These distances are displayed in Figure 4.4   
+                    (Section4.2.4).                                                 
+                      Since the image intensifier in general fluoroscopy, cardiac and
+                    peripheral angiography, and the breast support tray in mammog-  
+                    raphy are required by regulation to act as primary beam stops   
+                    (FDA, 2003c) these rooms do not normally contain primary        
+                    barriers.                                                       
+                    4.1.6.1 Unshielded Primary Air Kerma. Table 4.5 shows the total 
+                    workload per patient (W ) as well as the unshielded primary air 
+                                   norm                                             
+                    kerma per patient at 1 m (K1 ) for each of the workload distribu-
+                                       P                                            
+                    tions. The weekly unshielded primary air kerma [K (0)] in the occu-
+                                                    P                               
+                    pied area due to N patients examined per week in the room is:   
+                                         1                                          
+                                        K U N                                       
+                                   K (0) = -----P--------------, (4.3)              
+                                    P     2                                         
+                                         d                                          
+                                          P                                         

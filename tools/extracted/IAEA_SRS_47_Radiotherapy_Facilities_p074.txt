@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     W   the workload for a 5 day week will be nominally 103 Gy   
+                         (50 × 3 × 5);                                            
+                     U   the use factor is 0.25;                                  
+                     T   the occupancy factor is 0.1.                             
+                                                                                  
+                  Then:                                                           
+                                                                                  
+                           6(5+1)2                                                
+                     B=             =8.6¥10-6                                     
+                        103¥106 ¥0.25¥0.1                                         
+                                                                                  
+                     The required number of TVLs to produce this attenuation is determined
+                  from Eq. (6):                                                   
+                                                                                  
+                                                                                  
+                                  Ê   1  ˆ                                        
+                     No. of TVLs=log 10Ë Á 8.6¥10-6¯ ˜ =5.1                       
+                                                                                  
+                     From Table 4 the TVL for 6 MV X rays in concrete is 343 mm and the
+                  required barrier thickness is (5.1 × 343 =) 1750 mm.            
+                                                                                  
+                  6.2.1.2. Example 2                                              
+                                                                                  
+                     In Fig. 11, the required attenuation by the primary barriers B will be
+                  determined from Eq. (7) using the IDR dose limit:               
+                                                                                  
+                     P   a design dose limit of 7.5 mSv·h–1 is required,          
+                      IDR                                                         
+                     d   the distance from the isocentre to the point of interest on the far
+                         side of the barrier is 5 m as in Example 1;              
+                     SSD is 1 m;                                                  
+                     DR  the dose rate is 2.5 Gy·min–1 (= 150 Gy·h–1).            
+                       0                                                          
+                        7.5¥(5+1)2                                                
+                     B=         =1.8¥10-6                                         
+                        2.5¥106¥60                                                
+                     The number of TVLs required to produce this attenuation is determined
+                  from Eq. (6):                                                   
+                                                                                  
+                                                                                  
+                                  Ê   1  ˆ                                        
+                     No. of TVLs=log 10Ë Á 1.8¥10-6¯ ˜ =5.7                       
+                                                                                  
+                  60                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

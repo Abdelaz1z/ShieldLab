@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                         5.4Q                                                     
+                     j  =   N                                 (20)                
+                      sc   S                                                      
+                  where                                                           
+                                                                                  
+                     S is the surface area of the treatment room excluding the maze area.
+                                                                                  
+                     The surface area S is the sum of all wall areas visible from the isocentre.
+                  Where primary barriers protrude into the treatment bunker, they will reduce
+                  the wall area exposed to neutrons. In these cases the surface area is better
+                  approximated by using the average of the maximum and minimum room
+                  dimensions to determine the surface area. Example 10 in Section 6.3 illustrates
+                  the method used in obtaining S.                                 
+                     McCall [24] reported that in a concrete room where an accelerator is
+                  located, the thermal neutron fluence is given by:               
+                                                                                  
+                         1.26 Q                                                   
+                     j  =    N                                (21)                
+                      th   S                                                      
+                     Combining all three components, the total neutron fluence at a distance d
+                  per unit photon dose at isocentre is given by:                  
+                     j = j + j  + j                           (22)                
+                         d    sc  th                                              
+                  For medical linear accelerators with energy range of 10–25 MV, values of the
+                  neutron source strength are available in the published literature, and are
+                  tabulated in Table 9 [14, 29].                                  
+                     The neutron fluence is related to the neutron dose equivalent (rem),9 but
+                  the conversion factor is dependent on the neutron energy. McCall et al. [28]
+                  provided a ‘cookbook method’ to obtain the average neutron energy. The dose
+                  equivalent can then be obtained from the neutron fluence, using tabulated
+                  conversion factors. A method for determining the average neutron energy is
+                  described in Ref. [26]. However, for linear accelerators in the energy range
+                  between 10 MV and 25 MV, the average energy of direct neutrons exiting the
+                  shielded head is never much above 1 MeV, and the average energy of neutrons
+                  scattered by the room is about 0.24 MeV [26]. Based on the method described
+                  in Ref. [26] the average neutron energy excluding thermal neutrons is about
+                  0.34 MeV.                                                       
+                                                                                  
+                                                                                  
+                                                                                  
+                     9 1 rem = 1.00 × 10–2 Sv.                                    
+                                                                                  
+                                                                                  
+                                                               35                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

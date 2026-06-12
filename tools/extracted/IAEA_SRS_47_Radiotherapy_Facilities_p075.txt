@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                     The TVL for 6 MV X rays in concrete (density 2350 kg·m–3) is 343 mm
+                  (Table 4); therefore, the required barrier thickness is (343 × 5.7 =) 1955 mm.
+                     This is more than the barrier thickness of 1750 mm required in
+                  Example 1. It would be prudent to use the greater thickness since the use factor
+                  and occupancy can only be best estimates and may change in the future.
+                     The values used for TVLs in concrete are based on a concrete density of
+                  2350 kg·m–3. If the concrete used locally has a different density, then the wall
+                  thickness must be adjusted accordingly. So if the required thickness was
+                  determined as 1955 mm of 2350 kg·m–3 density concrete but the local concrete
+                  density is only 2000 kg·m–3, then the actual wall thickness will be
+                  (1955 × 2350 ÷ 2000 =) 2300 mm local density concrete.          
+                                                                                  
+                  6.2.1.3. Example 3                                              
+                                                                                  
+                     If in Example 2 the dose rate DR had been 5 Gy·min–1, the attenuation B
+                                         0                                        
+                  required to reduce the dose rate to 7.5 mSv·h–1 would be:       
+                                                                                  
+                        7.5¥                                                      
+                           (5+1)2                                                 
+                     B=         =9 ¥ 107                                          
+                        5¥ 106 ¥ 60                                               
+                  The number of TVLs necessary to achieve this reduction would then be:
+                                  Ê  1 ˆ                                          
+                     No. of TVLs=log 10Ë Á 9¥107¯ ˜ =6                            
+                                                                                  
+                  and the required barrier thickness (343 × 6 =) 2100 mm.         
+                     The extent of the primary barrier will be determined by the divergence of
+                  the primary beam (as defined by the primary cone) to the outside of the wall,
+                  with an additional extension of 300 mm on each side to allow for internal
+                  scatter (also called the plume effect — Section 2.1). For a primary cone of
+                  500 mm diameter at the isocentre, the divergence to the outside of a wall at 5 m
+                  from the isocentre will be (500 × (1 + 5) =) 3000 mm. An additional 300 mm on
+                  each side will make the total required extent of the barrier 3600 mm.
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                               61                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

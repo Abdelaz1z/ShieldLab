@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                              C.4 THE GENERAL CASE / 143            
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                        Fig. C.4. Transmission of secondary radiation through gypsum
+                      wallboard (data as in Figure C.2). A nominal 5/8 inch sheet of “Type X”
+                      gypsum wallboard has a minimum gypsum thickness of approximately
+                      14mm.                                                         
+                                                                                    
+                      situations is it possible to precisely prescribe the thickness of the
+                      shielding barrier that will decrease the transmitted air kerma to
+                      the shielding design goal. These cases include single x-ray tubes in
+                      fixed geometry, or multiple x-ray tubes each having the same trans-
+                      mission through the barrier. In the more general case, multiple
+                      x-ray tubes, or single tubes used in different locations generating
+                      xrays of varying transmission, will each contribute to the total air
+                      kerma through a barrier. The thickness of that barrier required to
+                      decrease the transmitted radiation to a given level can be found by
+                      a number of approximation techniques, all of which tend to achieve
+                      accuracy at the price of computational complexity.            
+                        Consider a medical x-ray imaging installation containing multi-
+                      ple x-ray sources contributing varying amounts of primary and sec-
+                      ondary radiation generated over a variety of operating potentials.
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

@@ -1,0 +1,301 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    46 / 4. COMPUTATION OF SHIELDING REQUIREMENTS                   
+                                                                                    
+                                                                                    
+                    -irtsid                                                         
+                                                                                    
+                    daolkrow                                                        
+                                                                                    
+                                                                                    
+                    detacidni                                                       
+                                                                                    
+                                                                                    
+                    eht                                                             
+                                                                                    
+                    rof                                                             
+                    )1–tneitap                                                      
+                                                                                    
+                                                                                    
+                    yGm                                                             
+                                                                                    
+                    ni(                                                             
+                    samrek                                                          
+                                                                                    
+                    ria                                                             
+                    yradnoces                                                       
+                                                                                    
+                                                                                    
+                                                                                    
+                    latot                                                           
+                    dna                                                             
+                                                                                    
+                    derettacs                                                       
+                                                                                    
+                                                                                    
+                    ,egakael                                                        
+                                                                                    
+                                                                                    
+                    dedleihsnU—7.4                                                  
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    ELBAT                                                           
+                     era                                                            
+                     setis                                                          
+                     lacinilc                                                       
+                     detacidni                                                      
+                     eht                                                            
+                     rof                                                            
+                     )                                                              
+                     W(                                                             
+                     tneitap                                                        
+                     rep                                                            
+                     sdaolkrow                                                      
+                     latot                                                          
+                     dna                                                            
+                     snoitubirtsid                                                  
+                     daolkrow                                                       
+                     ehT                                                            
+                     .m 1                                                           
+                     =                                                              
+                     d                                                              
+                     =                                                              
+                     d ta                                                           
+                     snoitub                                                        
+                      mron                                                          
+                      L                                                             
+                      S                                                             
+                       nwonk                                                        
+                       si                                                           
+                       )2mc                                                         
+                       ni(                                                          
+                       F                                                            
+                       ezis                                                         
+                       dleif                                                        
+                       yramirp                                                      
+                       ehT                                                          
+                       .2.4                                                         
+                       elbaT                                                        
+                       ni                                                           
+                       detsil                                                       
+                       ,)a6991                                                      
+                       ,nikpmiS(                                                    
+                       9GT                                                          
+                       MPAA                                                         
+                       yb                                                           
+                       deyevrus                                                     
+                       tneitap                                                      
+                       rep                                                          
+                       egareva                                                      
+                       eht                                                          
+                        era                                                         
+                        snoitaidar                                                  
+                        derettacskcab                                               
+                        dna                                                         
+                        -drawroF                                                    
+                        .rettacs                                                    
+                        eerged                                                      
+                        09                                                          
+                        rof                                                         
+                        detaluclac                                                  
+                        si                                                          
+                        noitaidar                                                   
+                        derettacs-ediS                                              
+                        . d                                                         
+                        ecnatsid                                                    
+                        yramirp                                                     
+                        ta                                                          
+                         F                                                          
+                          1–h                                                       
+                          yGm                                                       
+                          678.0                                                     
+                          eveihca                                                   
+                          ot Am                                                     
+                          3.3                                                       
+                          ta                                                        
+                          pVk                                                       
+                          051                                                       
+                          era                                                       
+                          srotcaf                                                   
+                          euqinhcet                                                 
+                          noitaidar                                                 
+                          egakaeL                                                   
+                          a.rettacs                                                 
+                          eerged                                                    
+                          531                                                       
+                          rof                                                       
+                          detaluclac                                                
+                           .Am                                                      
+                           5                                                        
+                           ta                                                       
+                           pVk                                                      
+                           05                                                       
+                           fo                                                       
+                           srotcaf                                                  
+                           euqinhcet                                                
+                           noitaidar                                                
+                           egakael                                                  
+                           semussa                                                  
+                           hcihw                                                    
+                           ,yhpargommam                                             
+                           tpecxe                                                   
+                           sebut                                                    
+                           lla                                                      
+                           rof                                                      
+                           )1–hRm001(                                               
+                              m                                                     
+                              1 ta                                                  
+                              )1–tneitap                                            
+                              yGm(                                                  
+                              amreK                                                 
+                              riA                                                   
+                              dedleihsnU                                            
+                                 egakaeL                                            
+                                 egakaeL                                            
+                                  dna                                               
+                                  W                                                 
+                                   /drawroF                                         
+                                   -ediS                                            
+                                   dna                                              
+                                   -ediS                                            
+                                  mron                                              
+                                   /drawroF                                         
+                                    rettacskcaB                                     
+                                    rettacS                                         
+                                    rettacS                                         
+                                   egakaeL                                          
+                                   )m(                                              
+                                    F                                               
+                                   d                                                
+                                   ta                                               
+                                   )2mc(                                            
+                                   F                                                
+                                   nim                                              
+                                   Am(                                              
+                                   daolkroW                                         
+                                     re                                             
+                                      c tt                                          
+                                      )                                             
+                                     acs                                            
+                                      1Κ kc                                         
+                                      ( aB                                          
+                                     b)                                             
+                                      ces                                           
+                                     1Κ(                                            
+                                     )1–tneitap                                     
+                                     noitubirtsiD                                   
+                                       ces                                          
+                                         2–01                                       
+                                         ×                                          
+                                         9.4                                        
+                                         2–01                                       
+                                         ×                                          
+                                         8.4                                        
+                                         2–01                                       
+                                         × 4.3                                      
+                                         2–01                                       
+                                         ×                                          
+                                         4.3                                        
+                                         4–01                                       
+                                         ×                                          
+                                         3.5                                        
+                                         00.1                                       
+                                         000,1                                      
+                                         5.2                                        
+                                         mooR                                       
+                                         daR                                        
+                                          )sreirrab                                 
+                                          lla(                                      
+                                             3–01                                   
+                                             ×                                      
+                                             3.7                                    
+                                             3–01                                   
+                                             ×                                      
+                                             9.6                                    
+                                             3–01                                   
+                                             × 3.5                                  
+                                             3–01                                   
+                                             ×                                      
+                                             9.4                                    
+                                             4–01                                   
+                                             ×                                      
+                                             9.3                                    
+                                             38.1                                   
+                                             d535,1                                 
+                                             06.0                                   
+                                             mooR                                   
+                                             daR                                    
+                                              )ykcub                                
+                                              tsehc(                                
+                                                 2–01                               
+                                                 ×                                  
+                                                 3.3                                
+                                                 2–01                               
+                                                 ×                                  
+                                                 3.3                                
+                                                 2–01                               
+                                                 × 3.2                              
+                                                 2–01                               
+                                                 ×                                  
+                                                 3.2                                
+                                                 4–01                               
+                                                 ×                                  
+                                                 4.1                                
+                                                 00.1                               
+                                                 000,1                              
+                                                 9.1                                
+                                                 ro                                 
+                                                 roolf(                             
+                                                 mooR                               
+                                                 daR                                
+                                                  )sreirrab                         
+                                                  rehto                             
+                                                     1–01                           
+                                                     ×                              
+                                                     6.4                            
+                                                     1–01                           
+                                                     ×                              
+                                                     4.4                            
+                                                     1–01                           
+                                                     × 2.3                          
+                                                     1–01                           
+                                                     ×                              
+                                                     1.3                            
+                                                     2–01                           
+                                                     ×                              
+                                                     2.1                            
+                                                     08.0                           
+                                                     e037                           
+                                                     31                             
+                                                     ebuT                           
+                                                     ypocsoroulF )moor              
+                                                      F&R(                          
+                                                         2–01                       
+                                                         ×                          
+                                                         0.4                        
+                                                         2–01                       
+                                                         ×                          
+                                                         9.3                        
+                                                         2–01                       
+                                                         × 9.2                      
+                                                         2–01                       
+                                                         ×                          
+                                                         8.2                        
+                                                         4–01                       
+                                                         ×                          
+                                                         4.9                        
+                                                         00.1                       
+                                                         000,1                      
+                                                         5.1                        
+                                                         ebuT                       
+                                                         daR                        
+                                                          )moor                     
+                                                          F&R(                      

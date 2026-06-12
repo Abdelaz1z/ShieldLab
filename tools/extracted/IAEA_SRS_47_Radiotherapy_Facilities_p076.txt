@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  6.2.2. Secondary barrier                                        
+                                                                                  
+                  6.2.2.1. Leakage radiation                                      
+                                                                                  
+                     The shielding required for protection against leakage radiation is
+                  determined from Eq. (8). The leakage radiation is assumed to be 0.1% (1/1000)
+                  of the primary beam, where                                      
+                                                                                  
+                     P  the public dose limit is 6 mSv·week–1;                    
+                     d  the distance from the isocentre to the point of interest beyond the
+                      s                                                           
+                        secondary barriers is 5.0 m;                              
+                     W  the workload is 103 Gy·week–1;                            
+                     T  the occupancy factor is 1 for one secondary barrier (control area)
+                        and 0.1 for the other barrier.                            
+                     The required attenuation B is given by:                      
+                                     L                                            
+                                                                                  
+                         1000¥6¥52                                                
+                     B =        =1.5¥10-4 (or 1.5 × 10–3 for occupancy of 0.1)    
+                      L  103¥106¥1                                                
+                                                                                  
+                                  Ê   1  ˆ                                        
+                     No. of TVLs=log 10Ë Á 1.5¥10-4¯ ˜ =3.8(or 2.8 TVLs for occupancy 0.1)
+                                                                                  
+                     From Table 4, the TVL in concrete for 6 MV leakage radiation is 279 mm.
+                  Therefore, one secondary barrier should be (3.8 × 279 =) 1060 mm and the other
+                  (2.8 × 279 =) 780 mm, where both values have been rounded to the nearest 10 mm.
+                                                                                  
+                  6.2.2.2. Scattered radiation                                    
+                                                                                  
+                     The barrier transmission required to shield against radiation scattered by
+                  the patient is determined from Eq. (9), where                   
+                                                                                  
+                     P the public dose limit is 6 mSv·week–1;                     
+                     d is 1.0 m;                                                  
+                      sca                                                         
+                     d is 5.0 m;                                                  
+                      sec                                                         
+                     a the scatter fraction for 90° scatter from 6 MV X rays is 0.0006 per
+                       400cm2 of area irradiated (Table 5);                       
+                     W the workload is 103 Gy·week–1;                             
+                                                                                  
+                  62                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

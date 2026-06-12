@@ -1,0 +1,71 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                             B. COMPUTATION OF PRIMARY BARRIER THICKNESS / 127      
+                                                                                    
+                      and the total shielded air kerma [K (x )] in the occupied area due
+                                             P tot                                  
+                      to all operating potentials is:                               
+                                          Κ1(kVp) U W(kVp)                          
+                        Κ(x ) = ∑Κ(x ,kVp) = ∑ ------W-----------------------------------------------B (x ,kVp), (B.4)
+                         P tot   P tot          2     P tot                         
+                                               d                                    
+                              kVp       kVp     P                                   
+                        For the workload distributions shown in Table 4.2, the      
+                      unshielded primary beam x-ray air kerma per patient at 1 m (K1 )
+                                                               P                    
+                      has been calculated from Equation B.4 assuming x = 0 and d =  
+                                                       tot     P                    
+                      1m. These values are shown in Table 4.5. Table 4.5 also gives 
+                      W   , the workload per patient summed over all kVp intervals in
+                        norm                                                        
+                      the workload distribution.                                    
+                        The primary transmission curves for the workload distributions
+                      which utilize primary beams were calculated by summing the    
+                      incremental air kerma in each kVp interval transmitted through a
+                      given barrier thickness and dividing that by the total air kerma
+                      expected with no barrier. These workload-distribution-specific
+                      primary beam transmission curves are shown in Figures B.2     
+                      through B.6 for lead, concrete, steel, gypsum wallboard, and plate
+                      glass. Table B.1 lists the fitting parameters for these curves to
+                      Equation A.2.                                                 
+                        For an x-ray tube whose total workload W is due to N patients:
+                                                   tot                              
+                                      W                                             
+                                       tot                                          
+                                         = N W                                      
+                                            norm                                    
+                                              .               (B.5)                 
+                        In what follows, the qualified expert may therefore substitute
+                      the ratio W /W for N, the number of patients examined per     
+                              tot norm                                              
+                      week.                                                         
+                        If the primary beam is directed at the occupied area only a frac-
+                      tion U of the time, the number of patients (N) (or, equivalently, the
+                      total workload W ) is scaled by the use factor. At distance d from
+                                 tot                         P                      
+                      the focal spot of the x-ray tube, the unshielded primary air kerma
+                      [K (0)] is then:                                              
+                        P                                                           
+                                           Κ1                                       
+                                             N U                                    
+                                     Κ(0) = ------P-------------. (B.6)             
+                                      P      2                                      
+                                            d                                       
+                                            P                                       
+                      If the occupied area is shielded by a barrier of a given material and
+                      thickness x having primary transmission B (x), then the air kerma
+                                                  P                                 
+                      to the occupied area is:                                      
+                                         Κ1                                         
+                                           N U                                      
+                                    Κ(x) = ------P-------------B (x). (B.7)         
+                                     P     2  P                                     
+                                          d                                         
+                                           P                                        

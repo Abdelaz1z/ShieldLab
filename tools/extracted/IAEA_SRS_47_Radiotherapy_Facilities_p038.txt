@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  accelerator. In this case, d should be measured from the gun end of the wave
+                                 s                                                
+                  guide to the point just outside this secondary barrier since this barrier will be
+                  subjected to leakage radiation from the vicinity of the gun. In this example, it is
+                  assumed that the protection in the treatment head reduces the leakage
+                  radiation to 1/1000 of the useful beam (0.1%).                  
+                     Leakage radiation has significantly lower energy than that of the primary
+                  beam due to scattering inside the treatment head, as demonstrated by the TVL
+                  data in Table 4.                                                
+                  5.2.2. Scattered radiation                                      
+                                                                                  
+                     The required barrier transmission (B ) needed to shield against radiation
+                                           p                                      
+                  scattered by the patient is given in Ref. [2] and in Eq. (9):   
+                          Pd2 d2                                                  
+                     B =   sca sec                             (9)                
+                      p aWT(F 400)                                                
+                                                                                  
+                  where                                                           
+                                                                                  
+                     P, W and T have the same meaning as in Eq. (8).              
+                     d  is the distance from the radiation source to the patient, in m.
+                      sca                                                         
+                     d  is the distance from the patient to the point of interest, in m.
+                      sec                                                         
+                     a  is the scatter fraction defined at d . The scatter primary ratio (a) is
+                                            sca                                   
+                        dependent on the energy of the X ray beam and the scattering angle.
+                        These data are tabulated per 400 cm2 of irradiated field area for 60Co,
+                        6, 10, 18 and 24 MV X ray beams in Table 5 [2, 20].       
+                     F  is the field area incident on the patient, in cm2.        
+                     Radiation scattered by a patient or phantom is usually less than 0.1% of
+                  the incident radiation per 0.1 m2 area irradiated. For large scatter angles, the
+                  energy of the scattered radiation will be degraded and the protection designed
+                  against leakage radiation should provide adequate protection against scattered
+                  radiation from the patient. However, when the scatter angle is small, patient
+                  scatter should not be ignored. For small scatter angles (10∞), the value of the
+                  scatter fraction a may be as high as 0.0178 for 24 MV X rays (Table 5) and the
+                  scattered photons have energies close to that of the incident beam.
+                     The barrier transmission factor (B ) needed to shield against scattered
+                                          w                                       
+                  radiation when the primary beam strikes a wall is given by the following
+                  equation:                                                       
+                  24                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

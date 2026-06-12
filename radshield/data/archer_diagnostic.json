@@ -1,0 +1,137 @@
+{
+  "_comment": "Diagnostic X-ray broad-beam transmission data (Archer 3-parameter model) extracted from NCRP Report No. 147 (the user's reference PDF). Transmission B(x) = [ (1 + beta/alpha) * exp(alpha*gamma*x) - beta/alpha ] ^ (-1/gamma), with x = barrier thickness in MILLIMETRES and alpha,beta in mm^-1. See references.json: NCRP147, ARCHER1983, SIMPKIN1995. Every value is editable.",
+  "_model": "Archer-Thornby-Bushong three-parameter broad-beam transmission (NCRP 147 Eq. A.2 / A.3).",
+  "_units": {"alpha": "mm^-1", "beta": "mm^-1", "gamma": "dimensionless", "thickness_x": "mm"},
+  "_extraction_note": "Mantissas machine-decoded from the NCRP 147 PDF; exponents and row/column mapping verified from high-resolution page renders (PDF pp. 143-144 Table B.1 primary; pp. 157-158 Table C.1 secondary). Bottom three workload rows (mammography, cardiac, peripheral angiography) carry less-certain exponents and are validated by the Part-4 worked-example tests; verify against your PDF before relying on them for those specific modalities.",
+
+  "materials_in_tables": ["lead", "concrete", "gypsum", "steel", "plate_glass", "wood"],
+
+  "workload_distributions": {
+    "_comment": "Table B.1 / C.1 / 4.2 workload distributions. 'modality' maps the user's modality choice to the correct distribution; 'kvp_typical' is the characteristic peak kilovoltage shown to the user.",
+    "rad_room_all":          {"label": "Radiographic Room (all barriers)",            "modality": "radiography",        "kvp_typical": 100, "kvp_max": 125},
+    "rad_room_chest_bucky":  {"label": "Radiographic Room (chest bucky)",             "modality": "radiography_chest",  "kvp_typical": 120, "kvp_max": 125},
+    "rad_room_floor_other":  {"label": "Radiographic Room (floor or other barriers)", "modality": "radiography_floor",  "kvp_typical": 80,  "kvp_max": 125},
+    "fluoro_tube_rf":        {"label": "Fluoroscopy Tube (R&F room)",                 "modality": "fluoroscopy",        "kvp_typical": 100, "kvp_max": 125},
+    "rad_tube_rf":           {"label": "Radiographic Tube (R&F room)",                "modality": "rf_rad_tube",        "kvp_typical": 100, "kvp_max": 125},
+    "chest_room":            {"label": "Chest Room",                                  "modality": "chest",              "kvp_typical": 120, "kvp_max": 150},
+    "mammography":           {"label": "Mammography Room",                            "modality": "mammography",        "kvp_typical": 30,  "kvp_max": 35},
+    "cardiac_angio":         {"label": "Cardiac Angiography",                         "modality": "cardiac_angiography","kvp_typical": 90,  "kvp_max": 125},
+    "peripheral_angio":      {"label": "Peripheral Angiography (and Neuroangiography)","modality": "peripheral_angiography","kvp_typical": 90, "kvp_max": 125}
+  },
+
+  "primary": {
+    "_source": "NCRP147 Table B.1 (PDF pp. 143-144). Primary broad-beam transmission per workload distribution. Order of arrays matches the distribution keys below.",
+    "ref": "NCRP147",
+    "_order": ["rad_room_all","rad_room_chest_bucky","rad_room_floor_other","fluoro_tube_rf","rad_tube_rf","chest_room","mammography","cardiac_angio","peripheral_angio"],
+    "lead": {
+      "alpha": [2.346, 2.264, 2.651, 2.347, 2.295, 2.283, 3.060e1, 2.389, 2.728],
+      "beta":  [1.590e1, 1.308e1, 1.656e1, 1.267e1, 1.300e1, 1.074e1, 1.776e1, 1.426e1, 1.852e1],
+      "gamma": [4.982e-1, 5.600e-1, 4.585e-1, 6.149e-1, 5.573e-1, 6.370e-1, 3.308e-1, 5.948e-1, 4.614e-1]
+    },
+    "concrete": {
+      "alpha": [3.626e-1, 3.552e-1, 3.994e-1, 3.616e-1, 3.549e-1, 3.622e-1, 2.577, 3.717e-1, 4.292e-1],
+      "beta":  [1.429e-1, 1.177e-1, 1.448e-1, 9.721e-2, 1.164e-1, 7.766e-2, 1.765, 1.087e-1, 1.538e-1],
+      "gamma": [4.932e-1, 6.007e-1, 4.231e-1, 5.186e-1, 5.774e-1, 5.404e-1, 3.644e-1, 5.948e-1, 4.614e-1]
+    },
+    "gypsum": {
+      "alpha": [1.420e-2, 1.278e-2, 1.679e-2, 1.340e-2, 1.300e-2, 1.296e-2, 9.148e-2, 1.409e-2, 1.774e-2],
+      "beta":  [5.781e-2, 4.848e-2, 6.124e-2, 4.283e-2, 4.778e-2, 3.505e-2, 7.090e-2, 4.814e-2, 6.449e-2],
+      "gamma": [7.445e-1, 8.609e-1, 7.356e-1, 8.798e-1, 8.485e-1, 9.356e-1, 2.577e-1, 8.419e-1, 7.158e-1]
+    },
+    "steel": {
+      "alpha": [2.163e-1, 2.179e-1, 2.535e-1, 2.323e-1, 2.126e-1, 2.500e-1, 5.998, 2.533e-1, 3.670e-1],
+      "beta":  [3.101, 2.677, 2.740, 2.190, 2.568, 1.989, 4.291e1, 2.461, 3.260],
+      "gamma": [5.745e-1, 7.209e-1, 4.297e-1, 6.509e-1, 6.788e-1, 7.721e-1, 3.927e-1, 6.243e-1, 5.036e-1]
+    },
+    "plate_glass": {
+      "alpha": [3.907e-2, 3.762e-2, 4.361e-2, 3.901e-2, 3.778e-2, 3.866e-2, 2.467e-1, 4.025e-2, 4.642e-2],
+      "beta":  [1.069e-1, 9.751e-2, 1.082e-1, 8.588e-2, 9.365e-2, 7.721e-2, 1.654, 9.482e-2, 1.203e-1],
+      "gamma": [5.940e-1, 7.867e-1, 5.463e-1, 8.081e-1, 7.483e-1, 9.843e-1, 3.694e-1, 7.523e-1, 5.763e-1]
+    },
+    "wood": {
+      "alpha": [7.616e-3, 7.142e-3, 7.915e-3, 7.089e-3, 7.162e-3, 7.650e-3, 1.914e-1, 7.303e-3, 8.103e-3],
+      "beta":  [7.670e-4, 3.080e-4, 8.800e-4, 4.740e-4, 4.110e-4, -9.800e-4, 4.166e-2, 7.220e-4, 8.440e-4],
+      "gamma": [1.027, 1.617, 9.790e-1, 1.580, 1.541, 8.083e-1, 2.858e-1, 1.204, 9.754e-1]
+    }
+  },
+
+  "secondary_kvp": {
+    "_source": "NCRP147 Table C.1 (PDF pp. 157-158), single constant-potential broad beams. Use for SECONDARY (scatter + leakage) barriers when the user specifies a peak kVp directly. Arrays ordered by kVp below.",
+    "ref": "NCRP147",
+    "kvp": [30, 50, 70, 100, 125, 150],
+    "lead": {
+      "alpha": [3.879e1, 8.801, 5.369, 2.507, 2.233, 1.791],
+      "beta":  [1.800e2, 2.728e1, 2.349e1, 1.533e1, 7.888, 5.478],
+      "gamma": [3.560e-1, 2.957e-1, 5.883e-1, 9.124e-1, 7.295e-1, 5.678e-1]
+    },
+    "concrete": {
+      "alpha": [3.174e-1, 9.030e-2, 5.090e-2, 3.950e-2, 3.510e-2, 3.240e-2],
+      "beta":  [1.725e-1, 1.712e-1, 1.697e-1, 8.440e-2, 6.600e-2, 7.750e-2],
+      "gamma": [3.705e-1, 2.324e-1, 3.849e-1, 5.191e-1, 7.832e-1, 1.566],
+      "_note": "concrete single-kVp exponents read from render p157; 150 kVp gamma=1.566 (>1) is as printed."
+    },
+    "gypsum": {
+      "alpha": [1.198e-1, 3.880e-2, 2.300e-2, 1.470e-2, 1.200e-2, 1.040e-2],
+      "beta":  [7.137e-1, 8.730e-2, 7.160e-2, 4.000e-2, 2.670e-2, 2.020e-2],
+      "gamma": [3.703e-1, 5.105e-1, 7.300e-1, 9.752e-1, 1.079, 1.135]
+    },
+    "steel": {
+      "alpha": [7.408, 1.817, 7.149e-1, 3.424e-1, 2.138e-1, 1.511e-1],
+      "beta":  [4.249e1, 4.840, 3.798, 2.456, 1.690, 1.124],
+      "gamma": [4.061e-1, 4.021e-1, 5.381e-1, 9.388e-1, 1.086, 1.151]
+    },
+    "plate_glass": {
+      "alpha": [3.060e-1, 9.721e-2, 5.791e-2, 4.279e-2, 3.654e-2, 3.267e-2],
+      "beta":  [1.620, 1.799e-1, 1.357e-1, 8.948e-2, 5.790e-2, 4.074e-2],
+      "gamma": [3.793e-1, 4.912e-1, 5.968e-1, 1.029, 1.093, 1.134]
+    },
+    "wood": {
+      "alpha": [2.159e-2, 1.076e-2, 8.550e-3, 7.230e-3, 6.587e-3, 6.027e-3],
+      "beta":  [3.971e-3, 1.862e-3, 5.390e-4, 8.940e-4, 7.370e-4, 2.290e-4],
+      "gamma": [2.852e-1, 1.170, 1.194, 1.316, 1.172, 1.440]
+    }
+  },
+
+  "secondary_distribution": {
+    "_source": "NCRP147 Table C.1 (PDF pp. 157-158), workload-distribution columns (after the single-kVp columns). Use for SECONDARY barriers with the room-type method. Order matches _order below.",
+    "ref": "NCRP147",
+    "_order": ["rad_room_all","rad_room_chest_bucky","rad_room_floor_other","fluoro_tube_rf","rad_tube_rf","chest_room","mammography","cardiac_angio","peripheral_angio"],
+    "lead": {
+      "alpha": [2.298, 2.256, 2.513, 2.322, 2.272, 2.288, 2.991e1, 2.354, 2.661],
+      "beta":  [1.738e1, 1.380e1, 1.734e1, 1.291e1, 1.360e1, 9.848, 1.844e2, 1.494e1, 1.954e1],
+      "gamma": [6.193e-1, 8.837e-1, 4.994e-1, 7.575e-1, 7.184e-1, 1.054, 3.550e-1, 7.481e-1, 5.094e-1]
+    },
+    "concrete": {
+      "alpha": [3.610e-1, 3.560e-1, 3.920e-1, 3.630e-1, 3.560e-1, 3.640e-1, 2.539, 3.710e-1, 4.219e-1],
+      "beta":  [1.433e-1, 1.079e-1, 1.464e-1, 9.360e-2, 1.114e-1, 6.590e-2, 1.844, 1.067e-1, 1.559e-1],
+      "gamma": [5.600e-1, 7.705e-1, 4.486e-1, 5.955e-1, 6.620e-1, 7.543e-1, 3.924e-1, 5.733e-1, 4.472e-1]
+    },
+    "gypsum": {
+      "alpha": [1.380e-2, 1.270e-2, 1.640e-2, 1.330e-2, 1.290e-2, 1.300e-2, 8.830e-2, 1.390e-2, 1.747e-2],
+      "beta":  [5.700e-2, 4.450e-2, 6.080e-2, 4.100e-2, 4.570e-2, 2.970e-2, 7.526e-2, 4.640e-2, 6.422e-2],
+      "gamma": [7.937e-1, 1.049, 7.472e-1, 9.566e-1, 9.355e-1, 1.195, 3.786e-1, 9.185e-1, 7.299e-1]
+    },
+    "steel": {
+      "alpha": [2.191e-1, 2.211e-1, 2.440e-1, 2.331e-1, 2.149e-1, 2.518e-1, 5.798, 2.530e-1, 3.579e-1],
+      "beta":  [3.490, 2.836, 3.012, 2.213, 2.695, 1.829, 4.412e1, 2.592, 3.466],
+      "gamma": [7.358e-1, 1.123, 5.019e-1, 8.051e-1, 8.768e-1, 1.273, 4.124e-1, 7.999e-1, 5.600e-1]
+    },
+    "plate_glass": {
+      "alpha": [3.873e-2, 3.749e-2, 4.299e-2, 3.886e-2, 3.762e-2, 3.866e-2, 2.404e-1, 4.001e-2, 4.612e-2],
+      "beta":  [1.054e-1, 8.710e-2, 1.070e-1, 8.091e-2, 8.857e-2, 6.270e-2, 1.709, 9.030e-2, 1.198e-1],
+      "gamma": [6.397e-1, 9.086e-1, 5.538e-1, 8.520e-1, 8.087e-1, 1.128, 3.918e-1, 8.019e-1, 5.907e-1]
+    },
+    "wood": {
+      "alpha": [7.552e-3, 7.058e-3, 7.887e-3, 7.057e-3, 7.102e-3, 7.485e-3, 1.888e-1, 7.266e-3, 8.079e-3],
+      "beta":  [8.770e-4, 4.220e-4, 3.450e-4, 4.172e-4, 6.740e-4, 8.470e-4, 1.888e-2, 7.220e-4, 8.440e-4],
+      "gamma": [1.044, 1.875, 9.800e-1, 1.664, 1.698, 9.459e-1, 2.903e-1, 1.235, 9.742e-1]
+    }
+  },
+
+  "mammography_mo_anode_footnote": {
+    "_comment": "NCRP 147 Table C.1 footnote: additional secondary fitting parameters for molybdenum-anode tubes at 25 and 35 kVp. Verify exact values against the PDF before use; flagged for confirmation.",
+    "ref": "NCRP147",
+    "kvp": [25, 35],
+    "needs_verification": true
+  }
+}

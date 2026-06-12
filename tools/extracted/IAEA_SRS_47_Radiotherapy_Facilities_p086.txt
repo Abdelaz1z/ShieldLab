@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                36¥1                                              
+                     R =2.2¥10-4¥   = 1.1 × 10–5 Sv·h–1                           
+                      h        12¥60                                              
+                  which is below the limit of 20 mSv in any hour.                 
+                                                                                  
+                  6.3.2.2. Secondary barrier at location B                        
+                                                                                  
+                  Example 8                                                       
+                                                                                  
+                     There is no primary radiation directed at location B. Only leakage and
+                  patient scatter are to be considered. For conservative reasons, the minimum
+                  scatter angle of 30° is used to look up the scatter function a from Table 5. The
+                  input data values used in Eqs (6), (8) and (9) are:             
+                                                                                  
+                     P = 0.1 × 10–3 Sv·week–1;                                    
+                     d = 7.2 m;                                                   
+                      s                                                           
+                     d = 1 m;                                                     
+                      sca                                                         
+                     d = 7.2 m;                                                   
+                      sec                                                         
+                     a = 2.53 × 10–3;                                             
+                     W = 600 Gy·week–1;                                           
+                     F = 40 × 40 cm2;                                             
+                     T = 1.                                                       
+                     For leakage radiation (Eq. (8)):                             
+                         1000¥0.1¥10-3¥7.22                                       
+                     B =              = 8.64 × 10–3                               
+                      L      600¥1                                                
+                     n (leakage) = 2.06                                           
+                                                                                  
+                                                                                  
+                     The barrier thickness required to shield from leakage radiation will be:
+                                                                                  
+                     leakage barrier = 2.06 × 330 = 681 mm concrete               
+                                                                                  
+                     For patient scatter (Eq. (9)):                               
+                                                                                  
+                             0.1¥10-3¥12 ¥7.22                                    
+                     B =                      = 8.54 × 10–4                       
+                      p  2.53¥10-3¥600¥1¥(40¥40/400)                              
+                                                                                  
+                                                                                  
+                  72                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

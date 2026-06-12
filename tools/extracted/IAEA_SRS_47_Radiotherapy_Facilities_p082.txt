@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  Example 3: Leakage considerations                               
+                                                                                  
+                     To determine the barrier thickness required to shield against leakage
+                  radiation for location C, Eqs (6) and (8) are used. Because treatment units are
+                  generally shielded to better than 0.1% (the 1/1000 factor), the primary barrier
+                  is adequate for shielding the additional radiation from leakage, as illustrated in
+                  the following example. The input data values are:               
+                                                                                  
+                     P = 20 × 10–6 Sv·week–1;                                     
+                     d = 6.2 m;                                                   
+                      s                                                           
+                     W = 600 Gy·week–1;                                           
+                     T = 0.0625 (1/16)                                            
+                        1000¥20¥10-6 ¥6.22                                        
+                     B =              = 2.05 × 10–2                               
+                      L     600¥0.0625                                            
+                  and                                                             
+                                                                                  
+                            Ê  1   ˆ                                              
+                     n = log 10Ë Á 2.05¥10-2¯ ˜ = 1.69                            
+                                                                                  
+                     The number of TVLs to shield against leakage radiation is much lower
+                  than the number required for primary beam shielding. Therefore, the leakage
+                  shielding requirement is more than adequately met by the primary barrier
+                  thickness.                                                      
+                                                                                  
+                  Example 4: Patient scatter considerations                       
+                                                                                  
+                     To determine the thickness required for patient scatter shielding at
+                  location C, Eq. (9) is used. The worst case is when the beam is pointing directly
+                  at C because the scatter fraction a is the largest, and the energy of the small
+                  angle scatter radiation is also the highest. If the primary barrier is sufficiently
+                  wide that it will also shield small angle scattered radiation, no additional
+                  thickness is needed to shield the scatter radiation. The following example
+                  illustrates this point. The input data values are:              
+                                                                                  
+                     P = 20 × 10–6 Sv·week–1;                                     
+                     d = 1 m;                                                     
+                      sca                                                         
+                     d = 6.2 m;                                                   
+                      sec                                                         
+                     a = 1.42 × 10–2 (Table 5, 18 MV scatter through 10° at 2.5 cm depth);
+                     W = 600 Gy·week–1;                                           
+                  68                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

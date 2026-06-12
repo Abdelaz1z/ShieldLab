@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                              Ê   1  ˆ                                            
+                     nTVLs=log 10Ë Á 9.03¥10-7¯ ˜ =6.04                           
+                                                                                  
+                     Therefore, a (6.04 × 218 =)1317 mm thick concrete primary barrier is
+                  required to shield a public area with an occupancy of 1. For a public area with
+                  occupancy factor of 0.5, a similar calculation gives the barrier thickness of 1252
+                  mm. For a public area with an occupancy factor of 0.2, the barrier requirement
+                  is 1165 mm and, based on IDR considerations, a barrier thickness of 1232 mm
+                  should be used. A risk assessment should be performed to assess the likely
+                  occupancy of the shielded area in order to define the necessary shielding.
+                     The primary barrier should be sufficiently wide that it will also shield
+                  small angle scattered radiation (see Section 2.1) before reducing to the
+                  secondary barrier thickness as shown in Fig. 10(b).             
+                     In summary, the concrete primary wall barriers should be 1033 mm thick
+                  if they are shielding a controlled area and 1165 mm thick if they are shielding a
+                  public area with an occupancy factor less than or equal to 0.2, according to
+                  guidance from the United Kingdom [6].                           
+                                                                                  
+                  6.1.5. Secondary barrier                                        
+                                                                                  
+                  6.1.5.1. Leakage radiation                                      
+                                                                                  
+                     For leakage radiation from the treatment head, the manufacturer’s speci-
+                  fication should be used. There may be two values of leakage radiation quoted
+                  by the manufacturer, one when the source is in the safe position and one when
+                  the source is exposed for treatment; the larger value should be used in the
+                  shielding calculations. This value is usually less than the 0.1% (1/1000) of the
+                  primary radiation that is allowed. To determine the required barrier thickness,
+                  Eq. (8) is used.                                                
+                     In this example:                                             
+                                                                                  
+                     d the distance from the isocentre to just outside the secondary barrier
+                      s                                                           
+                       (point C) is 2.6 m;                                        
+                     P the design limit for a public area is 6 mSv·week–1;        
+                     T the occupancy is 1.                                        
+                        1000¥6¥(2.6)2                                             
+                     B=           =1.06¥10-4                                      
+                         384¥106¥1                                                
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  54                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

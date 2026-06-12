@@ -1,0 +1,54 @@
+07 | / | .5 | SELPMAXE | FO | GNIDLEIHS | SNOITALUCLAC
+Materials
+– | – | – | –
+B.4 | C.4 | B.4 | C.4
+4.8, | 4.8, | 4.8, | 4.8,
+B.1 | C.1 | B.1 | C.1
+Figures | Figures | Figures | Figures
+Other | Table | Table | Table | Table | Table | Table | Table | Table
+B.6, | C.7, | B.6, | C.7,
+Data
+Transmission | Concrete | 4.6a, | 4.6b, | 4.6c, | 4.8a, | 4.8b, | 4.8c,
+B.3, | C.3, | B.3, | C.3,
+B.1 | C.1 | B.1 | C.1
+Figure | Figure | Figure | Figure | Figure | Figure | Figure | Figure | Figure | Figure
+Table | Table | Table | Table
+Report.
+4.5a, | 4.5b, | 4.7a, | 4.7b,
+B.2, | 4.5c, | C.2, | B.2, | 4.7c, | C.2,
+Lead
+B.1 | C.1 | B.1 | C.1
+this
+Figure | Figure | Figure | Figure | Figure | Figure | Figure | Figure | Figure | Figure
+Table | Table | Table | Table
+in
+resources
+Data
+Unshielded
+Air-Kerma
+4.5 | 4.7 | 4.5 | 4.7
+to
+guide | Table | Table | Table | Table
+5.1—Summary
+Radiation
+of
+Secondary | Secondary
+Type
+Primary | Primary
+TABLE
+walls, | walls,
+secondary | walls | secondary | walls
+x-ray | cross-table, | x-ray | cross-table,
+wall | wall
+Barrier
+primary | primary
+under | chest-bucky | floor, | under | chest-bucky | floor,
+Ceiling, | Ceiling,
+of | of
+Floor | table, | other | Floor | table, | other
+part | part
+Designation
+Radiographic
+Room
+room
+room | R&F

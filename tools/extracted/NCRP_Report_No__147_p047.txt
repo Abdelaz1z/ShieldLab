@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                        4.1 CONCEPTS AND TERMINOLOGY / 37           
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                        Fig. 4.1. The workload distribution Rad Room (floor or other barriers)
+                      obtained from the AAPM-TG9 survey (Simpkin, 1996a) for the x-ray beam
+                      directed at the floor of a radiographic room compared to the workload
+                      distribution assuming all exposures are made at 100 kVp.      
+                                                                                    
+                      bucky) and Rad Room (floor or other barriers) distributions. This
+                      latter distribution describes exposures directed at the floor,
+                      cross-table wall, and any other beam orientations.            
+                        Separating the workload into these two barrier-specific distri-
+                      butions provides a more accurate description of the intensity and
+                      penetrating ability of the radiation directed at primary barriers.
+                      Therefore, it is not necessary to use the Rad Room (all barriers)
+                      workload distribution for primary beam calculations; it will only be
+                      used for secondary barrier shielding calculations.            
+                        The actual workload distribution for a given x-ray room will
+                      vary from those given in Table 4.2. It will also vary from facility to
+                      facility and even from week to week in the same facility. However,
+                      the average distribution obtained from the survey represents a
+                      more realistic model of x-ray use than the single kVp approxima-
+                      tion. It also is independent of the number of patients examined
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

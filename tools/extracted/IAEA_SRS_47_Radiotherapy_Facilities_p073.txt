@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  6.2. 6 MV LINEAR ACCELERATOR FACILITY                           
+                                                                                  
+                     Figure 11 shows a proposal for a 6 MV linear accelerator facility. The
+                  design dose limits to be used are those for public areas — 0.3 mSv per year per
+                  installation [6, 7]. The IDR should be limited to 7.5 mSv·h–1 [6, 7]. The expected
+                  workload is 50 patients per day (8 h), 5 days per week and a dose of 3 Gy
+                  delivered at the isocentre per patient.                         
+                                                                                  
+                  6.2.1. Primary barrier                                          
+                                                                                  
+                  6.2.1.1. Example 1                                              
+                                                                                  
+                     To determine the required barrier thickness based on an annual dose
+                  limit, Eq. (5) is used where:                                   
+                                                                                  
+                     P   the design limit for a public area is 0.3 mSv per annum (0.3 ÷ 50 =
+                         6 mSv·week–1);                                           
+                     d   the distance from the isocentre to the point of interest on the far
+                         side of the barrier is 5 m;                              
+                     SAD is 1 m;                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                      C                D                          
+                                                                                  
+                                             d                                    
+                                             2                                    
+                                                                                  
+                                                                                  
+                           A                                 E                    
+                  B                                                               
+                                        d                                         
+                                         1                                        
+                                                           d                      
+                                                           3                      
+                                                             H                    
+                                                             F                    
+                                                                                  
+                             FIG. 11. Schematic layout of a 6 MV facility.        
+                                                                                  
+                                                                                  
+                                                               59                 
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

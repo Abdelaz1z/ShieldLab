@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                              C.4 THE GENERAL CASE / 145            
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                        Fig. C.6. Transmission of secondary radiation through plate glass
+                      (data as in Figure C 2).                                      
+                                                                                    
+                         3. take the ratio of P/T to the total unshielded air kerma as
+                           the required barrier transmission, and                   
+                         4. from the most penetrating of the transmission curves for
+                           the x-ray sources in the room, graphically estimate the  
+                           barrier thickness required to give this transmission.    
+                                                                                    
+                      This procedure will generally be conservatively safe, and will prove
+                      accurate if the transmission curves of the various x-ray sources are
+                      similar.                                                      
+                        A useful, although computationally more intensive, technique is
+                      to find by iteration the barrier thickness that decreases the sum
+                      ofthe transmitted air kerma contributions to P/T. Consider two
+                      test barrier thicknesses x and x , for which the total transmitted
+                                       1   2                                        
+                      air kerma has been calculated to be K and K , respectively. Assume
+                                              1    2                                
+                      x and x bound the solution such that, x < x and K > P/T > K . 
+                       1    2                    1  2    1      2                   
+                      From the shape of the transmission curves, it is reasonable to use
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

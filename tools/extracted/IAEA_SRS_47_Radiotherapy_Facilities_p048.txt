@@ -1,0 +1,64 @@
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                  In the United Kingdom an unsupervised or public area should have a TADR of
+                  less than 0.5 mSv·h–1 with a maximum IDR of 7.5 mSv·h–1 [6]. Dividing the
+                  chosen design dose limit by the calculated value of dose at the end of the maze
+                  will give the attenuation required in a door. The data to determine the required
+                  TVL of lead are tabulated in Table 4. If a protected door is not required it is
+                  still recommended to have a physical barrier at the maze entrance such as a
+                  gate to discourage entry. Also, it is recommended that 60Co unit installations
+                  should have lockable doors so that access may be restricted outside normal
+                  hours of use (see also Section 3.11).                           
+                                                                                  
+                                                                                  
+                  5.6. NEUTRONS IN HIGH ENERGY LINEAR ACCELERATOR                 
+                     ROOMS                                                        
+                                                                                  
+                     Neutron production becomes important in high energy medical linear
+                  accelerators (linacs) above 10 MV. Photoneutrons are produced when photons
+                  interact with the collimators, the target, the flattening filter and other material
+                  along the path of the electron and the photon beam. The lead, tungsten, and
+                  other high atomic number (Z) materials in the head are effective photon
+                  shields, but not for neutrons. Although, due to (n, 2n) and (n, p) interactions,
+                  and other inelastic scattering, the heavy metals do provide shielding effects by
+                  lowering the average energy of the neutrons.                    
+                     The neutron fluence at any point in the room is composed of direct
+                  neutrons j , scattered neutrons j , and thermal neutrons j . McCall et al. [23]
+                        d            sc              th                           
+                  have shown that the direct neutron fluence is given by:         
+                                                                                  
+                          Q                                                       
+                     j =   N                                  (19)                
+                      d  4pd2                                                     
+                  where                                                           
+                                                                                  
+                     d  is the distance from the source to the point of interest. 
+                     Q  is the apparent neutron source strength in number of neutrons
+                      N                                                           
+                        emitted from the shielded accelerator head per unit dose of photon
+                        delivered to the isocentre. Q is related to the neutron source
+                                          N                                       
+                        strength Q, and is equal to Q for head shielded with lead, and 0.85Q
+                        for the head shielded with tungsten.                      
+                     The scatter neutron fluence is given by:                     
+                                                                                  
+                                                                                  
+                  34                                                              
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  

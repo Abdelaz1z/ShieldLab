@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                            C.1 SCATTERED RADIATION / 137           
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                        Fig. C.1. The scatter fraction a × 10–6 (i.e., multiply graph value by
+                                           1                                        
+                      10–6) per cm2 of primary beam area at 1 m. [Data of Trout and Kelley
+                      (1972) reanalyzed by Simpkin and Dixon (1998) for tungsten anode,
+                      aluminum-filtered beams. Data of Simpkin (1996b) for molybdenum
+                      anode, molybdenum filtered mammographic beams.]               
+                         K (x,θ,kVp) = K -----W 1 ------ ( --- k -- V ---- p --- ) --- - W ------ ( -- k --- V --- p ---- ) -- -- a ---1-- ( --- θ --- , --- k --- V --- p ---- ) --- × ----- 1 --- 0 --- – --- 6 - -- -- F ---- B(x,kVp). (C.3)
+                         S                2          2                              
+                                          d          d                              
+                                           S         F                              
+                      If a fraction U of the x-ray tube workload is expended as a primary
+                      beam directed at this barrier, the workload available to generate
+                      scattered radiation on this barrier should be reduced (Simpkin,
+                      1987b) from W(kVp) to (1 – U)W(kVp). Then:                    
+                        K (x,θ,kVp)                                                 
+                         S                                                          
+                            K 1 (kVp) (1–U) W(kVp) a (θ,kVp)×10 –6 F                
+                          = ------W-------------------------------------------------------------------1---------------------------------------- -------- B(x,kVp). (C.4)
+                                      d 2          d 2                              
+                                       S            F                               
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    

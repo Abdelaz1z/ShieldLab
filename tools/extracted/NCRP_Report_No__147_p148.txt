@@ -1,0 +1,60 @@
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                    138 / APPENDIX C                                                
+                                                                                    
+                    For tube operation over a range of potentials, the total scattered air
+                    kerma is the sum over the operating potentials:                 
+                                                                                    
+                                K (x,θ) = ∑ K (x,θ,kVp).    (C.5)                   
+                                 S       S                                          
+                                      kVp                                           
+                                C.2 Leakage Radiation                               
+                      Leakage radiation is limited by regulation to 100 mR h–1 at 1 m
+                    at the maximum operating potential kVp and the maximum          
+                                                max                                 
+                    tube current in milliampere (I ) at which the tube can be oper- 
+                                        max                                         
+                    ated continuously. For radiographic tubes, this is typically 150 kVp
+                    at 3 to 5 mA, and for mammographic tubes it is 50 kVp at 5 mA.  
+                    The amount of shielding required in the housing to limit transmis-
+                    sion to the regulatory limit is based on these techniques, even 
+                    though the tube is rarely operated at these techniques.         
+                      A model predicting the leakage air kerma for tube operation at
+                    potential kVp can be developed by assuming that the leakage     
+                    air-kerma rate for operation without housing matches the primary
+                    beam air-kerma rate. The thickness of the lead-lined housing can
+                    then be specified by knowing the leakage radiation technique fac-
+                    tors, the primary transmission curves, the leakage air-kerma rate
+                        ·                                                           
+                    limit Κ , and assuming that the primary air-kerma rate varies as
+                         lim                                                        
+                    kVp2. The leakage air-kerma rate 1 m from the x-ray tube operated
+                    at potential kVp and tube current I is then:                    
+                               K · (kVp)∝kVp 2 I B (kVp),   (C.6)                   
+                                L         housing                                   
+                    where B  (kVp) is the transmission through the tube housing.    
+                         housing                                                    
+                    For leakage radiation technique factors of 150 kVp at 3.3 mA, a 
+                    lead-lined housing 2.32 mm thick is required to reduce the leakage
+                    radiation exposure rate at 1 m to 100 mR h–1 (0.876 mGy h–1;    
+                    1.46×10–2 mGy min–1). The ratio of the leakage air-kerma rates at
+                    1 m at clinical parameters kVp and I to that at the maximum val-
+                    ues of the leakage radiation technique factors yields:          
+                             K · (kVp) = ------ K - · --- l -- i - m --- -- k --- V --- p ---- 2 -- -- B ---h---o--u--s--i-n--g--- ( -- k --- V --- p ---- ) -- -- I ------. (C.7)
+                              L    kVp 2 B (kVp ) I                                 
+                                     max housing max max                            
+                      Note that this assumes the highest allowed air-kerma rate at  
+                    the leakage radiation technique factors. This is usually assumed to
+                    be conservatively safe by factors of at least 2 to 10. Integrating
+                    Equation C.7 over time yields the leakage air kerma (K ) accumu-
+                                                        L                           
+                    lated due to operation at potential kVp and workload W(kVp). The
+                                                                                    
+                                                                                    
