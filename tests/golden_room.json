@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "framework": "NCRP",
+  "notes": "A6 golden case: F-18 PET uptake room, controlled area behind Wall N. Frozen reference for regression testing the Room Designer against the ShieldLab v1.0 solver.",
+  "room": {"width_m": 6.0, "length_m": 4.0, "height_m": 3.0},
+  "source": {"isotope": "F-18", "activity_MBq": 370.0, "patients_per_week": 50.0, "residence_min": 60.0, "x_m": 3.0, "y_m": 2.0},
+  "walls": [
+    {"id": "N", "material1": "concrete", "thickness1_mm": 150.0, "material2": null, "thickness2_mm": 0.0,
+     "adjacent": {"name": "Control room", "occupancy_T": 1.0, "kind": "controlled", "design_goal_P_mSv_wk": null}, "openings": []},
+    {"id": "E", "material1": "concrete", "thickness1_mm": 150.0, "material2": null, "thickness2_mm": 0.0,
+     "adjacent": {"name": "Corridor", "occupancy_T": 0.125, "kind": "public", "design_goal_P_mSv_wk": null}, "openings": []},
+    {"id": "S", "material1": "concrete", "thickness1_mm": 150.0, "material2": null, "thickness2_mm": 0.0,
+     "adjacent": {"name": "Waiting", "occupancy_T": 0.05, "kind": "public", "design_goal_P_mSv_wk": null}, "openings": []},
+    {"id": "W", "material1": "concrete", "thickness1_mm": 150.0, "material2": null, "thickness2_mm": 0.0,
+     "adjacent": {"name": "Outdoor", "occupancy_T": 0.025, "kind": "public", "design_goal_P_mSv_wk": null}, "openings": []}
+  ]
+}

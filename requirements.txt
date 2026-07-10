@@ -4,3 +4,12 @@ streamlit>=1.30
 pandas>=2.0
 matplotlib>=3.7
 # (the physics engine itself uses only the Python standard library)
+# Room Designer (pages/1_Room_Designer.py) report export:
+fpdf2>=2.7        # PDF report (pure-python, deploys on Streamlit Cloud)
+openpyxl>=3.1     # Excel report
+# Room Designer surrogate tier (models/surrogate_bundle.joblib):
+# scikit-learn is PINNED — the bundle is a pickle and must load on the exact version it
+# was built with, or the model will not deserialize.
+scikit-learn==1.9.0
+joblib==1.5.3
+numpy>=1.26

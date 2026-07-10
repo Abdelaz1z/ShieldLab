@@ -1,0 +1,111 @@
+{
+  "room": {
+    "width_m": 4.0,
+    "length_m": 3.5,
+    "height_m": 3.0
+  },
+  "source": {
+    "isotope": "F-18",
+    "activity_MBq": 555,
+    "patients_per_week": 30,
+    "residence_min": 60,
+    "x_m": 2.0,
+    "y_m": 1.75
+  },
+  "walls": [
+    {
+      "id": "N",
+      "material1": "concrete",
+      "thickness1_mm": 170.0,
+      "material2": null,
+      "thickness2_mm": 0.0,
+      "adjacent": {
+        "name": "Control room",
+        "occupancy_T": 1.0,
+        "kind": "controlled",
+        "design_goal_P_mSv_wk": null
+      },
+      "openings": [
+        {
+          "kind": "window",
+          "center_along_wall_m": 2.0,
+          "width_m": 1.0,
+          "lead_equiv_mm": 2,
+          "radius_mm": 0.0,
+          "ret_material": "concrete",
+          "ret_thickness_mm": 150.0,
+          "corridor_m": 0.8,
+          "shadow_offset_m": 0.5
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "material1": "concrete",
+      "thickness1_mm": 100.0,
+      "material2": null,
+      "thickness2_mm": 0.0,
+      "adjacent": {
+        "name": "Public corridor",
+        "occupancy_T": 0.125,
+        "kind": "public",
+        "design_goal_P_mSv_wk": null
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "center_along_wall_m": 1.2,
+          "width_m": 1.0,
+          "lead_equiv_mm": 2,
+          "radius_mm": 0.0,
+          "ret_material": "concrete",
+          "ret_thickness_mm": 150.0,
+          "corridor_m": 0.8,
+          "shadow_offset_m": 0.5
+        },
+        {
+          "kind": "duct",
+          "center_along_wall_m": 2.6,
+          "width_m": 1.0,
+          "lead_equiv_mm": 0.0,
+          "radius_mm": 30,
+          "ret_material": "concrete",
+          "ret_thickness_mm": 150.0,
+          "corridor_m": 0.8,
+          "shadow_offset_m": 0.5
+        }
+      ]
+    },
+    {
+      "id": "S",
+      "material1": "concrete",
+      "thickness1_mm": 100.0,
+      "material2": null,
+      "thickness2_mm": 0.0,
+      "adjacent": {
+        "name": "Second uptake room",
+        "occupancy_T": 0.5,
+        "kind": "controlled",
+        "design_goal_P_mSv_wk": null
+      },
+      "openings": []
+    },
+    {
+      "id": "W",
+      "material1": "concrete",
+      "thickness1_mm": 0.0,
+      "material2": null,
+      "thickness2_mm": 0.0,
+      "adjacent": {
+        "name": "Outdoor area",
+        "occupancy_T": 0.025,
+        "kind": "public",
+        "design_goal_P_mSv_wk": null
+      },
+      "openings": []
+    }
+  ],
+  "framework": "NCRP",
+  "notes": "REPRESENTATIVE PET uptake room (TG-108-informed workload). Placeholder for the thesis RSO case study - replace with the real facility data when collected.",
+  "schema_version": "1.0"
+}

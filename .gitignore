@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Local dev / editor / assistant settings (not for deployment)
+.claude/
+
+# Stray thesis / Monte-Carlo working outputs that don't belong in the app
+datasets/
+*.mhd
+*.raw
+_smoke_report.*
+
+# OS
+.DS_Store
+Thumbs.db
