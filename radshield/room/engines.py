@@ -355,11 +355,23 @@ class SurrogateEngine:
                 margin=(gT / aDose if aDose else None), material=wall.material1, ood=True,
                 note=note)
 
-        # in-domain surrogate prediction + CQR 95% interval
+        # in-domain surrogate prediction + group-conditional (Mondrian, 3-group) CQR 95% interval:
+        # the two HPC-rescued regions (deep tail; deep off-axis beam-shadow corner), where the
+        # surrogate is weaker, each get their own wider conformal offset. Group taxonomy uses the
+        # query's offset + the model's own prediction (available at inference; deep > shadow
+        # precedence). Keys are absent in pre-rescue bundles -> global band (backward compatible).
         logB = float(b["model"].predict(X)[0])
-        Q = b["cqr"]["Q95"]
-        lo = float(b["cqr"]["q_lo"].predict(X)[0]) - Q
-        hi = float(b["cqr"]["q_hi"].predict(X)[0]) + Q
+        cq = b["cqr"]
+        off_idx = b["features"].index("det_offset_mm")
+        deep = logB < cq.get("deep_logB_max", -float("inf"))
+        shadow = (not deep
+                  and float(X[0, off_idx]) > cq.get("shadow_offset_mm", float("inf"))
+                  and logB < cq.get("shadow_logB_max", -float("inf")))
+        Q = (cq.get("Q95_deep", cq["Q95"]) if deep
+             else cq.get("Q95_shadow", cq["Q95"]) if shadow
+             else cq["Q95"])
+        lo = float(cq["q_lo"].predict(X)[0]) - Q
+        hi = float(cq["q_hi"].predict(X)[0]) + Q
         B = 10.0 ** logB
         B_lo, B_hi = 10.0 ** lo, 10.0 ** hi
         dose = unshielded * B
@@ -368,16 +380,18 @@ class SurrogateEngine:
         # conservative bound or the analytical value as policy requires.
         passes = dose <= gT
         margin_hi = gT / (unshielded * B_hi) if unshielded * B_hi > 0 else None   # conservative margin
+        band_note = (" (deep tail: wide band)" if deep
+                     else " (deep off-axis: wide band)" if shadow else "")
         return EngineResult(
             barrier_id=path.label, label=path.label, engine=self.name,
             B_required=(min(1.0, gT / unshielded) if unshielded > 0 else 1.0),
             B_achieved=B, dose_mSv_wk=dose, goal_over_T=gT,
             passes=passes, margin=(gT / dose if dose > 0 else None),
             material=wall.material1, ci_low=B_lo, ci_high=B_hi,
-            note=(f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]; "
+            note=(f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}; "
                   f"conservative (upper-bound) margin ×{margin_hi:.2f}."
                   if margin_hi is not None else
-                  f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]."))
+                  f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}."))
 
     def evaluate_all(self, mode: str,
                      analytical_results: Optional[List[EngineResult]] = None) -> List[EngineResult]:

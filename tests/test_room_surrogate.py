@@ -38,7 +38,7 @@ def _both(d, mode="check"):
 def test_bundle_loads():
     se = SurrogateEngine(_room())
     assert se.available(), "surrogate_bundle.joblib did not load"
-    assert se.bundle["meta"]["n_accepted"] == 3182
+    assert se.bundle["meta"]["n_accepted"] == 3513          # 3182 + 331 P1 analog-rescued rows
     assert se.bundle["meta"]["cqr95_coverage_holdout"] >= 0.95
 
 
