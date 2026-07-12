@@ -38,7 +38,8 @@ def _both(d, mode="check"):
 def test_bundle_loads():
     se = SurrogateEngine(_room())
     assert se.available(), "surrogate_bundle.joblib did not load"
-    assert se.bundle["meta"]["n_accepted"] == 3513          # 3182 + 331 P1 analog-rescued rows
+    assert se.bundle["meta"]["n_accepted"] == 4177          # full domain: shadow+deep+boundary rescued
+    assert se.bundle["meta"]["n_excised"] == 0              # zero known bias remaining
     assert se.bundle["meta"]["cqr95_coverage_holdout"] >= 0.95
 
 
@@ -57,15 +58,22 @@ def test_solid_wall_envelope():
     assert checked >= 3, "too few in-domain solid-wall cases to validate the envelope"
 
 
-def test_deep_wall_triggers_ood_fallback():
-    """A deep wall (B < 2e-3) is the excised deep-tail regime -> surrogate must defer to the
-    analytical value, never emit a raw prediction."""
+def test_deep_wall_served_with_wide_band():
+    """A deep wall (B < 2e-3) WAS the excised deep-tail regime; after the HPC analog rescue the
+    surrogate is trained on unbiased labels there and now SERVES it (the excised set is empty),
+    under the wider group-conditional (deep-tail) conformal band — an honest inflated interval,
+    not a deferral to the analytical value."""
     se, am, sm = _both(_room(iso="F-18", thickness=500))
     s = sm["Wall N"]
-    assert s.ood is True
-    assert "fallback" in s.engine.lower()
-    assert s.ci_low is None                       # no raw surrogate interval was used
-    assert abs(s.B_achieved - am["Wall N"].B_achieved) < 1e-12   # it IS the analytical value
+    assert s.ood is False                              # no longer routed away
+    assert s.engine == "surrogate"
+    assert s.ci_low is not None and s.ci_high is not None
+    assert 0.0 < s.B_achieved <= 1.0 and s.ci_low <= s.B_achieved <= s.ci_high
+    # the deep-tail band must be markedly wider than a thin-wall (standard-group) band
+    thin = _both(_room(iso="F-18", thickness=120))[2]["Wall N"]
+    deep_rel = s.ci_high / max(s.ci_low, 1e-300)
+    thin_rel = thin.ci_high / max(thin.ci_low, 1e-300)
+    assert deep_rel > 3.0 * thin_rel
 
 
 def test_offaxis_opening_triggers_ood():
