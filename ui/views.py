@@ -227,10 +227,22 @@ def _show_results(source, barrier, goal, ev):
     st.subheader("Results")
 
     # headline verdict
-    if ev.verdict.acceptable:
-        st.success(ev.verdict.message)
-    else:
-        st.error(ev.verdict.message)
+    status = "PASS" if ev.verdict.acceptable else "FAIL"
+    if ev.verdict.acceptable and ev.verdict.margin_ratio < 1.20:
+        status = "MARGINAL"
+    styles = {
+        "PASS": ("#e8f5e9", "#1b5e20", "&#128994;"),
+        "FAIL": ("#ffebee", "#b71c1c", "&#128308;"),
+        "MARGINAL": ("#fff8e1", "#8a5a00", "&#128993;"),
+    }
+    background, color, icon = styles[status]
+    st.markdown(
+        f"<div style='background:{background};border-left:7px solid {color};padding:14px 18px;"
+        f"border-radius:6px;margin:4px 0 14px'>"
+        f"<div style='font-size:22px;font-weight:700;color:{color}'>{icon} {status}</div>"
+        f"<div style='color:#202124;margin-top:4px'>{ev.verdict.message}</div></div>",
+        unsafe_allow_html=True,
+    )
 
     # dose breakdown
     c1, c2, c3 = st.columns(3)
@@ -300,6 +312,11 @@ def _show_results(source, barrier, goal, ev):
     html_report = rpt.build_html(source=source, barrier=barrier, goal=goal,
                                  evaluation=ev, inputs=inputs,
                                  prepared_by=prepared_by, facility=facility)
+    pdf_report = rpt.build_pdf_summary(source=source, barrier=barrier, goal=goal,
+                                       evaluation=ev, inputs=inputs,
+                                       prepared_by=prepared_by, facility=facility)
+    c2.download_button("Download 1-page PDF summary", data=pdf_report,
+                       file_name="ShieldLab_ClinicalSummary.pdf", mime="application/pdf")
     c2.download_button("⬇️ Download report (HTML)", data=html_report,
                        file_name="radshield_report.html", mime="text/html",
                        help="Open in a browser and print to PDF for your design file.")

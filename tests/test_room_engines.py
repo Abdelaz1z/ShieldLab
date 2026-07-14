@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(HERE))
 from radshield.room.model import RoomDesign, Opening
 from radshield.room.engines import AnalyticalEngine
 from radshield.room import diagram, report_room
+from radshield.room.decision_support import explain_failures, summarize_results
 from radshield.physics import sources as src, solver as sv
 from radshield.regulatory import limits as reg
 
@@ -92,9 +93,22 @@ def test_all_three_exports_render():
     pdf, _, _ = report_room.export(rep, "PDF")
     xlsx, _, _ = report_room.export(rep, "Excel")
     html, _, _ = report_room.export(rep, "HTML")
+    summary_pdf = report_room.to_summary_pdf(rep)
     assert pdf[:5] == b"%PDF-"                        # PDF magic
+    assert summary_pdf[:5] == b"%PDF-"
     assert xlsx[:2] == b"PK"                          # xlsx is a zip
     assert b"<html" in html.lower() and b"ShieldLab" in html
+
+
+def test_decision_summary_and_failure_explanation():
+    d = _golden()
+    d.wall("N").thickness1_mm = 50.0
+    results = AnalyticalEngine(d).evaluate_all("check")
+    summary = summarize_results(results)
+    explanations = explain_failures(d, results)
+    assert summary["status"] == "FAIL"
+    assert summary["critical"] is not None
+    assert any(item["barrier"] == "Wall N" for item in explanations)
 
 
 if __name__ == "__main__":

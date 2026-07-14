@@ -19,6 +19,7 @@ from typing import Dict, List
 
 from .model import RoomDesign, WALL_NAMES
 from .engines import EngineResult
+from .decision_support import explain_failures, summarize_results
 
 DISCLAIMER = (
     "Decision-support output — requires review and sign-off by a qualified Radiation "
@@ -76,6 +77,7 @@ def build_report(design: RoomDesign, results: List[EngineResult],
             "engine": prim.engine,
             "note": prim.note,
         })
+    primary_results = [smap.get(result.label, result) for result in results]
     return {
         "title": "ShieldLab — Room Shielding Report",
         "timestamp": _dt.datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -90,6 +92,8 @@ def build_report(design: RoomDesign, results: List[EngineResult],
             "Framework": design.framework,
         },
         "rows": rows,
+        "summary": summarize_results(primary_results),
+        "failure_explanations": explain_failures(design, primary_results),
         "diagram_png": diagram_png,
         "disclaimer": DISCLAIMER,
         "notes": design.notes,
@@ -196,6 +200,113 @@ def to_pdf(report: Dict) -> bytes:
 
     out = pdf.output()
     return bytes(out)
+
+
+def to_summary_pdf(report: Dict) -> bytes:
+    """Create a compact, single-page clinical decision summary."""
+    from fpdf import FPDF
+
+    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=False)
+    pdf.add_page()
+    font = _register_unicode_font(pdf)
+
+    def sane(text):
+        return text if font == "DejaVu" else str(text).encode("latin-1", "replace").decode("latin-1")
+
+    summary = report["summary"]
+    critical = summary["critical"]
+    colors = {"PASS": (31, 122, 61), "FAIL": (190, 45, 45), "MARGINAL": (185, 122, 0)}
+    red, green, blue = colors[summary["status"]]
+
+    pdf.set_font(font, "B", 16)
+    pdf.cell(0, 8, sane("ShieldLab | Room Shielding Decision Summary"), ln=1)
+    pdf.set_font(font, "", 8.5)
+    pdf.set_text_color(85, 85, 85)
+    pdf.cell(0, 5, sane(f"{report['mode']} | generated {report['timestamp']}"), ln=1)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(3)
+
+    pdf.set_fill_color(red, green, blue)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font(font, "B", 18)
+    pdf.cell(0, 14, summary["status"], fill=True, align="C", ln=1)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font(font, "", 9)
+    pdf.multi_cell(0, 5, sane(summary["message"]), align="C")
+    pdf.ln(2)
+
+    pdf.set_font(font, "B", 11)
+    pdf.cell(0, 6, "Critical barrier result", ln=1)
+    pdf.set_font(font, "", 9)
+    if critical:
+        pdf.set_fill_color(245, 247, 250)
+        pdf.cell(55, 7, "Barrier", border=1, fill=True)
+        pdf.cell(0, 7, sane(critical.label), border=1, ln=1)
+        pdf.cell(55, 7, "Calculated dose", border=1, fill=True)
+        pdf.cell(0, 7, sane(f"{critical.dose_mSv_wk:.3g} mSv/week"), border=1, ln=1)
+        pdf.cell(55, 7, "Regulatory design goal", border=1, fill=True)
+        pdf.cell(0, 7, sane(f"{critical.goal_over_T:.3g} mSv/week"), border=1, ln=1)
+        pdf.cell(55, 7, "Safety margin", border=1, fill=True)
+        pdf.cell(0, 7, sane(f"{critical.margin:.2f}x" if critical.margin is not None else "Not available"),
+                 border=1, ln=1)
+        if critical.ci_low is not None and critical.ci_high is not None:
+            low_dose = critical.dose_mSv_wk * critical.ci_low / critical.B_achieved
+            high_dose = critical.dose_mSv_wk * critical.ci_high / critical.B_achieved
+            pdf.cell(55, 7, "AI 95% confidence interval", border=1, fill=True)
+            pdf.cell(0, 7, sane(f"{low_dose:.3g} to {high_dose:.3g} mSv/week"), border=1, ln=1)
+    else:
+        pdf.multi_cell(0, 5, "No barrier path could be evaluated.")
+
+    pdf.ln(3)
+    pdf.set_font(font, "B", 11)
+    pdf.cell(0, 6, "Room inputs", ln=1)
+    pdf.set_font(font, "", 8.5)
+    inputs = list(report["inputs"].items())
+    for index in range(0, len(inputs), 2):
+        pair = inputs[index:index + 2]
+        for key, value in pair:
+            pdf.set_font(font, "B", 8.5)
+            pdf.cell(45, 5, sane(f"{key}:"))
+            pdf.set_font(font, "", 8.5)
+            pdf.cell(50, 5, sane(str(value)))
+        if len(pair) == 1:
+            pdf.cell(95, 5, "")
+        pdf.ln(5)
+
+    pdf.ln(3)
+    pdf.set_font(font, "B", 11)
+    pdf.cell(0, 6, "Barrier status", ln=1)
+    headers = [("Barrier", 54), ("Dose (mSv/wk)", 36), ("Goal", 32), ("Verdict", 28), ("Tier", 40)]
+    pdf.set_font(font, "B", 7.5)
+    pdf.set_fill_color(48, 84, 150)
+    pdf.set_text_color(255, 255, 255)
+    for header, width in headers:
+        pdf.cell(width, 5.5, header, border=1, fill=True, align="C")
+    pdf.ln(5.5)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font(font, "", 7.5)
+    for row in report["rows"][:8]:
+        pdf.cell(54, 5.5, sane(row["barrier"][:28]), border=1)
+        pdf.cell(36, 5.5, sane(row["dose_mSv_wk"]), border=1, align="C")
+        pdf.cell(32, 5.5, sane(row["limit_mSv_wk"]), border=1, align="C")
+        pdf.cell(28, 5.5, sane(row["verdict"]), border=1, align="C")
+        pdf.cell(40, 5.5, sane(row["tier"][:22]), border=1, align="C")
+        pdf.ln(5.5)
+
+    if report["failure_explanations"]:
+        pdf.ln(2)
+        pdf.set_font(font, "B", 10)
+        pdf.cell(0, 5, "Failure explanation", ln=1)
+        pdf.set_font(font, "", 8)
+        explanation = report["failure_explanations"][0]
+        pdf.multi_cell(0, 4, sane(f"{explanation['barrier']}: {explanation['message']}"))
+
+    pdf.set_y(277)
+    pdf.set_font(font, "I", 6.5)
+    pdf.set_text_color(90, 90, 90)
+    pdf.multi_cell(0, 3, sane(report["disclaimer"]))
+    return bytes(pdf.output())
 
 
 # ------------------------------------------------------------------------- Excel

@@ -1,10 +1,11 @@
 """
 report.py
 =========
-Builds a self-contained HTML report of a shielding calculation: every input,
+ Builds HTML and one-page PDF reports of a shielding calculation: every input,
 the per-component results, the verdict, the required/preferred thicknesses, the
 barrier's equivalents, and the full list of references used. The HTML can be
-opened in any browser and printed to PDF (Ctrl+P) - no extra libraries needed.
+ opened in any browser and printed to PDF (Ctrl+P). The PDF summary uses fpdf2,
+ which is already bundled for the Room Designer report export.
 
 The report is the auditable record the RSO keeps for the design file.
 """
@@ -123,3 +124,93 @@ def build_html(*, source, barrier, goal, evaluation,
 <p class="muted">ShieldLab v1.0 — planning/verification tool. A qualified expert must
 review any design used for construction. Photons only; LINAC &gt; 10 MV neutron design out of scope.</p>
 </body></html>"""
+
+
+def build_pdf_summary(*, source, barrier, goal, evaluation, inputs: dict,
+                      prepared_by: str = "Abdelaziz Habib", facility: str = "") -> bytes:
+    """Return a clean, one-page decision summary for the core calculator."""
+    from fpdf import FPDF
+
+    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=False)
+    pdf.add_page()
+    margin = evaluation.verdict.margin_ratio
+    status = "PASS" if evaluation.verdict.acceptable else "FAIL"
+    if evaluation.verdict.acceptable and margin < 1.20:
+        status = "MARGINAL"
+    colors = {"PASS": (31, 122, 61), "FAIL": (190, 45, 45), "MARGINAL": (185, 122, 0)}
+    red, green, blue = colors[status]
+    limit = goal.P_weekly / goal.occupancy_T
+
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.cell(0, 8, "ShieldLab | Shielding Decision Summary", ln=1)
+    pdf.set_font("Helvetica", "", 8.5)
+    identity = f"Prepared by {prepared_by}" + (f" | {facility}" if facility else "")
+    pdf.set_text_color(85, 85, 85)
+    pdf.cell(0, 5, identity, ln=1)
+    pdf.cell(0, 5, f"Generated {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}", ln=1)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(3)
+
+    pdf.set_fill_color(red, green, blue)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 18)
+    pdf.cell(0, 14, status, fill=True, align="C", ln=1)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.multi_cell(0, 5, evaluation.verdict.message.replace("≤", "<="), align="C")
+    pdf.ln(2)
+
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.cell(0, 6, "Calculated result", ln=1)
+    pdf.set_font("Helvetica", "", 9)
+    values = [
+        ("Transmitted total", f"{evaluation.transmitted_total:.4g} {source.unit}"),
+        ("Regulatory design goal / T", f"{limit:.4g} {source.unit}"),
+        ("Safety margin", f"{margin:.2f}x"),
+        ("AI 95% confidence interval", "Not applicable - analytical calculation"),
+    ]
+    pdf.set_fill_color(245, 247, 250)
+    for label, value in values:
+        pdf.cell(60, 7, label, border=1, fill=True)
+        pdf.cell(0, 7, value, border=1, ln=1)
+
+    pdf.ln(3)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.cell(0, 6, "Calculation inputs", ln=1)
+    input_items = list(inputs.items())
+    for index in range(0, len(input_items), 2):
+        for key, value in input_items[index:index + 2]:
+            pdf.set_font("Helvetica", "B", 8.5)
+            pdf.cell(38, 5, str(key)[:23] + ":")
+            pdf.set_font("Helvetica", "", 8.5)
+            pdf.cell(57, 5, str(value)[:35])
+        pdf.ln(5)
+
+    pdf.ln(3)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.cell(0, 6, "Barrier and dose breakdown", ln=1)
+    pdf.set_font("Helvetica", "", 8.5)
+    pdf.multi_cell(0, 5, f"Barrier: {barrier.describe()}")
+    headers = [("Component", 55), ("Unshielded", 34), ("B", 26), ("Transmitted", 38), ("Method", 37)]
+    pdf.set_font("Helvetica", "B", 7.5)
+    pdf.set_fill_color(48, 84, 150)
+    pdf.set_text_color(255, 255, 255)
+    for label, width in headers:
+        pdf.cell(width, 5.5, label, border=1, fill=True, align="C")
+    pdf.ln(5.5)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Helvetica", "", 7.5)
+    for component in evaluation.components[:8]:
+        pdf.cell(55, 5.5, component.name[:27], border=1)
+        pdf.cell(34, 5.5, f"{component.unshielded:.3g}", border=1, align="C")
+        pdf.cell(26, 5.5, f"{component.transmission:.3g}", border=1, align="C")
+        pdf.cell(38, 5.5, f"{component.transmitted:.3g}", border=1, align="C")
+        pdf.cell(37, 5.5, component.detail[:18], border=1)
+        pdf.ln(5.5)
+
+    pdf.set_y(278)
+    pdf.set_font("Helvetica", "I", 6.5)
+    pdf.set_text_color(90, 90, 90)
+    pdf.multi_cell(0, 3, "Decision-support output. Requires review and sign-off by a qualified Radiation Safety Officer or medical physicist.")
+    return bytes(pdf.output())

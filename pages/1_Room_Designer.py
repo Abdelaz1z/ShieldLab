@@ -20,6 +20,9 @@ from radshield.room.model import (
 )
 from radshield.room.engines import AnalyticalEngine, SurrogateEngine, usable_wall_materials
 from radshield.room import diagram, report_room
+from radshield.room.decision_support import (
+    explain_failures, shap_failure_explanations, summarize_results,
+)
 
 st.set_page_config(page_title="ShieldLab — Room Designer", page_icon="🏗️", layout="wide")
 
@@ -119,6 +122,29 @@ def _leakage_banners(results, surrogate_results):
                         f"({wb:.1e}). Duct penetrations dominate the dose here; the analytical "
                         f"model misses this entirely.")
     return out
+
+
+def _traffic_light(summary):
+    """Render a decision-first overall room status card."""
+    styles = {
+        "PASS": ("#e8f5e9", "#1b5e20", "&#128994;"),
+        "FAIL": ("#ffebee", "#b71c1c", "&#128308;"),
+        "MARGINAL": ("#fff8e1", "#8a5a00", "&#128993;"),
+    }
+    background, color, icon = styles[summary["status"]]
+    critical = summary["critical"]
+    detail = "No evaluable barrier path."
+    if critical:
+        detail = (f"Critical path: <b>{critical.label}</b> — "
+                  f"{critical.dose_mSv_wk:.3g} mSv/week vs "
+                  f"{critical.goal_over_T:.3g} mSv/week limit")
+    st.markdown(
+        f"<div style='background:{background};border-left:7px solid {color};padding:14px 18px;"
+        f"border-radius:6px;margin:4px 0 14px'>"
+        f"<div style='font-size:22px;font-weight:700;color:{color}'>{icon} {summary['status']}</div>"
+        f"<div style='color:#202124;margin-top:4px'>{summary['message']} {detail}</div></div>",
+        unsafe_allow_html=True,
+    )
 
 
 st.title("🏗️ Room Designer")
@@ -310,6 +336,8 @@ with right:
 
     st.subheader("Per-barrier results")
     if results:
+        summary = summarize_results(primary_results)
+        _traffic_light(summary)
         st.markdown(_results_table_html(results, surrogate_results, mode),
                     unsafe_allow_html=True)
 
@@ -323,12 +351,27 @@ with right:
             if r.passes is None and r.dose_mSv_wk is None:
                 st.info(f"**{r.label}:** {r.note}")
 
+        failure_explanations = explain_failures(design, primary_results)
+        shap_explanations = shap_failure_explanations(
+            surrogate, design, mode, results, surrogate_results or [],
+        )
+        if failure_explanations:
+            st.subheader("Why this needs attention")
+            for explanation in failure_explanations:
+                message = shap_explanations.get(explanation["barrier"], explanation["message"])
+                st.error(f"**{explanation['barrier']}:** {message}")
+            st.caption("SHAP values are shown only for in-domain MC-surrogate predictions; other paths use "
+                       "physics-aware explanations. Neither replaces detailed Monte-Carlo assessment or RSO sign-off.")
+
         st.subheader("Export report")
-        ec1, ec2 = st.columns([1, 1.4])
+        ec1, ec2, ec3 = st.columns([1, 1.25, 1.4])
         fmt = ec1.selectbox("Format", ["PDF", "Excel", "HTML"])
         png = diagram.render(design, primary_results)
         report = report_room.build_report(design, results, mode, png,
                                           surrogate_results=surrogate_results)
+        ec3.download_button("Download 1-page clinical PDF", data=report_room.to_summary_pdf(report),
+                            file_name="ShieldLab_ClinicalSummary.pdf", mime="application/pdf",
+                            use_container_width=True)
         data, mime, ext = report_room.export(report, fmt)
         ec2.download_button(f"⬇ Download {fmt} report", data=data,
                             file_name=f"ShieldLab_RoomReport.{ext}", mime=mime,

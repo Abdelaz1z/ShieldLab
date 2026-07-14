@@ -13,3 +13,4 @@ openpyxl>=3.1     # Excel report
 scikit-learn==1.9.0
 joblib==1.5.3
 numpy>=1.26
+shap>=0.46              # TreeSHAP failure explanations for in-domain surrogate results
