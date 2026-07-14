@@ -121,16 +121,19 @@ def shap_failure_explanations(surrogate_engine, design: RoomDesign, mode: str,
     surrogate = {result.label: result for result in surrogate_results}
     walls = {wall.id: wall for wall in design.walls}
     labels = {
-        "isotope_energy_keV": "photon energy",
+        "primary_energy_keV": "photon energy",
         "thickness_mm": "barrier thickness",
         "duct_radius_mm": "duct radius",
         "det_offset_mm": "detector offset",
-        "material_zeff": "primary material atomic number",
-        "material_density_gcm3": "primary material density",
+        "zeff": "primary material atomic number",
+        "density_gcm3": "primary material density",
         "layer2_thickness_mm": "second-layer thickness",
         "layer2_zeff": "second-layer atomic number",
     }
-    explainer = shap.TreeExplainer(model)
+    try:
+        explainer = shap.TreeExplainer(model)
+    except Exception:
+        return {}
     explanations = {}
     for path in all_paths(design):
         result = surrogate.get(path.label)
@@ -147,7 +150,10 @@ def shap_failure_explanations(surrogate_engine, design: RoomDesign, mode: str,
         features = surrogate_engine._features(path, wall, thickness)
         if features is None:
             continue
-        values = np.asarray(explainer.shap_values(features), dtype=float).reshape(-1)
+        try:
+            values = np.asarray(explainer.shap_values(features), dtype=float).reshape(-1)
+        except Exception:
+            continue
         if len(values) != len(feature_names):
             continue
         feature_index = max(range(len(values)), key=lambda index: values[index])
