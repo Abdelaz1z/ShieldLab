@@ -13,4 +13,7 @@ openpyxl>=3.1     # Excel report
 scikit-learn==1.9.0
 joblib==1.5.3
 numpy>=1.26
-shap>=0.46              # TreeSHAP failure explanations for in-domain surrogate results
+# shap is OPTIONAL — TreeSHAP failure explanations light up automatically if it is
+# installed, but it is a heavy dep (numba/llvmlite) that can stall a cloud build, and
+# the app degrades to physics-aware explanations without it. Kept out of the hard
+# requirements on purpose; `pip install shap>=0.46` in any env where you want it live.
