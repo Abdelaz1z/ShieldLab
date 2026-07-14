@@ -1,0 +1,15 @@
+# ShieldLab Streamlit runtime config (used both locally and in the container).
+[server]
+headless = true
+address = "0.0.0.0"
+port = 8501
+# XSRF protection stays ON (the app has no upload; only inputs + download buttons).
+# If the app misbehaves inside the Hugging Face iframe, set enableXsrfProtection = false.
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"

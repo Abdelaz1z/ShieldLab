@@ -1,3 +1,14 @@
+---
+title: ShieldLab
+emoji: 🛡️
+colorFrom: blue
+colorTo: gray
+sdk: docker
+app_port: 8501
+pinned: false
+license: mit
+---
+
 # 🛡️ ShieldLab
 
 **Photon shielding design & verification for medical radiation facilities**

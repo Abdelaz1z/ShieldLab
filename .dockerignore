@@ -1,0 +1,28 @@
+# Keep the image lean: exclude everything the running app does not need.
+# NB: models/ is intentionally NOT excluded — the surrogate bundle ships in the image.
+.git
+.gitattributes
+.venv
+venv
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+
+# Local dev / assistant / editor state
+.claude
+.agents
+.devcontainer
+.vscode
+
+# Thesis / Monte-Carlo working material — not part of the deployed app
+datasets
+References
+thesis_mc
+thesis_chapters
+*.mhd
+*.raw
+
+# Docs (not needed at runtime)
+*.md
+!README.md
