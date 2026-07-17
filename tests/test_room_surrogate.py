@@ -38,7 +38,10 @@ def _both(d, mode="check"):
 def test_bundle_loads():
     se = SurrogateEngine(_room())
     assert se.available(), "surrogate_bundle.joblib did not load"
-    assert se.bundle["meta"]["n_accepted"] == 4177          # full domain: shadow+deep+boundary rescued
+    # Regression guard, not a version lock: the training set only ever GROWS (4,177 rescued
+    # full-domain baseline -> +Lu-177 -> +materials tier). A drop means the bundle was rebuilt
+    # on a subset — the failure this is here to catch.
+    assert se.bundle["meta"]["n_accepted"] >= 4177          # full domain: shadow+deep+boundary rescued
     assert se.bundle["meta"]["n_excised"] == 0              # zero known bias remaining
     assert se.bundle["meta"]["cqr95_coverage_holdout"] >= 0.95
 
