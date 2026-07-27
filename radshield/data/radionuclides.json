@@ -3,6 +3,8 @@
 
   "exposure_rate_constant_units": "R*cm^2/(mCi*h)  [equivalently R/(mCi*h) at 1 cm]. Convert to air-kerma rate: 1 R ~ 8.76e-3 Gy(air). For ambient dose-equivalent screening, 1 R ~ 10 mSv is a common conservative approximation.",
 
+  "_derived_materials_note": "The barite_concrete and brick TVLs are DERIVED, not tabulated: TVL_new(E) = TVL_concrete(E) * mu_concrete(E) / mu_new(E), where mu is the narrow-beam linear attenuation from an elemental NIST/XCOM mixture rule over PNNL-15870 compositions (barite Type BA; common silica brick). That mixture rule is the one used to design the 464-row analog Monte-Carlo materials campaign of this project's thesis and was self-checked there against the frozen Tier-B anchors (lead/steel exact, concrete within a few %). Scaling a BROAD-beam TVL by the narrow-beam mu ratio inherits concrete's measured buildup. For brick (Zeff ~12 vs concrete ~13) that is near-exact. For barite concrete (Zeff ~42) the true buildup factor is SMALLER than concrete's, so these TVLs are an OVER-estimate -> the resulting wall is CONSERVATIVE (thicker than strictly needed). Densities are the app's materials.json values (concrete 2350, barite 3450, brick 1800 kg/m3). Replace with manufacturer/measured broad-beam data when available.",
+
   "radionuclides": {
     "I-131": {
       "label": "Iodine-131 (radioiodine therapy)",
@@ -16,7 +18,9 @@
       "shielding": {
         "ref": "OUMANO2025",
         "lead":     {"HVL_mm": 2.48, "TVL_mm": 10.5},
-        "concrete": {"HVL_mm": 17.9, "TVL_mm": 186, "HVL_note": "HVL approx TVL/3.32"}
+        "concrete": {"HVL_mm": 17.9, "TVL_mm": 186, "HVL_note": "HVL approx TVL/3.32"},
+        "barite_concrete": {"HVL_mm": 29.7, "TVL_mm": 98.7, "derived": "_derived_materials_note"},
+        "brick":           {"HVL_mm": 73.8, "TVL_mm": 245.1, "derived": "_derived_materials_note"}
       },
       "use": "therapy_room"
     },
@@ -31,7 +35,9 @@
       "shielding": {
         "ref": "OUMANO2025",
         "lead":     {"HVL_mm": 0.243, "TVL_mm": 0.870},
-        "concrete": {"HVL_mm": 36.7, "TVL_mm": 122, "HVL_note": "HVL approx TVL/3.32"}
+        "concrete": {"HVL_mm": 36.7, "TVL_mm": 122, "HVL_note": "HVL approx TVL/3.32"},
+        "barite_concrete": {"HVL_mm": 6.5, "TVL_mm": 21.6, "derived": "_derived_materials_note"},
+        "brick":           {"HVL_mm": 48.7, "TVL_mm": 161.6, "derived": "_derived_materials_note"}
       },
       "use": "imaging_room"
     },
@@ -47,7 +53,9 @@
       "shielding": {
         "ref": "OUMANO2025",
         "lead":     {"HVL_mm": 4.75, "TVL_mm": 15.4},
-        "concrete": {"HVL_mm": 61.4, "TVL_mm": 204, "HVL_note": "HVL approx TVL/3.32"}
+        "concrete": {"HVL_mm": 61.4, "TVL_mm": 204, "HVL_note": "HVL approx TVL/3.32"},
+        "barite_concrete": {"HVL_mm": 37.7, "TVL_mm": 125.1, "derived": "_derived_materials_note"},
+        "brick":           {"HVL_mm": 81.0, "TVL_mm": 268.8, "derived": "_derived_materials_note"}
       },
       "use": "pet_ct"
     },
@@ -62,7 +70,9 @@
       "shielding": {
         "ref": "OUMANO2025",
         "lead":     {"HVL_mm": 0.511, "TVL_mm": 1.99},
-        "concrete": {"HVL_mm": 40.4, "TVL_mm": 134, "HVL_note": "HVL approx TVL/3.32"}
+        "concrete": {"HVL_mm": 40.4, "TVL_mm": 134, "HVL_note": "HVL approx TVL/3.32"},
+        "barite_concrete": {"HVL_mm": 13.5, "TVL_mm": 44.9, "derived": "_derived_materials_note"},
+        "brick":           {"HVL_mm": 53.3, "TVL_mm": 176.8, "derived": "_derived_materials_note"}
       },
       "use": "therapy_room"
     }

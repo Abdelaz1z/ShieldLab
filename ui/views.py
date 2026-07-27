@@ -11,7 +11,7 @@ Kept separate from app.py so the entry point stays tiny and this file can grow.
 import streamlit as st
 
 from radshield import data_loader as dl
-from radshield.physics import beams as bm, barriers as ba, sources as src, solver
+from radshield.physics import beams as bm, barriers as ba, sources as src, solver, optimize
 from radshield.regulatory import limits as reg
 from radshield.report import report as rpt
 from . import modality_config as mc
@@ -262,25 +262,37 @@ def _show_results(source, barrier, goal, ev):
         })
     st.dataframe(rows, width="stretch", hide_index=True)
 
-    # required & preferred thicknesses per material
-    st.markdown("**Required thickness if built from a SINGLE material** "
-                "(to bring total transmitted dose to the goal/T):")
-    mats = bm.available_materials(source.components[0].beam) if source.components else []
-    # always offer the common structural materials too
-    for m in ["lead", "concrete", "steel"]:
-        if m not in mats:
-            mats.append(m)
-    trows = []
-    for m in mats:
-        try:
-            req = solver.required_thickness(source, m, goal)
-            pref = solver.preferred_thickness(req, m)
-            trows.append({"Material": m, "Required (mm)": f"{req:.2f}",
-                          "Preferred (mm)": f"{pref:g}"})
-        except Exception:
-            pass
-    if trows:
-        st.dataframe(trows, width="stretch", hide_index=True)
+    # cost / material optimiser: the cheapest single-material wall that meets the goal,
+    # with the weight and space trade-offs a designer actually decides on.
+    st.markdown("**💰 Cost & material optimiser** — cheapest single-material wall that meets "
+                "goal/T, with the weight and space trade-offs:")
+    options = optimize.rank_options(source, goal)
+    head = optimize.headline(options)
+    if head:
+        st.success(head)
+    orows = []
+    for o in options:
+        best = "  ".join(t for t, on in [("💰 cheapest", o.is_cheapest),
+                                         ("🪶 lightest", o.is_lightest),
+                                         ("📏 thinnest", o.is_thinnest)] if on)
+        if o.already_met:
+            orows.append({"Material": o.label, "Wall thickness": "not needed",
+                          "Installed $/m²": "—", "Weight kg/m²": "—",
+                          "Best for": "goal already met"})
+        elif o.feasible:
+            orows.append({"Material": o.label, "Wall thickness": f"{o.preferred_mm:g} mm",
+                          "Installed $/m²": f"${o.cost_per_m2_usd:,.0f}",
+                          "Weight kg/m²": f"{o.weight_per_m2_kg:,.0f}", "Best for": best})
+        else:
+            orows.append({"Material": o.label,
+                          "Wall thickness": f">{o.preferred_mm:g} mm (impractical)",
+                          "Installed $/m²": "—", "Weight kg/m²": "—",
+                          "Best for": "cannot meet goal"})
+    if orows:
+        st.dataframe(orows, width="stretch", hide_index=True)
+        st.caption("Installed cost = representative 2026 estimate (materials + labour) × required "
+                   "thickness, editable in `radshield/data/materials_cost.json`. **Relative comparison "
+                   "only** — confirm with local quotations and a structural engineer for the areal load.")
 
     # equivalents of the current barrier
     if ev.equivalents:

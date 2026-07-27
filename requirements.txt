@@ -17,3 +17,16 @@ numpy>=1.26
 # installed, but it is a heavy dep (numba/llvmlite) that can stall a cloud build, and
 # the app degrades to physics-aware explanations without it. Kept out of the hard
 # requirements on purpose; `pip install shap>=0.46` in any env where you want it live.
+#
+# Room Designer 3D dose-field map (models/field_unet/, the thesis field-map U-Net).
+# Served by ONNX Runtime so the tier deploys on a free cloud container: onnxruntime is
+# ~15-40 MB against torch's ~200 MB+, which is what previously kept the 3D map dark on
+# Streamlit Cloud. The exported graph was verified against torch on real campaign rooms
+# (worst occupied-shell deviation 1.2e-04 dex, four orders below the model's own 0.068 dex
+# accuracy), so the runtimes are interchangeable for screening.
+onnxruntime>=1.17
+#
+# torch is OPTIONAL and no longer needed. field_surrogate.py falls back to it only if
+# field_unet.onnx is missing; the field map is a screening VISUALISATION that does not drive
+# the verdict, so the page degrades cleanly without either. Enable with:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu

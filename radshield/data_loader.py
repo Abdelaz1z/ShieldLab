@@ -60,6 +60,10 @@ def materials() -> Dict[str, Any]:
     return load("materials")
 
 
+def materials_cost() -> Dict[str, Any]:
+    return load("materials_cost")
+
+
 def archer_diagnostic() -> Dict[str, Any]:
     return load("archer_diagnostic")
 

@@ -19,7 +19,8 @@ from radshield.room.model import (
     RoomDesign, Opening, WALL_IDS, WALL_NAMES, ISOTOPES, OCCUPANCY_MENU,
 )
 from radshield.room.engines import AnalyticalEngine, SurrogateEngine, usable_wall_materials
-from radshield.room import diagram, report_room
+from radshield.room import diagram, report_room, cost as room_cost, report_regulatory
+from radshield.room import field_surrogate
 from radshield.room.decision_support import (
     explain_failures, shap_failure_explanations, summarize_results,
 )
@@ -145,6 +146,65 @@ def _traffic_light(summary):
         f"<div style='color:#202124;margin-top:4px'>{summary['message']} {detail}</div></div>",
         unsafe_allow_html=True,
     )
+
+
+@st.cache_resource(show_spinner=False)
+def _get_field_model():
+    """Load the field U-Net once per session (heavy: torch + weights)."""
+    return field_surrogate.FieldModel()
+
+
+@st.cache_data(show_spinner="Computing 3-D dose-field map…")
+def _cached_field_predict(design_json: str):
+    """Memoise the heavy 96×80×48 U-Net inference against the design (as JSON), so it is
+    computed at most once per distinct room and reused across reruns."""
+    return _get_field_model().predict(RoomDesign.from_json(design_json))
+
+
+def _render_field_map(design):
+    """3D dose-field U-Net tier: a whole-room field map (screening/visualisation only —
+    NOT the per-barrier verdict). Silently absent if torch or the weights are missing, so
+    the page degrades exactly like the surrogate tier does."""
+    try:
+        fm = _get_field_model()
+    except Exception:
+        return
+    if not fm.available():
+        return
+    with st.expander("🌡️ 3D dose-field map (Monte-Carlo U-Net) — whole-room screening view",
+                     expanded=False):
+        # The 3-D inference is expensive, so never run it implicitly on a rerun/widget edit:
+        # only compute when the user asks for the *current* room, and cache the result.
+        sig = design.to_json()
+        if st.button("Compute / refresh field map", key="fieldmap_btn",
+                     help="Runs the 3-D dose-field U-Net for the current room (takes a few seconds)."):
+            st.session_state._fieldmap_sig = sig
+        if st.session_state.get("_fieldmap_sig") != sig:
+            st.caption("Press **Compute / refresh field map** to run the 3-D U-Net "
+                       "screening view for the room as currently drawn.")
+            return
+        try:
+            pred = _cached_field_predict(sig)
+        except ValueError as exc:
+            st.info(f"Field map unavailable for this room: {exc}")
+            return
+        except Exception:
+            st.info("Field map could not be computed for this design.")
+            return
+        if pred is None:
+            return
+        st.image(field_surrogate.render_field_slice(pred, design), use_container_width=True)
+        if pred.shell_p95_log is not None:
+            st.caption(f"Occupied-shell 95th-percentile field level ≈ "
+                       f"10^{pred.shell_p95_log:.1f} (relative air-kerma units).")
+        for w in pred.warnings:
+            st.caption(f"ℹ️ {w}")
+        st.caption("**Screening visualisation only.** The field U-Net (thesis field-map campaign; "
+                   "occupied-shell validation RMSE 0.068 dex) predicts the whole in-room dose field "
+                   "on a fixed single-material box, so it shows the *shape* of the field — hot "
+                   "corners, streaming paths, in-room albedo — that a 1-D barrier calc cannot. It "
+                   "does **not** drive the PASS/FAIL verdict above: that stays with the validated "
+                   "analytical and scalar-surrogate tiers. Confirm any design decision against those.")
 
 
 st.title("🏗️ Room Designer")
@@ -334,6 +394,10 @@ with right:
             st.caption("Surrogate model not loaded — analytical tier only. "
                        "(Add `models/surrogate_bundle.joblib` to enable the MC tier.)")
 
+    # ---- 3D dose-field U-Net: whole-room field screening view --------------------
+    if not errs:
+        _render_field_map(design)
+
     st.subheader("Per-barrier results")
     if results:
         summary = summarize_results(primary_results)
@@ -363,6 +427,53 @@ with right:
             st.caption("SHAP values are shown only for in-domain MC-surrogate predictions; other paths use "
                        "physics-aware explanations. Neither replaces detailed Monte-Carlo assessment or RSO sign-off.")
 
+        # ---- room-level cost roll-up: money + structural load for the solid walls ----
+        st.subheader("💰 Room cost")
+        rc = room_cost.room_costs(design, mode)
+        rc_head = room_cost.headline(rc)
+        if rc_head:
+            st.info(rc_head)
+            crows = []
+            for w in rc["walls"]:
+                cur, ch = w.current, w.cheapest
+                if cur is None:
+                    build_desc = "—"
+                elif w.declared is not None:
+                    build_desc = w.declared.label            # declared build-up (Check mode)
+                else:
+                    build_desc = f"{cur.preferred_mm:g} mm {cur.material}"
+                crows.append({
+                    "Barrier": w.label,
+                    "Area m²": f"{w.area_m2:.1f}",
+                    "Current build": build_desc,
+                    "Cost": f"${w.cost_of(cur):,.0f}" if cur else "—",
+                    "Load": f"{w.weight_of(cur):,.0f} kg" if cur else "—",
+                    "Cheapest option": (f"{ch.preferred_mm:g} mm {ch.material} "
+                                        f"(${w.cost_of(ch):,.0f})") if ch else "—",
+                })
+            st.dataframe(crows, width="stretch", hide_index=True)
+            with st.expander("All qualifying materials per wall (thickness · cost · load)"):
+                for w in rc["walls"]:
+                    st.markdown(f"**{w.label}** — {w.area_m2:.1f} m²")
+                    orows = [{
+                        "Material": o.label, "Thickness": f"{o.preferred_mm:g} mm",
+                        "Cost": f"${o.cost_per_m2_usd * w.area_m2:,.0f}",
+                        "Load": f"{o.weight_per_m2_kg * w.area_m2:,.0f} kg",
+                        "Best for": "  ".join(t for t, on in [("💰 cheapest", o.is_cheapest),
+                                                              ("🪶 lightest", o.is_lightest),
+                                                              ("📏 thinnest", o.is_thinnest)] if on),
+                    } for o in w.options if o.feasible]
+                    if orows:
+                        st.dataframe(orows, width="stretch", hide_index=True)
+            _cost_basis = ("declared thickness" if mode == "check"
+                           else "required (suggested) thickness")
+            st.caption(f"Wall area × {_cost_basis} × installed cost "
+                       "(`radshield/data/materials_cost.json`). Openings are quoted separately, not "
+                       "area-costed. **Planning estimate** — confirm with local quotations and a "
+                       "structural engineer for the areal load.")
+        else:
+            st.caption("Room cost not available for this design.")
+
         st.subheader("Export report")
         ec1, ec2, ec3 = st.columns([1, 1.25, 1.4])
         fmt = ec1.selectbox("Format", ["PDF", "Excel", "HTML"])
@@ -376,6 +487,31 @@ with right:
         ec2.download_button(f"⬇ Download {fmt} report", data=data,
                             file_name=f"ShieldLab_RoomReport.{ext}", mime=mime,
                             use_container_width=True)
+
+        # ---- formal regulatory submission document ----
+        with st.expander("📋 Regulatory submission document (for the regulator / design file)"):
+            st.caption("A formal, signature-ready document: identification, regulatory basis, "
+                       "assumptions, method with citations, barrier-by-barrier compliance, findings, "
+                       "limitations and an indicative cost appendix. Numbers are taken verbatim from "
+                       "the assessment above. Open the HTML and print to PDF.")
+            g1, g2 = st.columns(2)
+            meta = {
+                "facility": g1.text_input("Facility", "", key="rg_fac"),
+                "room_ref": g1.text_input("Room / area reference", "", key="rg_room"),
+                "licence": g1.text_input("Licence / authorisation no.", "", key="rg_lic"),
+                "prepared_by": g2.text_input("Prepared by (RSO / qualified expert)",
+                                             "Abdelaziz Habib", key="rg_prep"),
+                "reviewed_by": g2.text_input("Reviewed / approved by", "", key="rg_rev"),
+                "doc_ref": g2.text_input("Document reference", "", key="rg_ref"),
+                "revision": st.text_input("Revision", "0", key="rg_revno"),
+            }
+            include_cost = st.checkbox("Include the cost / structural-load appendix", value=True,
+                                       key="rg_cost")
+            sub_html = report_regulatory.build_submission_html(
+                report, meta, costs=(rc if include_cost else None))
+            st.download_button("⬇ Download regulatory submission (HTML)", data=sub_html,
+                               file_name="ShieldLab_RegulatorySubmission.html", mime="text/html",
+                               use_container_width=True)
 
 st.divider()
 st.caption("Decision-support output — requires review and sign-off by a qualified RSO / medical "

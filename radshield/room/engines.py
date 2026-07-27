@@ -31,7 +31,7 @@ from .model import RoomDesign, Wall
 from .geometry import BarrierPath, all_paths
 
 # candidate wall materials, in the order to offer them; probed for real data below
-_CANDIDATE_WALL_MATERIALS = ("concrete", "lead", "steel", "barite_concrete", "gypsum")
+_CANDIDATE_WALL_MATERIALS = ("concrete", "lead", "steel", "barite_concrete", "brick", "gypsum")
 
 
 @dataclass

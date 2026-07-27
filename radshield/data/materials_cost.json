@@ -1,0 +1,68 @@
+{
+  "_comment": "Installed-cost and structural-load model for the ShieldLab cost/material optimizer. For each shielding material: 'installed_cost_usd_per_m3' is the delivered-and-installed cost of one cubic metre of the finished barrier (material + fabrication + fixing/placement labour), the natural unit for a wall built by volume; the optimizer multiplies it by the required thickness to get cost per m2 of wall. Structural areal load (kg/m2) is taken from density in materials.json. THESE ARE REPRESENTATIVE 2026 INTERNATIONAL ESTIMATES AND ARE VOLATILE AND REGIONAL — replace every figure with a local contractor quotation before relying on a ranking. Edit this file freely; the optimizer reads it live.",
+  "_units": {"installed_cost": "USD per cubic metre of finished barrier", "basis_year": 2026},
+  "_disclaimer": "Costs are order-of-magnitude planning estimates for RELATIVE comparison between materials, not a quotation. Lead and lead-glass in particular vary widely with sheet gauge, fixing detail and supplier. Always confirm with local quotes and a structural engineer for the areal load.",
+  "_sources": "Lead/steel commodity prices 2025-2026 (LME/producer) plus typical fabrication+fixing; concrete/barite/brick from general construction cost data (RSMeans-class ready-mix, heavy-aggregate premium ~4-6x ordinary, and masonry labour). Ranges given per material; point value is a mid estimate.",
+
+  "materials": {
+    "lead": {
+      "installed_cost_usd_per_m3": 95000,
+      "range_usd_per_m3": [70000, 130000],
+      "cost_basis": "sheet lead ~8 USD/kg installed (raw ~3.5 + fabrication/fixing/overlap) x 11350 kg/m3",
+      "labour_note": "Needs backing, overlapped joints and fixing detail; specialist install. Very thin, very heavy, very costly per m3 but you use little thickness.",
+      "space_efficient": true
+    },
+    "concrete": {
+      "installed_cost_usd_per_m3": 180,
+      "range_usd_per_m3": [120, 260],
+      "cost_basis": "structural ready-mix, formwork + placement + finishing",
+      "labour_note": "Cheapest bulk shielding; needs the most space and adds large structural load.",
+      "space_efficient": false
+    },
+    "barite_concrete": {
+      "installed_cost_usd_per_m3": 900,
+      "range_usd_per_m3": [600, 1500],
+      "cost_basis": "barite (barytes) aggregate ~4-6x ordinary aggregate + specialist placement to avoid segregation",
+      "labour_note": "Compact high-density vault walls; ~40% thinner than ordinary concrete for the same attenuation but several times the cost. Placement quality-critical.",
+      "space_efficient": false
+    },
+    "brick": {
+      "installed_cost_usd_per_m3": 420,
+      "range_usd_per_m3": [280, 650],
+      "cost_basis": "solid clay brick + labour-intensive masonry laying",
+      "labour_note": "Regionally available structural option; labour dominates. Verify mortar joints / void fraction — a real wall attenuates less than solid brick.",
+      "space_efficient": false
+    },
+    "steel": {
+      "installed_cost_usd_per_m3": 21000,
+      "range_usd_per_m3": [14000, 30000],
+      "cost_basis": "structural/plate steel ~2.7 USD/kg installed x 7800 kg/m3",
+      "labour_note": "Compact, structural, but heavy and expensive; used where space is tight and load path exists (e.g. doors).",
+      "space_efficient": true
+    },
+    "gypsum": {
+      "installed_cost_usd_per_m3": 130,
+      "range_usd_per_m3": [90, 200],
+      "cost_basis": "gypsum board / plaster; low density -> weak shielding, cheap",
+      "labour_note": "Minor attenuation only; useful as a finish layer, rarely a primary shield.",
+      "space_efficient": false
+    },
+    "plate_glass": {
+      "installed_cost_usd_per_m3": 700,
+      "range_usd_per_m3": [400, 1200],
+      "cost_basis": "soda-lime plate glass, glazed",
+      "labour_note": "Viewing only; weak shielding. For a shielded window use lead glass and specify by mm Pb equivalence.",
+      "space_efficient": false
+    },
+    "lead_glass": {
+      "installed_cost_usd_per_m3": 42000,
+      "range_usd_per_m3": [25000, 70000],
+      "cost_basis": "leaded viewing glass, typically quoted per m2 by mm Pb equivalence; converted at ~5200 kg/m3",
+      "labour_note": "Specialist viewing windows; specify by lead equivalence (mm Pb) at the working kVp, framed to match the wall's Pb equivalent.",
+      "space_efficient": true
+    },
+    "steel_lead_note": {
+      "_note": "This is a placeholder key ignored by the optimizer (it only reads materials that also exist in materials.json)."
+    }
+  }
+}
