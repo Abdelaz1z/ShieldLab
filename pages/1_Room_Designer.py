@@ -7,7 +7,7 @@ needs (Design mode) or EVALUATES the shielding you declare (Check mode), shows a
 live top-view diagram that re-renders on every change, and exports a report as
 PDF / Excel / HTML.
 
-Engine: the validated NCRP-151 / TG-108 analytical tier (radshield.physics). The
+Engine: the validated NCRP-151 / TG-108 analytical tier (shieldlab.physics). The
 Monte-Carlo-trained surrogate tier (ducts, off-axis, laminates) is added in Phase B.
 """
 
@@ -15,13 +15,13 @@ from __future__ import annotations
 
 import streamlit as st
 
-from radshield.room.model import (
+from shieldlab.room.model import (
     RoomDesign, Opening, WALL_IDS, WALL_NAMES, ISOTOPES, OCCUPANCY_MENU,
 )
-from radshield.room.engines import AnalyticalEngine, SurrogateEngine, usable_wall_materials
-from radshield.room import diagram, report_room, cost as room_cost, report_regulatory
-from radshield.room import field_surrogate
-from radshield.room.decision_support import (
+from shieldlab.room.engines import AnalyticalEngine, SurrogateEngine, usable_wall_materials
+from shieldlab.room import diagram, report_room, cost as room_cost, report_regulatory
+from shieldlab.room import field_surrogate
+from shieldlab.room.decision_support import (
     explain_failures, shap_failure_explanations, summarize_results,
 )
 
@@ -468,7 +468,7 @@ with right:
             _cost_basis = ("declared thickness" if mode == "check"
                            else "required (suggested) thickness")
             st.caption(f"Wall area × {_cost_basis} × installed cost "
-                       "(`radshield/data/materials_cost.json`). Openings are quoted separately, not "
+                       "(`shieldlab/data/materials_cost.json`). Openings are quoted separately, not "
                        "area-costed. **Planning estimate** — confirm with local quotations and a "
                        "structural engineer for the areal load.")
         else:

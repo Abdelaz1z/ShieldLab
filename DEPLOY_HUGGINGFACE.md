@@ -51,7 +51,7 @@ git add .gitattributes
 #    From PowerShell on Windows:
 #    robocopy "..\Control Claude Program" . /E /XD .git .venv __pycache__ datasets References .claude .agents /XF *.pyc
 #    (or copy by hand: app.py, requirements.txt, Dockerfile, .dockerignore,
-#     .streamlit/, README.md, radshield/, ui/, pages/, models/, examples/, tools/)
+#     .streamlit/, README.md, shieldlab/, ui/, pages/, models/, examples/, tools/)
 
 # 5. Commit and push — the .joblib goes up as an LFS object automatically:
 git add .

@@ -5,7 +5,7 @@ Room-level cost roll-up — the Room Designer's answer to "what will this room C
 build, and is there a cheaper way?".
 
 For every solid wall it asks the same optimiser the single-barrier calculator uses
-(radshield.physics.optimize) for the thickness each candidate material needs to meet
+(shieldlab.physics.optimize) for the thickness each candidate material needs to meet
 THAT wall's own design goal, then multiplies by the real wall area to get money and
 structural load. Two totals are reported: the room built from the materials currently
 selected, and the room built from each wall's cheapest option.
@@ -52,6 +52,16 @@ class WallCost:
         return next((o for o in self.options
                      if o.material == self.current_material and o.feasible), None)
 
+    @property
+    def cheapest(self) -> Optional[MaterialOption]:
+        return next((o for o in self.options if o.is_cheapest), None)
+
+    def cost_of(self, opt: Optional[MaterialOption]) -> Optional[float]:
+        return None if opt is None else opt.cost_per_m2_usd * self.area_m2
+
+    def weight_of(self, opt: Optional[MaterialOption]) -> Optional[float]:
+        return None if opt is None else opt.weight_per_m2_kg * self.area_m2
+
 
 def _declared_build(wall) -> Optional[MaterialOption]:
     """A synthetic MaterialOption describing a wall's DECLARED build-up: cost, areal load
@@ -92,16 +102,6 @@ def _declared_build(wall) -> Optional[MaterialOption]:
         weight_per_m2_kg=weight_pm2, space_mm=total_mm,
         feasible=True, already_met=(total_mm <= 0.0),
         note=("no cost data for " + ", ".join(unpriced)) if unpriced else "")
-
-    @property
-    def cheapest(self) -> Optional[MaterialOption]:
-        return next((o for o in self.options if o.is_cheapest), None)
-
-    def cost_of(self, opt: Optional[MaterialOption]) -> Optional[float]:
-        return None if opt is None else opt.cost_per_m2_usd * self.area_m2
-
-    def weight_of(self, opt: Optional[MaterialOption]) -> Optional[float]:
-        return None if opt is None else opt.weight_per_m2_kg * self.area_m2
 
 
 def wall_area_m2(design: RoomDesign, wall_id: str) -> float:

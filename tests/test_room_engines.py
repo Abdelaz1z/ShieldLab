@@ -11,12 +11,12 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from radshield.room.model import RoomDesign, Opening
-from radshield.room.engines import AnalyticalEngine
-from radshield.room import diagram, report_room
-from radshield.room.decision_support import explain_failures, summarize_results
-from radshield.physics import sources as src, solver as sv
-from radshield.regulatory import limits as reg
+from shieldlab.room.model import RoomDesign, Opening
+from shieldlab.room.engines import AnalyticalEngine
+from shieldlab.room import diagram, report_room
+from shieldlab.room.decision_support import explain_failures, summarize_results
+from shieldlab.physics import sources as src, solver as sv
+from shieldlab.regulatory import limits as reg
 
 
 def _golden() -> RoomDesign:

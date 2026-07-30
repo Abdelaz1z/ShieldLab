@@ -10,10 +10,10 @@ Kept separate from app.py so the entry point stays tiny and this file can grow.
 
 import streamlit as st
 
-from radshield import data_loader as dl
-from radshield.physics import beams as bm, barriers as ba, sources as src, solver, optimize
-from radshield.regulatory import limits as reg
-from radshield.report import report as rpt
+from shieldlab import data_loader as dl
+from shieldlab.physics import beams as bm, barriers as ba, sources as src, solver, optimize
+from shieldlab.regulatory import limits as reg
+from shieldlab.report import report as rpt
 from . import modality_config as mc
 
 
@@ -291,7 +291,7 @@ def _show_results(source, barrier, goal, ev):
     if orows:
         st.dataframe(orows, width="stretch", hide_index=True)
         st.caption("Installed cost = representative 2026 estimate (materials + labour) × required "
-                   "thickness, editable in `radshield/data/materials_cost.json`. **Relative comparison "
+                   "thickness, editable in `shieldlab/data/materials_cost.json`. **Relative comparison "
                    "only** — confirm with local quotations and a structural engineer for the areal load.")
 
     # equivalents of the current barrier
@@ -330,7 +330,7 @@ def _show_results(source, barrier, goal, ev):
     c2.download_button("Download 1-page PDF summary", data=pdf_report,
                        file_name="ShieldLab_ClinicalSummary.pdf", mime="application/pdf")
     c2.download_button("⬇️ Download report (HTML)", data=html_report,
-                       file_name="radshield_report.html", mime="text/html",
+                       file_name="shieldlab_report.html", mime="text/html",
                        help="Open in a browser and print to PDF for your design file.")
 
 
@@ -398,7 +398,7 @@ def references_tab():
         "tenth-value-layer attenuation for megavoltage and radionuclide sources, "
         "inverse-square geometry, scatter fractions and (for generic materials) "
         "NIST mass attenuation coefficients. Every number in the tool is traceable "
-        "to one of these sources and is editable in `radshield/data/`."
+        "to one of these sources and is editable in `shieldlab/data/`."
     )
     refs = dl.references()
     for key, entry in refs.items():

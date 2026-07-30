@@ -1,5 +1,5 @@
 """
-Smoke test for the field-map U-Net tier (radshield.room.field_surrogate).
+Smoke test for the field-map U-Net tier (shieldlab.room.field_surrogate).
 
 Runs two ways:
   * WITHOUT torch installed -> the tier must degrade gracefully (available() is False,
@@ -16,8 +16,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
-from radshield.room.model import RoomDesign
-from radshield.room import field_surrogate as fs
+from shieldlab.room.model import RoomDesign
+from shieldlab.room import field_surrogate as fs
 
 
 def test_graceful_and_predict():

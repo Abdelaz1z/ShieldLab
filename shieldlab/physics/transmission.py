@@ -23,7 +23,7 @@ Three models are provided, matching the three kinds of data we have:
                       factor B_up:  T = B_up * exp(-(mu/rho)*rho*x).
 
 The functions are deliberately small and pure (no I/O) so they are easy to test
-and to read. The data they consume comes from radshield.data via data_loader.
+and to read. The data they consume comes from shieldlab.data via data_loader.
 """
 
 from __future__ import annotations

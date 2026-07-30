@@ -17,8 +17,8 @@ import math
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from radshield.physics import transmission as tx, beams as bm, barriers as ba, sources as src, solver
-from radshield.regulatory import limits as reg
+from shieldlab.physics import transmission as tx, beams as bm, barriers as ba, sources as src, solver
+from shieldlab.regulatory import limits as reg
 
 
 # --- transmission model unit tests ------------------------------------------
@@ -118,7 +118,7 @@ def test_preferred_thickness_rounds_up():
 
 def test_report_builds():
     """The HTML report builder runs and includes the verdict and a reference."""
-    from radshield.report import report as rpt
+    from shieldlab.report import report as rpt
     st = src.diagnostic_source("chest_room", 200, 2.0, 1.5, kvp=125)
     goal = reg.design_goal("NCRP", "uncontrolled", 1.0)
     barrier = ba.Barrier().add("lead", 2.0).add("concrete", 100.0)
@@ -131,7 +131,7 @@ def test_report_builds():
 
 def test_all_data_files_load():
     """Every dataset parses and the citation resolver works."""
-    from radshield import data_loader as dl
+    from shieldlab import data_loader as dl
     for name in ["references", "limits", "archer_diagnostic", "tvl_megavoltage",
                  "radionuclides", "materials", "scatter", "workloads"]:
         assert dl.load(name)

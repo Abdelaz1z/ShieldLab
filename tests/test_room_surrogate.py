@@ -10,8 +10,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from radshield.room.model import RoomDesign, Opening, AdjacentArea
-from radshield.room.engines import AnalyticalEngine, SurrogateEngine
+from shieldlab.room.model import RoomDesign, Opening, AdjacentArea
+from shieldlab.room.engines import AnalyticalEngine, SurrogateEngine
 
 
 def _room(iso="F-18", mbq=370.0, thickness=200.0, material="concrete"):
@@ -122,7 +122,7 @@ def test_maze_corner_surrogate():
     assert mz2.ood is True and mz2.B_achieved is None
 
     # report rows carry the surrogate columns
-    from radshield.room import report_room, diagram
+    from shieldlab.room import report_room, diagram
     d.wall("E").openings[0].corridor_m = 0.8
     se2 = SurrogateEngine(d)
     ae2 = AnalyticalEngine(d)

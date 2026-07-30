@@ -2,7 +2,7 @@
 # Loads every JSON data file to confirm valid syntax and reports a short summary.
 import json, os, glob
 
-DATA = r"D:\Projects\Master\Master-26\Control Claude Program\radshield\data"
+DATA = r"D:\Projects\Master\Master-26\Control Claude Program\shieldlab\data"
 ok = True
 for path in sorted(glob.glob(os.path.join(DATA, "*.json"))):
     try:

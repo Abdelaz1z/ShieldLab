@@ -1,4 +1,4 @@
-"""radshield.physics - the calculation engine (Part 2).
+"""shieldlab.physics - the calculation engine (Part 2).
 
 Modules:
     transmission.py - broad-beam transmission models (Archer, TVL, mu+buildup)

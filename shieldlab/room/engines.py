@@ -4,7 +4,7 @@ engines.py
 Shielding engines that answer, per barrier path: "what gets through, does it meet
 the goal, and (Design mode) how thick must this wall be?"
 
-`AnalyticalEngine` wraps the validated `radshield.physics` NCRP-151/TG-108 solver
+`AnalyticalEngine` wraps the validated `shieldlab.physics` NCRP-151/TG-108 solver
 and is always available. `SurrogateEngine` (Phase B) will implement the same
 `EngineResult` interface using the MC-trained Extra-Trees model with conformal
 intervals and an out-of-domain guard, and is shown side-by-side.
@@ -69,7 +69,7 @@ def usable_wall_materials(isotope: str) -> List[str]:
 
 
 class AnalyticalEngine:
-    """NCRP-151/TG-108 broad-beam engine (wraps radshield.physics)."""
+    """NCRP-151/TG-108 broad-beam engine (wraps shieldlab.physics)."""
 
     name = "analytical"
 
@@ -196,6 +196,12 @@ _BUNDLE = None
 _BUNDLE_TRIED = False
 _CORNER = None
 _CORNER_TRIED = False
+
+# Response-space routing floor, in log10 B. A query whose PREDICTED transmission falls below
+# this is not served by the surrogate however ordinary its features look: the prospective
+# validation showed the band is not calibrated there and the error is a bias, so widening the
+# interval cannot fix it. Set from the measured failure boundary (B = 1e-4), not tuned.
+RESPONSE_ROUTER_LOGB_MAX = -4.0
 
 
 def load_corner_bundle(path: Optional[str] = None):
@@ -382,6 +388,50 @@ class SurrogateEngine:
         # query's offset + the model's own prediction (available at inference; deep > shadow
         # precedence). Keys are absent in pre-rescue bundles -> global band (backward compatible).
         logB = float(b["model"].predict(X)[0])
+
+        # ---- DEEP-TAIL INTERVAL FLAG (deployment mitigation; NOT part of the sealed
+        # pre-registration, and deliberately NOT a substitution).
+        #
+        # The OOD guard above is a FEATURE-space test: it detects a query unlike the training
+        # inputs. It cannot detect a query whose true OUTPUT lies below the region the training
+        # labels constrain, because such a query is an ordinary thickness of an ordinary
+        # material. The prospective validation measured the consequence: of the 13 sealed
+        # in-domain rows with true B < 1e-4, the band covered the truth in 5 (38.5%,
+        # Wilson [17.7%, 64.5%]).
+        #
+        # The obvious mitigation is to substitute the analytical value here. It was implemented,
+        # measured against the sealed rows, and REJECTED, because the measurement says it makes
+        # those queries less safe rather than more:
+        #
+        #   surrogate on those rows : conservative (over-predicts dose) 13/13 = 100%
+        #                             Wilson [77%, 100%], mean +0.67 dex, min +0.36
+        #   analytical on those rows: conservative 10/12 = 83%, Wilson [55%, 95%],
+        #                             min -0.70 dex  <- under-predicts dose, the unsafe direction
+        #
+        # The surrogate's deep-tail error is a COVERAGE failure, not a safety failure: the
+        # point estimate is unfailingly conservative, the interval around it is not calibrated.
+        # Replacing a wrong-but-conservative number with one that under-predicts dose on ~1 row
+        # in 6 would trade a reporting defect for a shielding defect. So the point estimate is
+        # kept, the interval is withdrawn rather than shown with false authority, and the result
+        # is flagged for an independent Monte-Carlo check. ----
+        if logB < RESPONSE_ROUTER_LOGB_MAX:
+            B = 10.0 ** logB
+            dose = unshielded * B
+            return EngineResult(
+                barrier_id=path.label, label=path.label,
+                engine="surrogate (deep tail: interval withdrawn)",
+                B_required=(min(1.0, gT / unshielded) if unshielded > 0 else 1.0),
+                B_achieved=B, dose_mSv_wk=dose, goal_over_T=gT,
+                passes=(dose <= gT), margin=(gT / dose if dose > 0 else None),
+                material=wall.material1, ci_low=None, ci_high=None, ood=True,
+                note=(f"Predicted B={B:.2e} is below B=1e{RESPONSE_ROUTER_LOGB_MAX:.0f}, where "
+                      f"prospective validation measured the 95% interval to be NOT calibrated "
+                      f"(38.5% coverage, Wilson [17.7%, 64.5%]). No interval is reported here. "
+                      f"The point estimate is retained because it was conservative on every "
+                      f"such row tested (13/13, mean +0.67 dex); the analytical value was NOT "
+                      f"substituted because it under-predicted dose on 2 of 12 of them. "
+                      f"Confirm this barrier with an independent Monte-Carlo run."))
+
         cq = b["cqr"]
         off_idx = b["features"].index("det_offset_mm")
         deep = logB < cq.get("deep_logB_max", -float("inf"))

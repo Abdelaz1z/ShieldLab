@@ -20,7 +20,7 @@ from typing import List, Optional
 WALL_IDS = ("N", "E", "S", "W")
 WALL_NAMES = {"N": "North", "E": "East", "S": "South", "W": "West"}
 
-# Isotopes the physics engine has radionuclide data for (radshield/data/radionuclides.json).
+# Isotopes the physics engine has radionuclide data for (shieldlab/data/radionuclides.json).
 ISOTOPES = ("Tc-99m", "F-18", "I-131", "Lu-177")
 
 # NCRP-151 Table B.1 occupancy factors, as a labelled menu for the UI.

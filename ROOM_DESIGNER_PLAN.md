@@ -5,7 +5,7 @@ shielding per wall (Design mode) or EVALUATES the user's declared shielding (Che
 auto-updating top-view diagram and an exportable report (PDF default / Excel / HTML).*
 
 **Executor notes (Opus):** work in THIS repo (`D:\Projects\Master\Master-26\Control Claude Program`).
-Run with `py -3.11 -m streamlit run app.py`. Do NOT modify `radshield/physics/*` internals (validated
+Run with `py -3.11 -m streamlit run app.py`. Do NOT modify `shieldlab/physics/*` internals (validated
 v1.0 — wrap, never edit). Complete Phase A fully (including the A6 gate) before touching Phase B.
 Keep every new dependency pip-only (Streamlit Cloud constraint). After each phase: run the tests,
 then ask the user to eyeball the UI.
@@ -20,19 +20,19 @@ then ask the user to eyeball the UI.
   — draw-canvases in Streamlit are fragile; engineers ultimately need exact mm anyway.
 - **Two modes:** `Design` (app suggests thickness per wall/material) and `Check` (user declares
   material+thickness per wall → pass/fail + margin). Both always shown against the regulatory limit.
-- **Engines:** `AnalyticalEngine` (wraps existing `radshield.physics` — NCRP-151/TG-108 broad-beam) is
+- **Engines:** `AnalyticalEngine` (wraps existing `shieldlab.physics` — NCRP-151/TG-108 broad-beam) is
   the default and the fallback. `SurrogateEngine` (thesis Extra-Trees + CQR + OOD guard) is Phase B,
   shown side-by-side; policy = *report both, design on the conservative one*.
 - **Export:** user picks **PDF (default) / Excel / HTML** from a selector; `st.download_button`.
 
 ## 1. File layout to create
 ```
-radshield/room/__init__.py
-radshield/room/model.py        # dataclasses + JSON (de)serialization + validation
-radshield/room/geometry.py     # distances, POP placement, per-wall solid geometry
-radshield/room/engines.py      # EngineResult, AnalyticalEngine, (Phase B) SurrogateEngine
-radshield/room/diagram.py      # matplotlib top-view renderer -> PNG bytes
-radshield/room/report_room.py  # report dict -> PDF (fpdf2) / XLSX (openpyxl) / HTML (f-string)
+shieldlab/room/__init__.py
+shieldlab/room/model.py        # dataclasses + JSON (de)serialization + validation
+shieldlab/room/geometry.py     # distances, POP placement, per-wall solid geometry
+shieldlab/room/engines.py      # EngineResult, AnalyticalEngine, (Phase B) SurrogateEngine
+shieldlab/room/diagram.py      # matplotlib top-view renderer -> PNG bytes
+shieldlab/room/report_room.py  # report dict -> PDF (fpdf2) / XLSX (openpyxl) / HTML (f-string)
 pages/1_Room_Designer.py       # the Streamlit page (app.py becomes the multipage home)
 tests/test_room_geometry.py
 tests/test_room_engines.py
@@ -49,7 +49,7 @@ models/                        # (Phase B) surrogate_bundle.joblib lands here
                       lead_equiv_mm (door/window) | radius_mm (duct)
 @dataclass AdjacentArea: name; occupancy_T (NCRP menu: 1, 1/2, 1/5, 1/8, 1/20, 1/40);
                       kind in {"controlled","public"}; design_goal_P_mSv_wk (default from
-                      radshield.regulatory.limits by kind — keep overridable for KSA/NRRC values)
+                      shieldlab.regulatory.limits by kind — keep overridable for KSA/NRRC values)
 @dataclass Wall:      id in {"N","E","S","W"} (+ optional internal partitions later);
                       material1; thickness1_mm; material2=None; thickness2_mm=0;
                       adjacent: AdjacentArea; openings: list[Opening]
@@ -59,7 +59,7 @@ models/                        # (Phase B) surrogate_bundle.joblib lands here
   design itself (users iterate across sessions).
 - Validation: source inside room; openings fit their wall; thicknesses ≥ 0; materials from the
   materials table (concrete, lead, steel, gypsum, lead_glass, barite_concrete — whatever
-  `radshield.data_loader` already exposes; introspect it, don't hardcode blindly).
+  `shieldlab.data_loader` already exposes; introspect it, don't hardcode blindly).
 
 ## 3. Geometry (`geometry.py`)
 - Wall centerlines from room dims; perpendicular distance source→each wall.
@@ -80,7 +80,7 @@ models/                        # (Phase B) surrogate_bundle.joblib lands here
     ood: bool; engine: str                  # "analytical" | "surrogate" | "analytical (OOD fallback)"
 ```
 **AnalyticalEngine (Phase A):**
-- Weekly unshielded dose at POP from `radshield.physics.sources` (Γ, decay during residence — reuse
+- Weekly unshielded dose at POP from `shieldlab.physics.sources` (Γ, decay during residence — reuse
   whatever ShieldLab v1.0 already validated; do NOT re-derive constants).
 - `B_required = P·T_occupancy-corrected / dose_unshielded(d_pop)` (exact formula per the existing
   ShieldLab solver conventions — introspect `physics/solver.py` and reuse its functions).
@@ -128,7 +128,7 @@ Common: build one `report = {inputs, per_barrier_results, diagram_png_bytes, eng
 - **B2:** `SurrogateEngine` loads the bundle lazily (app must run analytical-only if absent). Features
   per BarrierPath (energy = isotope principal line as trained; document this). Predict log10B → B, CI
   from CQR, OOD via box+density+`ExcisedRegion` proximity (import the logic — copy
-  `surrogate_guard.py` into `radshield/room/` to keep this repo self-contained). OOD → analytical value
+  `surrogate_guard.py` into `shieldlab/room/` to keep this repo self-contained). OOD → analytical value
   + `engine="analytical (OOD fallback)"` + amber badge.
 - **B3:** results table gains columns: `B surrogate (95% CI)` next to `B analytical`; design decisions
   use the conservative of the two; duct paths now get real numbers → show the leakage warning banner

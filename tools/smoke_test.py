@@ -5,8 +5,8 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from radshield.physics import transmission as tx, beams as bm, barriers as ba, sources as src, solver
-from radshield.regulatory import limits as reg
+from shieldlab.physics import transmission as tx, beams as bm, barriers as ba, sources as src, solver
+from shieldlab.regulatory import limits as reg
 
 print("=== transmission model sanity ===")
 # Archer at x=0 must be 1.0

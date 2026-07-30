@@ -7,8 +7,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from radshield.room.model import RoomDesign, Opening
-from radshield.room.geometry import all_paths, POP_STANDOFF_M
+from shieldlab.room.model import RoomDesign, Opening
+from shieldlab.room.geometry import all_paths, POP_STANDOFF_M
 
 
 def _design():

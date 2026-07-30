@@ -80,7 +80,7 @@ def build_submission_html(report: Dict, meta: Dict,
 
     `report` : the dict from report_room.build_report() (numbers are reused verbatim).
     `meta`   : facility / licence / personnel fields collected in the UI.
-    `costs`  : optional dict from radshield.room.cost.room_costs() -> Appendix A.
+    `costs`  : optional dict from shieldlab.room.cost.room_costs() -> Appendix A.
     """
     s = report.get("summary", {}) or {}
     status = s.get("status", "—")

@@ -12,7 +12,7 @@ ShieldLab is currently a **Streamlit** (Python) app. Streamlit gives you very li
 a 5-colour theme, a fixed layout grammar (columns/expanders/tabs), and CSS injection as an escape
 hatch. You cannot freely art-direct it.
 
-**However — the entire engine is already decoupled from the UI.** The `radshield/` Python package
+**However — the entire engine is already decoupled from the UI.** The `shieldlab/` Python package
 (physics, room model, cost optimiser, report generators) contains **zero Streamlit imports**. Only
 three files touch Streamlit: `app.py`, `ui/views.py`, `pages/1_Room_Designer.py`.
 
@@ -21,7 +21,7 @@ do not hand back a mockup that silently assumes Track B.**
 
 | | **Track A — restyle in Streamlit** | **Track B — new front-end** |
 |---|---|---|
-| Scope | Theme + CSS + information architecture + custom HTML panels | React/Next front-end over a thin FastAPI wrapper on `radshield/` |
+| Scope | Theme + CSS + information architecture + custom HTML panels | React/Next front-end over a thin FastAPI wrapper on `shieldlab/` |
 | Design freedom | Limited: Streamlit's widget shapes are fixed | Full |
 | Effort | Days | Weeks |
 | Risk | Low | Medium (new surface, but physics untouched) |

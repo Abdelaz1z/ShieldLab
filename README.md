@@ -58,7 +58,7 @@ ShieldLab uses the **standard analytical formalism** prescribed by the reference
 | I-131 released-patient dose | RG 8.39 biokinetic integral (Eq. B-5) | NRC RG 8.39 |
 | any other material | **μ/ρ + buildup** `T=B·e^{−(μ/ρ)ρx}` | NIST XCOM / Hubbell-Seltzer |
 
-Dose limits: **Saudi NRRC-R-01** (occupational 20 mSv/y, public 1 mSv/y) and **IAEA GSR Part 3**. Full bibliography is in the app's **References** tab and in [`radshield/data/references.json`](radshield/data/references.json).
+Dose limits: **Saudi NRRC-R-01** (occupational 20 mSv/y, public 1 mSv/y) and **IAEA GSR Part 3**. Full bibliography is in the app's **References** tab and in [`shieldlab/data/references.json`](shieldlab/data/references.json).
 
 **Validation** — the engine reproduces published worked examples (see `tests/`):
 - IAEA SRS 47 Co-60 primary barrier → **1034 mm concrete** (report: 1033 mm)
@@ -73,7 +73,7 @@ py -3.11 tests\test_validation.py
 
 ## 5. Editing the model (everything is editable)
 
-The whole model is data-driven. To change a number, edit the JSON in [`radshield/data/`](radshield/data/) — no code changes needed:
+The whole model is data-driven. To change a number, edit the JSON in [`shieldlab/data/`](shieldlab/data/) — no code changes needed:
 
 | File | Holds |
 |------|-------|
@@ -91,7 +91,7 @@ To add a **new material**: add an entry to `materials.json` with its `density_kg
 Project structure:
 ```
 app.py                  Streamlit entry point
-radshield/
+shieldlab/
   data_loader.py        cached JSON access + citation resolver
   data/*.json           PART 1 — all physics & regulatory data
   physics/              PART 2 — engine (transmission, beams, barriers, sources, solver)

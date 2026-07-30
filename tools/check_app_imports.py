@@ -5,8 +5,8 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import ui.modality_config as mc
-from radshield.physics import sources as src, barriers as ba, solver
-from radshield.regulatory import limits as reg
+from shieldlab.physics import sources as src, barriers as ba, solver
+from shieldlab.regulatory import limits as reg
 
 # exercise one modality of each builder type through the engine
 goal = reg.design_goal("NCRP", "uncontrolled", 1.0)

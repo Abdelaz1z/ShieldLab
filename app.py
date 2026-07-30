@@ -15,21 +15,21 @@ The UI is a wizard:
        pass/fail verdict and margin, the required & preferred thicknesses,
        lead/concrete equivalents, and a transmission plot.
 
-All physics lives in the radshield package; this file only collects inputs and
+All physics lives in the shieldlab package; this file only collects inputs and
 shows results, so it is easy to read and edit.
 """
 
 import os
 import sys
 
-# make the radshield package importable when Streamlit runs this file directly
+# make the shieldlab package importable when Streamlit runs this file directly
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import streamlit as st
 
-from radshield import data_loader as dl
-from radshield.physics import beams as bm, barriers as ba, sources as src, solver
-from radshield.regulatory import limits as reg
+from shieldlab import data_loader as dl
+from shieldlab.physics import beams as bm, barriers as ba, sources as src, solver
+from shieldlab.regulatory import limits as reg
 from ui import modality_config as mc
 from ui import views
 

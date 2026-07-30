@@ -12,11 +12,11 @@ thicknesses.
 Author : built for Abdelaziz Habib (RSO, KSA; M.Sc. Radiation Protection, Cairo University)
 Method : standard analytical formalism (Archer broad-beam transmission, TVL,
          inverse-square, scatter fractions, buildup) per NCRP 147 / NCRP 151 /
-         IAEA SRS 47 / AAPM TG-108. See radshield/data/references.json.
+         IAEA SRS 47 / AAPM TG-108. See shieldlab/data/references.json.
 
 Package layout
 --------------
-    radshield/
+    shieldlab/
         data/         <- Part 1: all physics & regulatory datasets (editable JSON)
         physics/      <- Part 2: the calculation engine (this part)
         regulatory/   <- regulatory frameworks & pass/fail verdict

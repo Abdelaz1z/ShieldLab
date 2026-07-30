@@ -1,7 +1,7 @@
 """
 data_loader.py
 ==============
-Loads the JSON datasets in radshield/data/ and caches them. Every other module
+Loads the JSON datasets in shieldlab/data/ and caches them. Every other module
 gets its numbers from here, so there is ONE place that reads the data files.
 
 Why a loader (and not just `import json` everywhere):

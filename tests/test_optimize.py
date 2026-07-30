@@ -1,7 +1,7 @@
 """
 test_optimize.py
 ================
-Tests for the cost / material optimiser (radshield.physics.optimize).
+Tests for the cost / material optimiser (shieldlab.physics.optimize).
 
 Run:  py -3.11 -m pytest tests/test_optimize.py -v
 or:   py -3.11 tests/test_optimize.py
@@ -12,8 +12,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from radshield.physics import sources as src, optimize
-from radshield.regulatory import limits as reg
+from shieldlab.physics import sources as src, optimize
+from shieldlab.regulatory import limits as reg
 
 
 def _i131_case():
@@ -78,8 +78,8 @@ def test_diagnostic_source_also_ranks():
 # --- room-level cost roll-up -------------------------------------------------
 
 def _room_costs():
-    from radshield.room.model import RoomDesign
-    from radshield.room import cost
+    from shieldlab.room.model import RoomDesign
+    from shieldlab.room import cost
     return cost.room_costs(RoomDesign.default()), cost
 
 
@@ -89,8 +89,8 @@ def test_room_prices_all_four_walls():
 
 
 def test_room_wall_areas_follow_room_dimensions():
-    from radshield.room.model import RoomDesign
-    from radshield.room import cost
+    from shieldlab.room.model import RoomDesign
+    from shieldlab.room import cost
     d = RoomDesign.default()
     # N/S span the width, E/W span the length; both use the height
     assert cost.wall_area_m2(d, "N") == d.room.width_m * d.room.height_m
@@ -120,9 +120,9 @@ def test_room_headline_nonempty():
 # --- regulatory submission document ------------------------------------------
 
 def _submission(costs=True, meta=None):
-    from radshield.room.model import RoomDesign
-    from radshield.room.engines import AnalyticalEngine, SurrogateEngine
-    from radshield.room import diagram, report_room, cost, report_regulatory
+    from shieldlab.room.model import RoomDesign
+    from shieldlab.room.engines import AnalyticalEngine, SurrogateEngine
+    from shieldlab.room import diagram, report_room, cost, report_regulatory
     design = RoomDesign.default()
     eng = AnalyticalEngine(design)
     results = eng.evaluate_all("design")
@@ -161,7 +161,7 @@ def test_submission_escapes_user_supplied_metadata():
 
 def test_brick_is_offered_as_a_wall_material():
     """Brick gained TVL data, so it must now appear in the Room Designer palette."""
-    from radshield.room.engines import usable_wall_materials
+    from shieldlab.room.engines import usable_wall_materials
     assert "brick" in usable_wall_materials("F-18")
 
 
