@@ -218,6 +218,22 @@ def load_corner_bundle(path: Optional[str] = None):
     return _CORNER
 
 
+def _corner_provenance(cb) -> str:
+    """Describe the corner sub-study from the bundle's own meta, for the user-facing note.
+
+    Both figures come from the loaded bundle so they cannot disagree with the model actually
+    serving the prediction. Older bundles predate the 'n' key, so it degrades to the accuracy
+    alone rather than printing a wrong row count."""
+    meta = (cb or {}).get("meta", {}) or {}
+    n, r2 = meta.get("n"), meta.get("cv_r2")
+    parts = []
+    if n:
+        parts.append(f"{int(n):,}-row study")
+    if r2 is not None:
+        parts.append(f"CV R²≈{r2}")
+    return ", ".join(parts) if parts else "screening sub-study"
+
+
 def load_bundle(path: Optional[str] = None):
     """Load the deployed surrogate bundle once (or return None if unavailable, so the
     app degrades gracefully to analytical-only). Aliases the guard module into sys.modules
@@ -272,8 +288,13 @@ class SurrogateEngine:
                           z, rho, l2t, l2z]], dtype=float)
 
     def _evaluate_maze(self, path: BarrierPath, wall: Wall) -> EngineResult:
-        """Corner/maze scatter via the dedicated 105-row corner surrogate (screening tier:
-        honest, wide conformal band; strict guard; no analytical fallback exists)."""
+        """Corner/maze scatter via the dedicated corner surrogate (screening tier: honest,
+        wide conformal band; strict guard; no analytical fallback exists).
+
+        The sub-study's size and accuracy are read from the bundle's own meta block, never
+        hardcoded here: this note is user-facing provenance, and a literal row count silently
+        went stale across two retrains (105 -> 214 -> 741) while the R^2 beside it was read
+        live, so the app displayed a self-contradictory pair."""
         import numpy as np
         cb = load_corner_bundle()
         source = self.analytical._source(path)
@@ -309,7 +330,7 @@ class SurrogateEngine:
             B_achieved=B, dose_mSv_wk=dose, goal_over_T=gT,
             passes=(dose <= gT), margin=(gT / dose if dose > 0 else None),
             material=wall.material1, ci_low=B_lo, ci_high=B_hi, ood=False,
-            note=(f"Corner/maze SCREENING estimate (105-row study, CV R²≈{cb['meta']['cv_r2']}); "
+            note=(f"Corner/maze SCREENING estimate ({_corner_provenance(cb)}); "
                   f"95% band [{B_lo:.1e}, {B_hi:.1e}] is wide by design — confirm the final "
                   f"maze with a full MC run."))
 
