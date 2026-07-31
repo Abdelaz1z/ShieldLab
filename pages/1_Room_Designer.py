@@ -18,6 +18,7 @@ import streamlit as st
 from shieldlab.room.model import (
     RoomDesign, Opening, WALL_IDS, WALL_NAMES, ISOTOPES, OCCUPANCY_MENU,
 )
+from shieldlab.room import engines
 from shieldlab.room.engines import AnalyticalEngine, SurrogateEngine, usable_wall_materials
 from shieldlab.room import diagram, report_room, cost as room_cost, report_regulatory
 from shieldlab.room import field_surrogate
@@ -81,6 +82,10 @@ def _results_table_html(results, surrogate_results, mode) -> str:
                 tcol = "#8a6d1b"
             else:
                 sB, tier, tcol = "—", "—", "#555"
+            if s is not None and getattr(s, "geometry_bias", False):
+                # deep wall: the surrogate under-predicts here (see _deep_wall_banner)
+                tier += f"<br>&#9888; &micro;x&asymp;{s.mu_x:.1f} biased low"
+                tcol = "#b71c1c"
             sur_cells = (f"<td style='{cell};text-align:center'>{sB}</td>"
                          f"<td style='{cell};text-align:center;color:{tcol};font-size:11px'>{tier}</td>")
         body += (
@@ -123,6 +128,31 @@ def _leakage_banners(results, surrogate_results):
                         f"({wb:.1e}). Duct penetrations dominate the dose here; the analytical "
                         f"model misses this entirely.")
     return out
+
+
+def _deep_wall_banner(surrogate_results):
+    """Red banner for barriers the MC surrogate served past mu*x = 8.
+
+    The training corpus was generated with a finite 0.5 m beam on the slab, so it under-states
+    lateral scatter at depth by about a factor of two (measured; see engines.GEOMETRY_BIAS_MUX).
+    That is an under-prediction of dose — the unsafe direction — and neither the out-of-domain
+    guard nor the analytical fallback catches it. It is put in front of the RSO rather than
+    buried in the per-barrier note, because a deep wall looks entirely ordinary on the table."""
+    if not surrogate_results:
+        return None
+    hit = [r for r in surrogate_results if getattr(r, "geometry_bias", False)]
+    if not hit:
+        return None
+    rows = "\n".join(f"- **{r.label}** — μx ≈ {r.mu_x:.1f}"
+                     f"{f', {r.material}' if r.material else ''}"
+                     for r in sorted(hit, key=lambda r: -(r.mu_x or 0)))
+    return (f"🔴 **{engines.GEOMETRY_BIAS_WARNING}**\n\n{rows}\n\n"
+            f"Measured on a dedicated convergence study: widening the simulated beam from "
+            f"0.5 m to 1.5 m raised transmission by ×1.8–2.0 at μx 8–12. The surrogate is "
+            f"trained on the 0.5 m labels, so on these barriers it reads **low** — the "
+            f"unsafe direction. The out-of-domain guard does not flag them (a thick wall is "
+            f"an ordinary material at an ordinary thickness) and the analytical tier is not "
+            f"reliably conservative there either.")
 
 
 def _traffic_light(summary):
@@ -404,6 +434,12 @@ with right:
         _traffic_light(summary)
         st.markdown(_results_table_html(results, surrogate_results, mode),
                     unsafe_allow_html=True)
+
+        # deep-wall geometry bias: the surrogate reads LOW past mu*x = 8. First banner
+        # under the table, because it is the one failure mode nothing else flags.
+        deep_wall = _deep_wall_banner(surrogate_results)
+        if deep_wall:
+            st.error(deep_wall)
 
         # duct leakage warning: surrogate duct B >> the same wall's solid B
         for banner in _leakage_banners(results, surrogate_results):

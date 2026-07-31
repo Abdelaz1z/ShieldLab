@@ -51,6 +51,8 @@ class EngineResult:
     ci_low: Optional[float] = None    # Phase B (CQR)
     ci_high: Optional[float] = None
     ood: bool = False
+    geometry_bias: bool = False       # surrogate served a barrier deeper than mu*x = 8 (see below)
+    mu_x: Optional[float] = None      # barrier optical depth, when it could be computed
     note: str = ""
 
 
@@ -203,6 +205,76 @@ _CORNER_TRIED = False
 # interval cannot fix it. Set from the measured failure boundary (B = 1e-4), not tuned.
 RESPONSE_ROUTER_LOGB_MAX = -4.0
 
+# ---------------------------------------------------------------------------
+# GEOMETRY-BIAS THRESHOLD (uncorrected; disclosed, not fixed)
+#
+# Every training label was generated with a 0.5 m square beam footprint on the slab. That
+# footprint is finite, so photons that would have scattered into the detector from wall
+# material outside it were never transported. The transmission B is therefore a property of
+# the barrier AND of the irradiation rig, and at depth the missing lateral scatter matters:
+# the deep component of B is almost entirely build-up, and build-up is exactly what a wide
+# illuminated field supplies.
+#
+# A dedicated convergence tier (13 GATE runs, on-axis solid concrete at the I-131 364 keV
+# line, footprints 0.5 / 1.0 / 1.5 m) measured the size of it:
+#
+#     mu*x      B(1.5 m)/B(0.5 m)     effective build-up 0.5 m -> 1.5 m
+#      8.05          x1.90                    6.14 -> 11.63
+#     10.03          x1.81                    9.09 -> 16.48
+#     12.01          x2.01                   10.84 -> 21.83
+#
+# So the training labels UNDER-state transmission by roughly a factor of two beyond
+# mu*x ~ 8, and the surrogate inherits that: it under-predicts dose, which is the unsafe
+# direction. The ratio is flat in mu*x over the measured range rather than growing, and the
+# 1.0 -> 1.5 m step is already small (+14.4% / +6.7% / +2.5%), so 1.5 m is close to converged
+# and the correct correction is not a scalar we can apply here -- it needs the corpus
+# regenerated on a wider slab. Until that happens the bias is stated, not silently carried.
+#
+# This is NOT covered by the two guards above:
+#   * the OOD guard is a feature-space test, and a deep wall is an ordinary thickness of an
+#     ordinary material, so it is admitted as in-domain (all 13 extreme-tail rows in the
+#     prospective validation were);
+#   * the analytical fallback is not reliably the conservative option on such rows either
+#     (it under-predicted dose on 2 of 12 of them, by up to 0.70 dex).
+# The only honest mitigation is to tell the RSO. Hence a hard, unconditional warning.
+GEOMETRY_BIAS_MUX = 8.0
+GEOMETRY_BIAS_WARNING = (
+    "Caution: Deep-wall transmission (μx>8) carries an uncorrected geometry bias "
+    "(under-prediction of scatter). An independent Monte-Carlo check is recommended for "
+    "final design sign-off."
+)
+
+
+def optical_depth(energy_keV: float, layers) -> Optional[float]:
+    """Total optical depth mu*x of a barrier: sum over layers of (mu/rho)*rho*x, dimensionless.
+
+    `layers` is an iterable of (material_name, thickness_mm). mu/rho is the NIST total
+    attenuation coefficient interpolated log-log to `energy_keV`, and rho is the app's own
+    tabulated density, so the number describes the barrier the user actually declared.
+    Returns None if no layer could be evaluated (unknown material, no data), so a caller can
+    distinguish "not deep" from "not known".
+    """
+    from .. import data_loader as dl
+    from ..physics import transmission as tx
+    try:
+        mats = dl.load("materials")
+    except Exception:
+        return None
+    grid, table = mats["energy_grid_MeV"], mats["materials"]
+    total, seen = 0.0, False
+    for material, t_mm in layers:
+        m = table.get(material)
+        if m is None or not t_mm or t_mm <= 0:
+            continue
+        try:
+            mu_rho = tx.interp_mu_rho(energy_keV / 1000.0, grid, m["mu_rho"])
+            rho = m["density_kg_m3"] / 1000.0          # kg/m^3 -> g/cm^3
+        except Exception:
+            continue
+        total += mu_rho * rho * (t_mm / 10.0)          # mm -> cm
+        seen = True
+    return total if seen else None
+
 
 def load_corner_bundle(path: Optional[str] = None):
     """Load the corner/maze surrogate bundle once (None if unavailable)."""
@@ -292,6 +364,22 @@ class SurrogateEngine:
         # feature order MUST match bundle["features"]
         return np.array([[e, thickness_mm, path.duct_radius_mm, path.offset_m * 1000.0,
                           z, rho, l2t, l2z]], dtype=float)
+
+    def _barrier_mu_x(self, path: BarrierPath, wall: Wall,
+                      thickness_mm: float) -> Optional[float]:
+        """Optical depth of the barrier this prediction is about. Layer list mirrors
+        `_features` exactly, so the mu*x reported is the mu*x of the thing the model was
+        asked about (the suggested wall in design mode, the declared one in check mode)."""
+        e = (self.bundle or {}).get("isotope_energy_keV", {}).get(self.design.source.isotope)
+        if e is None:
+            return None
+        if path.kind in ("door", "window"):
+            layers = [("lead", thickness_mm)]
+        else:
+            layers = [(wall.material1, thickness_mm)]
+            if wall.material2 and wall.thickness2_mm > 0:
+                layers.append((wall.material2, wall.thickness2_mm))
+        return optical_depth(e, layers)
 
     def _evaluate_maze(self, path: BarrierPath, wall: Wall) -> EngineResult:
         """Corner/maze scatter via the dedicated corner surrogate (screening tier: honest,
@@ -389,6 +477,12 @@ class SurrogateEngine:
         # precedence). Keys are absent in pre-rescue bundles -> global band (backward compatible).
         logB = float(b["model"].predict(X)[0])
 
+        # Geometry bias is a property of the BARRIER, not of the prediction, so it is
+        # evaluated once here and carried by whichever branch below serves the answer.
+        mu_x = self._barrier_mu_x(path, wall, thickness_mm)
+        deep_wall = mu_x is not None and mu_x > GEOMETRY_BIAS_MUX
+        gb_note = f"  ⚠ μx≈{mu_x:.1f}. {GEOMETRY_BIAS_WARNING}" if deep_wall else ""
+
         # ---- DEEP-TAIL INTERVAL FLAG (deployment mitigation; NOT part of the sealed
         # pre-registration, and deliberately NOT a substitution).
         #
@@ -424,7 +518,9 @@ class SurrogateEngine:
                 B_achieved=B, dose_mSv_wk=dose, goal_over_T=gT,
                 passes=(dose <= gT), margin=(gT / dose if dose > 0 else None),
                 material=wall.material1, ci_low=None, ci_high=None, ood=True,
-                note=(f"Predicted B={B:.2e} is below B=1e{RESPONSE_ROUTER_LOGB_MAX:.0f}, where "
+                geometry_bias=deep_wall, mu_x=mu_x,
+                note=(gb_note.strip() + ("  " if gb_note else "") +
+                      f"Predicted B={B:.2e} is below B=1e{RESPONSE_ROUTER_LOGB_MAX:.0f}, where "
                       f"prospective validation measured the 95% interval to be NOT calibrated "
                       f"(38.5% coverage, Wilson [17.7%, 64.5%]). No interval is reported here. "
                       f"The point estimate is retained because it was conservative on every "
@@ -459,10 +555,12 @@ class SurrogateEngine:
             B_achieved=B, dose_mSv_wk=dose, goal_over_T=gT,
             passes=passes, margin=(gT / dose if dose > 0 else None),
             material=wall.material1, ci_low=B_lo, ci_high=B_hi,
-            note=(f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}; "
-                  f"conservative (upper-bound) margin ×{margin_hi:.2f}."
-                  if margin_hi is not None else
-                  f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}."))
+            geometry_bias=deep_wall, mu_x=mu_x,
+            note=((f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}; "
+                   f"conservative (upper-bound) margin ×{margin_hi:.2f}."
+                   if margin_hi is not None else
+                   f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
+                  + gb_note))
 
     def evaluate_all(self, mode: str,
                      analytical_results: Optional[List[EngineResult]] = None) -> List[EngineResult]:

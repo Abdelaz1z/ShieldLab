@@ -23,6 +23,7 @@ import html
 from typing import Dict, Optional
 
 from .. import data_loader as dl
+from . import engines as eng
 
 # References cited by the method section (resolved through data_loader so the wording
 # always matches the app's own bibliography).
@@ -92,6 +93,32 @@ def build_submission_html(report: Dict, meta: Dict,
 
     refs_html = "".join(f"<li>{_esc(c)}</li>" for c in dl.citations(_METHOD_REFS)
                         if c not in _METHOD_REFS)  # drop keys that had no entry
+
+    # Deep-wall geometry bias: named barriers, in the limitations section of the document that
+    # actually gets signed. The surrogate's training labels came from a finite 0.5 m beam, which
+    # under-states lateral scatter past mu*x ~ 8 by about a factor of two -- an UNDER-prediction
+    # of dose. A barrier that deep looks entirely ordinary on the compliance table, and neither
+    # the out-of-domain guard nor the analytical tier flags it, so if this document does not say
+    # it, nothing in the submission does.
+    deep = [r for r in (report.get("rows") or []) if r.get("geometry_bias")]
+    deep_wall_html = ""
+    if deep:
+        names = ", ".join(
+            f"{_esc(r['barrier'])} (&mu;x&nbsp;&asymp;&nbsp;{r['mu_x']:.1f})"
+            if isinstance(r.get("mu_x"), (int, float)) else _esc(r["barrier"])
+            for r in deep)
+        deep_wall_html = (
+            f"<div class='band' style='border-color:#b71c1c'>"
+            f"<b>Deep-barrier caution — {names}.</b> "
+            f"{_esc(eng.GEOMETRY_BIAS_WARNING)} The Monte-Carlo surrogate tier was trained on "
+            f"transport through a finite 0.5&nbsp;m irradiated field; a dedicated convergence "
+            f"study measured that widening that field to 1.5&nbsp;m raises transmission by a "
+            f"factor of 1.8–2.0 at &mu;x&nbsp;8–12. The surrogate therefore reports transmission "
+            f"<b>low</b> for these barriers, which is the non-conservative direction. The "
+            f"out-of-domain guard does not detect the condition (a thick barrier is an ordinary "
+            f"material at an ordinary thickness) and the analytical tier is not reliably the "
+            f"more conservative of the two here, so the bias is disclosed rather than corrected."
+            f"</div>")
 
     findings = report.get("failure_explanations") or []
     findings_html = ("".join(f"<li><b>{_esc(f['barrier'])}:</b> {_esc(f['message'])}</li>"
@@ -185,6 +212,7 @@ of limit to calculated dose; a value below 1 indicates non-compliance.</p>
 
 <h2>8. Assumptions, limitations and exclusions</h2>
 <p>{_esc(report.get('disclaimer'))}</p>
+{deep_wall_html}
 <ul>
  <li>Photon shielding only; neutron production is not applicable at these photon energies.</li>
  <li>Occupancy factors and workload are the values stated in section 3 and must reflect the

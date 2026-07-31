@@ -76,6 +76,11 @@ def build_report(design: RoomDesign, results: List[EngineResult],
             "margin": _fmt(prim.margin, 3),
             "engine": prim.engine,
             "note": prim.note,
+            # deep-wall geometry bias (mu*x > 8): carried as structured fields, not only inside
+            # the note text, so the regulatory submission can raise it in its limitations
+            # section rather than leaving it to be read out of a footnote.
+            "geometry_bias": bool(getattr(prim, "geometry_bias", False)),
+            "mu_x": getattr(prim, "mu_x", None),
         })
     primary_results = [smap.get(result.label, result) for result in results]
     return {
