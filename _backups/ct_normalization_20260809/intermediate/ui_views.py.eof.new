@@ -15,7 +15,6 @@ from shieldlab.physics import beams as bm, barriers as ba, sources as src, solve
 from shieldlab.regulatory import limits as reg
 from shieldlab.report import report as rpt
 from . import modality_config as mc
-from .i18n import t, term
 
 
 # ===========================================================================
@@ -93,256 +92,91 @@ def calculator_tab():
 
 def _build_source(mod_key, cfg):
     """Collect inputs and return the SourceTerm for the chosen modality."""
-    builder = cfg["builder"]
+    b = cfg["builder"]
 
-    if builder == "diagnostic":
-        kvp = st.selectbox(
-            t("maximum_tube_potential"),
-            mc.KVP_OPTIONS,
-            index=(
-                mc.KVP_OPTIONS.index(cfg["default_kvp"])
-                if cfg["default_kvp"] in mc.KVP_OPTIONS
-                else 5
-            ),
-            key="calc_diag_kvp",
-        )
-        patients = st.number_input(
-            t("patients_week"),
-            1,
-            100000,
-            cfg["default_patients"],
-            1,
-            key="calc_diag_patients",
-        )
-        primary_distance = st.number_input(
-            t("distance_source_primary"),
-            0.3,
-            50.0,
-            float(cfg["default_d_primary"]),
-            0.1,
-            key="calc_diag_primary_distance",
-        )
-        secondary_distance = st.number_input(
-            t("distance_patient_secondary"),
-            0.3,
-            50.0,
-            float(cfg["default_d_secondary"]),
-            0.1,
-            key="calc_diag_secondary_distance",
-        )
-        geometry_labels = {
-            "leak_forward_back": "Leakage + Forward/Back (conservative)",
-            "forward_back": "Forward/Back scatter",
-            "leak_side_scatter": "Leakage + Side-scatter",
-        }
-        localized_geometry_labels = {
-            geometry: term(label)
-            for geometry, label in geometry_labels.items()
-        }
-        secondary_geometry = st.selectbox(
-            t("secondary_geometry"),
-            list(geometry_labels),
-            format_func=lambda geometry: localized_geometry_labels[geometry],
-            key="calc_diag_geometry",
-        )
-        include_primary = st.checkbox(
-            t("include_primary"),
-            value=True,
-            help=t("include_primary_help"),
-            key="calc_diag_include_primary",
-        )
-        return src.diagnostic_source(
-            cfg["distribution"],
-            patients,
-            primary_distance,
-            secondary_distance,
-            kvp=kvp,
-            include_primary=include_primary,
-            secondary_geometry=secondary_geometry,
-        )
+    if b == "diagnostic":
+        kvp = st.selectbox("Maximum tube potential (kVp)", mc.KVP_OPTIONS,
+                           index=mc.KVP_OPTIONS.index(cfg["default_kvp"])
+                           if cfg["default_kvp"] in mc.KVP_OPTIONS else 5)
+        N = st.number_input("Patients per week (workload N)", 1, 100000,
+                            cfg["default_patients"], 1)
+        dP = st.number_input("Distance source → barrier, primary (m)", 0.3, 50.0,
+                             float(cfg["default_d_primary"]), 0.1)
+        dS = st.number_input("Distance patient → barrier, scatter/leakage (m)", 0.3, 50.0,
+                             float(cfg["default_d_secondary"]), 0.1)
+        geom = st.selectbox("Secondary geometry (NCRP 147 Table 4.7)",
+                            ["leak_forward_back", "forward_back", "leak_side_scatter"],
+                            format_func=lambda s: {"leak_forward_back": "Leakage + Forward/Back (conservative)",
+                                                   "forward_back": "Forward/Back scatter",
+                                                   "leak_side_scatter": "Leakage + Side-scatter"}[s])
+        inc_primary = st.checkbox("Include primary beam on this barrier", value=True,
+                                  help="Tick for a wall the useful beam can point at; untick for secondary-only barriers.")
+        return src.diagnostic_source(cfg["distribution"], N, dP, dS, kvp=kvp,
+                                     include_primary=inc_primary, secondary_geometry=geom)
 
-    if builder == "ct":
+    if b == "ct":
         return _build_ct_source(cfg)
 
-    if builder == "linac":
-        energy = st.selectbox(
-            t("maximum_energy"),
-            mc.MV_OPTIONS,
-            index=mc.MV_OPTIONS.index(cfg["default_mv"]),
-            key="calc_linac_energy",
-        )
-        workload = st.number_input(
-            t("workload_isocentre"),
-            1.0,
-            100000.0,
-            float(cfg["default_W"]),
-            10.0,
-            key="calc_linac_workload",
-        )
-        barrier_labels = {
-            "primary": "Primary barrier (beam can point here)",
-            "secondary": "Secondary barrier (leakage + scatter)",
-        }
-        localized_barrier_labels = {
-            barrier: term(label)
-            for barrier, label in barrier_labels.items()
-        }
-        barrier_type = st.radio(
-            t("barrier_type"),
-            list(barrier_labels),
-            horizontal=True,
-            format_func=lambda barrier: localized_barrier_labels[barrier],
-            key="calc_linac_barrier_type",
-        )
-        primary_distance = st.number_input(
-            t("distance_isocentre_primary"),
-            0.3,
-            50.0,
-            float(cfg["default_d_primary"]),
-            0.1,
-            key="calc_linac_primary_distance",
-        )
-        secondary_distance = st.number_input(
-            t("distance_isocentre_secondary"),
-            0.3,
-            50.0,
-            float(cfg["default_d_secondary"]),
-            0.1,
-            key="calc_linac_secondary_distance",
-        )
-        use_factor = st.number_input(
-            t("use_factor"),
-            0.0,
-            1.0,
-            float(cfg["default_U"]),
-            0.01,
-            key="calc_linac_use_factor",
-        )
-        imrt_factor = st.number_input(
-            t("imrt_factor"),
-            1.0,
-            10.0,
-            1.0,
-            0.1,
-            key="calc_linac_imrt_factor",
-        )
-        scatter_angle = st.selectbox(
-            t("scatter_angle"),
-            [10, 20, 30, 45, 60, 90, 135, 150],
-            index=5,
-            key="calc_linac_scatter_angle",
-        )
-        source_term = src.linac_source(
-            workload,
-            energy,
-            primary_distance,
-            secondary_distance,
-            U_primary=use_factor,
-            imrt_factor=imrt_factor,
-            scatter_angle_deg=scatter_angle,
-        )
-        if barrier_type == "secondary":
-            source_term.components = [
-                component
-                for component in source_term.components
-                if component.name != "primary"
-            ]
-        return source_term
+    if b == "linac":
+        mv = st.selectbox("Maximum energy", mc.MV_OPTIONS,
+                          index=mc.MV_OPTIONS.index(cfg["default_mv"]))
+        W = st.number_input("Workload W (Gy/week at isocentre)", 1.0, 100000.0,
+                            float(cfg["default_W"]), 10.0)
+        comp = st.radio("Barrier type", ["primary", "secondary"], horizontal=True,
+                        format_func=lambda s: "Primary barrier (beam can point here)"
+                        if s == "primary" else "Secondary barrier (leakage + scatter)")
+        dP = st.number_input("Distance isocentre → barrier, primary (m)", 0.3, 50.0,
+                             float(cfg["default_d_primary"]), 0.1)
+        dS = st.number_input("Distance isocentre → barrier, secondary (m)", 0.3, 50.0,
+                             float(cfg["default_d_secondary"]), 0.1)
+        U = st.number_input("Use factor U (primary)", 0.0, 1.0, float(cfg["default_U"]), 0.01)
+        imrt = st.number_input("IMRT factor C_I (on leakage)", 1.0, 10.0, 1.0, 0.1)
+        ang = st.selectbox("Patient scatter angle (deg)", [10, 20, 30, 45, 60, 90, 135, 150], index=5)
+        st_term = src.linac_source(W, mv, dP, dS, U_primary=U, imrt_factor=imrt,
+                                   scatter_angle_deg=ang)
+        # if user wants a secondary-only barrier, drop the primary component
+        if comp == "secondary":
+            st_term.components = [c for c in st_term.components if c.name != "primary"]
+        return st_term
 
-    if builder == "radionuclide":
-        nuclide = cfg["nuclide"]
-        activity = st.number_input(
-            t("activity_room", nuclide=nuclide),
-            0.1,
-            100000.0,
-            float(cfg["default_activity"]),
-            1.0,
-            key=f"calc_{mod_key}_activity",
-        )
-        distance = st.number_input(
-            t("distance_source_barrier"),
-            0.3,
-            50.0,
-            float(cfg["default_d"]),
-            0.1,
-            key=f"calc_{mod_key}_distance",
-        )
-        occupied_hours = st.number_input(
-            t("occupied_hours"),
-            1.0,
-            168.0,
-            float(cfg["default_hours"]),
-            1.0,
-            key=f"calc_{mod_key}_hours",
-        )
-        return src.radionuclide_point_source(
-            nuclide,
-            activity,
-            distance,
-            hours_per_week=occupied_hours,
-        )
+    if b == "radionuclide":
+        nuc = cfg["nuclide"]
+        A = st.number_input(f"Activity in room ({nuc}, mCi)", 0.1, 100000.0,
+                            float(cfg["default_activity"]), 1.0)
+        d = st.number_input("Distance source → barrier (m)", 0.3, 50.0,
+                            float(cfg["default_d"]), 0.1)
+        hrs = st.number_input("Occupied hours per week behind barrier", 1.0, 168.0,
+                              float(cfg["default_hours"]), 1.0)
+        return src.radionuclide_point_source(nuc, A, d, hours_per_week=hrs)
 
-    if builder == "i131":
-        activity = st.number_input(
-            t("retained_activity"),
-            0.1,
-            100000.0,
-            float(cfg["default_activity"]),
-            10.0,
-            key="calc_i131_retained_activity",
-        )
-        distance = st.number_input(
-            t("distance_patient_barrier"),
-            0.3,
-            50.0,
-            float(cfg["default_d"]),
-            0.1,
-            key="calc_i131_barrier_distance",
-        )
-        occupied_hours = st.number_input(
-            t("occupied_hours"),
-            1.0,
-            168.0,
-            float(cfg["default_hours"]),
-            1.0,
-            key="calc_i131_occupied_hours",
-        )
-        return src.radionuclide_point_source(
-            "I-131",
-            activity,
-            distance,
-            hours_per_week=occupied_hours,
-        )
+    if b == "i131":
+        nuc = "I-131"
+        A = st.number_input("Administered/retained activity (mCi)", 0.1, 100000.0,
+                            float(cfg["default_activity"]), 10.0)
+        d = st.number_input("Distance patient → barrier (m)", 0.3, 50.0,
+                            float(cfg["default_d"]), 0.1)
+        hrs = st.number_input("Occupied hours per week behind barrier", 1.0, 168.0,
+                              float(cfg["default_hours"]), 1.0)
+        return src.radionuclide_point_source(nuc, A, d, hours_per_week=hrs)
 
-    st.error(t("unknown_builder", builder=builder))
+    st.error(f"Unknown builder '{b}'")
     return None
 
 
 def _build_ct_source(cfg):
     """Collect one or more exam-specific CT workloads."""
-    st.caption(t("ct_intro"))
-
-    def exam_label(exam_type: str) -> str:
-        localized_label = term(exam_type)
-        return (
-            localized_label
-            if localized_label != exam_type
-            else exam_type.replace("_", " ").title()
-        )
-
-    exam_labels = {
-        exam_type: exam_label(exam_type)
-        for exam_type in cfg["ct_exam_options"]
-    }
+    st.caption(
+        "CT is a scatter source. Select every examination category in the "
+        "weekly workload. DLP is used as entered; include contrast or repeat "
+        "acquisitions because no automatic 1.4 multiplier is applied."
+    )
     exam_types = st.multiselect(
-        t("examinations"),
+        "Examinations",
         cfg["ct_exam_options"],
         default=[cfg["ct_exam_options"][0]],
-        format_func=lambda exam_type: exam_labels[exam_type],
-        key="calc_ct_exam_types",
     )
     if not exam_types:
-        st.error(t("ct_select_error"))
+        st.error("Select at least one CT examination category.")
         st.stop()
 
     ct_defaults = dl.scatter()["ct"]["dlp_defaults_mGy_cm"]
@@ -350,33 +184,22 @@ def _build_ct_source(cfg):
     for exam_type in exam_types:
         exam_default = ct_defaults.get(exam_type, {})
         default_dlp = exam_default.get("DLP", cfg["default_dlp"])
+        label = exam_type.replace("_", " ").title()
         dlp_col, exams_col = st.columns(2)
         dlp = dlp_col.number_input(
-            t("dlp_exam", exam=exam_labels[exam_type]),
-            1.0,
-            100000.0,
-            float(default_dlp),
-            10.0,
-            key=f"ct_dlp_{exam_type}",
-            help=t("dlp_help"),
+            f"{label} DLP per exam (mGy·cm)", 1.0, 100000.0,
+            float(default_dlp), 10.0, key=f"ct_dlp_{exam_type}",
+            help="NCRP 147 Table 5.2 default; replace with scanner data or the applicable NDRL.",
         )
         exams = exams_col.number_input(
-            t("exams_week", exam=exam_labels[exam_type]),
-            1,
-            100000,
-            cfg["default_exams"],
-            1,
+            f"{label} exams per week", 1, 100000, cfg["default_exams"], 1,
             key=f"ct_exams_{exam_type}",
         )
         workloads.append(src.CTExamWorkload(exam_type, dlp, exams))
 
     distance = st.number_input(
-        t("distance_scanner_barrier"),
-        0.3,
-        50.0,
-        float(cfg["default_d_secondary"]),
-        0.1,
-        key="calc_ct_distance",
+        "Distance scanner → barrier (m)", 0.3, 50.0,
+        float(cfg["default_d_secondary"]), 0.1,
     )
     return src.ct_source(workloads, distance)
 
@@ -519,7 +342,7 @@ def _show_results(source, barrier, goal, ev):
     # downloadable audit-trail report (HTML -> print to PDF)
     st.divider()
     c1, c2 = st.columns([2, 1])
-    prepared_by = c1.text_input("Report prepared by", value="")
+    prepared_by = c1.text_input("Report prepared by", value="Abdelaziz Habib")
     facility = c1.text_input("Facility / room (optional)", value="")
     inputs = {
         "Modality": source.modality,
@@ -546,97 +369,52 @@ def _transmission_plot(source):
     """Plot total transmitted dose vs thickness for lead and concrete."""
     try:
         import matplotlib.pyplot as plt
-    except ImportError:
+    except Exception:
         return
     import numpy as np
 
-    with st.expander(t("transmission_plot")):
-        figure, axes = plt.subplots(figsize=(6, 3.2))
-        for material, color in [("lead", "#444"), ("concrete", "#1f77b4")]:
-            thicknesses, transmitted_doses = [], []
-            maximum_thickness = 30 if material == "lead" else 1500
-            for thickness in np.linspace(0, maximum_thickness, 60):
-                transmitted_total = 0.0
-                material_supported = True
-                for component in source.components:
+    with st.expander("📈 Transmitted dose vs thickness (lead, concrete)"):
+        fig, ax = plt.subplots(figsize=(6, 3.2))
+        for m, color in [("lead", "#444"), ("concrete", "#1f77b4")]:
+            xs, ys = [], []
+            # choose a sensible thickness range from the dominant beam
+            xmax = 30 if m == "lead" else 1500
+            for x in np.linspace(0, xmax, 60):
+                total = 0.0
+                ok = True
+                for c in source.components:
                     try:
-                        transmission = bm.transmission_of_layer(
-                            component.beam,
-                            material,
-                            float(thickness),
-                        )
-                        transmitted_total += component.unshielded * transmission
-                    except ValueError:
-                        material_supported = False
-                if material_supported:
-                    thicknesses.append(thickness)
-                    transmitted_doses.append(transmitted_total)
-            if thicknesses:
-                axes.semilogy(
-                    thicknesses,
-                    transmitted_doses,
-                    label=term(material),
-                    color=color,
-                )
-        axes.set_xlabel(t("thickness_mm"))
-        axes.set_ylabel(t("transmitted_unit", unit=source.unit))
-        axes.legend()
-        axes.grid(True, which="both", alpha=0.3)
-        st.pyplot(figure)
+                        total += c.unshielded * bm.transmission_of_layer(c.beam, m, float(x))
+                    except Exception:
+                        ok = False
+                if ok:
+                    xs.append(x); ys.append(total)
+            if xs:
+                ax.semilogy(xs, ys, label=m, color=color)
+        ax.set_xlabel("thickness (mm)"); ax.set_ylabel(f"transmitted ({source.unit})")
+        ax.legend(); ax.grid(True, which="both", alpha=0.3)
+        st.pyplot(fig)
 
 
-def _show_i131_release(_cfg):
+def _show_i131_release(cfg):
     """Extra panel: RG 8.39 released-patient integrated dose."""
-    with st.expander(t("i131_release_title"), expanded=True):
-        biokinetics = dl.radionuclides()["i131_biokinetics"]["medical_conditions"]
-        activity_col, condition_col, distance_col = st.columns(3)
-        activity = activity_col.number_input(
-            t("administered_activity"),
-            1.0,
-            100000.0,
-            200.0,
-            10.0,
-            key="i131_A",
-        )
-        condition_labels = {
-            condition_key: term(condition_key)
-            for condition_key in biokinetics
-        }
-        condition = condition_col.selectbox(
-            t("condition"),
-            list(biokinetics),
-            format_func=lambda condition_key: condition_labels[condition_key],
-            key="i131_cond",
-        )
-        distance = distance_col.number_input(
-            t("distance_person"),
-            0.3,
-            10.0,
-            1.0,
-            0.1,
-            key="i131_d",
-        )
-        release_assessment = src.i131_released_patient_dose(
-            activity,
-            condition,
-            distance,
-        )
-        message_parameters = {
-            "dose": release_assessment["dose_mSv"],
-            "limit": release_assessment["release_limit_mSv"],
-        }
-        if release_assessment["may_release"]:
-            st.success(t("release_pass", **message_parameters))
+    with st.expander("🧍 I-131 released-patient dose (RG 8.39 biokinetics)", expanded=True):
+        bk = dl.radionuclides()["i131_biokinetics"]["medical_conditions"]
+        c1, c2, c3 = st.columns(3)
+        A = c1.number_input("Administered activity (mCi)", 1.0, 100000.0, 200.0, 10.0, key="i131_A")
+        cond = c2.selectbox("Condition", list(bk), key="i131_cond")
+        d = c3.number_input("Distance to person (m)", 0.3, 10.0, 1.0, 0.1, key="i131_d")
+        res = src.i131_released_patient_dose(A, cond, d)
+        if res["may_release"]:
+            st.success(f"Integrated dose to nearby person ≈ {res['dose_mSv']:.2f} mSv "
+                       f"(≤ {res['release_limit_mSv']} mSv → patient may be released).")
         else:
-            st.error(t("release_fail", **message_parameters))
-        if release_assessment["instructions_required"]:
-            st.info(t("alara_required"))
-        st.caption(
-            t(
-                "i131_method",
-                sources="; ".join(dl.citations(["RG839"])),
-            )
-        )
+            st.error(f"Integrated dose ≈ {res['dose_mSv']:.2f} mSv exceeds the "
+                     f"{res['release_limit_mSv']} mSv release limit.")
+        if res["instructions_required"]:
+            st.info("Written ALARA instructions to the patient are required (>1 mSv).")
+        st.caption("Method: RG 8.39 Eq. B-5 three-component biokinetic model. "
+                   + "; ".join(dl.citations(["RG839"])))
 
 
 # ===========================================================================
@@ -698,7 +476,4 @@ expert must review any design used for construction.
     st.caption("Validation: the engine reproduces the IAEA SRS 47 Co-60 primary "
                "barrier example (1034 mm vs 1033 mm concrete) and RG 8.39 I-131 "
                "Example 2 (4.53 mSv) — see tests/test_validation.py.")
-
-
-
 

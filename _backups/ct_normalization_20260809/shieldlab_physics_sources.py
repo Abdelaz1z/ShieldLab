@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence
+from typing import Optional, Dict, List
 
 from .. import data_loader as dl
 from . import beams as bm
@@ -114,61 +114,26 @@ def diagnostic_source(distribution: str, patients_per_week: float,
 # COMPUTED TOMOGRAPHY (secondary/scatter only)
 # ---------------------------------------------------------------------------
 
-@dataclass(frozen=True)
-class CTExamWorkload:
-    """One CT examination category and its weekly DLP workload."""
-    exam_type: str
-    dlp_per_exam_mGy_cm: float
-    exams_per_week: float
-
-
-def _ct_scatter_component(workload: CTExamWorkload, ct: Dict,
-                          d_secondary_m: float) -> Component:
-    exam_data = ct["dlp_defaults_mGy_cm"].get(workload.exam_type)
-    if not isinstance(exam_data, dict):
-        raise ValueError(f"Unknown CT exam type '{workload.exam_type}'.")
-
-    phantom = exam_data["phantom"]
-    normalization = ct["scatter_air_kerma_per_DLP"].get(phantom)
-    if not isinstance(normalization, dict):
-        raise ValueError(f"Unsupported CT phantom '{phantom}'.")
-
-    kappa = normalization["kappa_mGy_per_mGy_cm_at_1m"]
-    dlp_factor = normalization["dlp_to_peripheral_factor"]
-    dlp_total = workload.dlp_per_exam_mGy_cm * workload.exams_per_week
-    K_sec = dlp_factor * kappa * dlp_total / (d_secondary_m ** 2)
-    return Component(
-        f"scatter ({workload.exam_type})", K_sec,
-        bm.Beam(kind=bm.KIND_MONO, mono_energy_MeV=0.07),
-        detail=f"{workload.exam_type}/{phantom}: {dlp_factor} x kappa={kappa} "
-               f"mGy/(mGy*cm)@1m x DLP_total {dlp_total:g} mGy*cm "
-               f"/ {d_secondary_m} m^2",
-    )
-
-
-def ct_source(workloads: Sequence[CTExamWorkload],
+def ct_source(dlp_per_exam_mGy_cm: float, exams_per_week: float,
               d_secondary_m: float) -> SourceTerm:
     """Unshielded scattered air kerma (mGy/week) from a CT scanner.
 
-    CT is treated as a pure scatter source. NCRP 147 Section 5.5 uses separate
-    head and body normalizations. Each exam category keeps its phantom type so
-    mixed weekly workloads are summed without collapsing their DLP values.
+    CT is treated as a pure scatter source. NCRP 147 Section 5.5:
+        K_sec(d) = kappa * (DLP_total per week) / d^2
+    with kappa the scatter air kerma at 1 m per unit DLP (editable in scatter.json).
     """
-    if not workloads:
-        raise ValueError("At least one CT exam workload is required.")
-
     ct = dl.scatter()["ct"]
+    kappa = ct["scatter_air_kerma_per_DLP"]["value"]
+    dlp_total = dlp_per_exam_mGy_cm * exams_per_week
+    K_sec = kappa * dlp_total / (d_secondary_m ** 2)
     st = SourceTerm(modality="ct", unit="mGy/week (air kerma)", period="week",
                     refs=["NCRP147", "BIR2012"])
-    st.components.extend(
-        _ct_scatter_component(workload, ct, d_secondary_m)
-        for workload in workloads
-    )
-    st.notes.append(
-        "CT scatter uses NCRP 147 head/body DLP normalization; scanner-specific "
-        "isodose data are preferred. DLP is used as entered, with no automatic "
-        "contrast or repeat-scan multiplier."
-    )
+    st.components.append(Component(
+        "scatter", K_sec,
+        bm.Beam(kind=bm.KIND_MONO, mono_energy_MeV=0.07),  # CT scatter ~70 keV effective
+        detail=f"kappa={kappa} mGy/(mGy*cm)@1m x DLP_total {dlp_total:g} mGy*cm / {d_secondary_m} m^2",
+    ))
+    st.notes.append("CT scatter scales with total DLP per week; kappa is scanner-dependent (verify).")
     return st
 
 

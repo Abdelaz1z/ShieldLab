@@ -12,7 +12,7 @@ from shieldlab.regulatory import limits as reg
 goal = reg.design_goal("NCRP", "uncontrolled", 1.0)
 
 s1 = src.diagnostic_source("chest_room", 200, 2.0, 1.5, kvp=125)
-s2 = src.ct_source([src.CTExamWorkload("body_average", 550, 100)], 3.0)
+s2 = src.ct_source(550, 100, 3.0)
 s3 = src.linac_source(450, "6 MV", 4.0, 4.0)
 s4 = src.radionuclide_point_source("F-18", 15, 3.0)
 for s in (s1, s2, s3, s4):

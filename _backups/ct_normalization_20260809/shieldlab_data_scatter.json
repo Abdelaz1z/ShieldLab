@@ -24,30 +24,22 @@
   },
 
   "ct": {
-    "_comment": "CT is a secondary-radiation (scatter) source for shielding. NCRP 147 Section 5.5 uses K_sec(d) = f_DLP * kappa * DLP_total_per_week / d^2, with separate head and body phantom normalizations. CT default DLP values are NCRP 147 Table 5.2; replace them with scanner-specific values or the Saudi SFDA NDRLs (see workloads.json).",
+    "_comment": "CT is a secondary-radiation (scatter) source for shielding. NCRP 147 Section 5.5 derives the scattered air kerma from the dose-length product (DLP). K_sec(d) per week = kappa * DLP_total_per_week / d^2, with kappa the scatter air kerma at 1 m per unit DLP. CT default DLP values are NCRP 147 Table 5.2; replace with your scanner's values or the Saudi SFDA NDRLs (see workloads.json).",
     "ref": ["NCRP147", "BIR2012"],
     "dlp_defaults_mGy_cm": {
       "_table": "NCRP147 Table 5.2 (PDF p.109)",
-      "head":    {"phantom": "head", "CTDIvol_mGy": 60, "scan_length_cm": 20, "DLP": 1200},
-      "chest":   {"phantom": "body", "CTDIvol_mGy": 15, "scan_length_cm": 35, "DLP": 525},
-      "abdomen": {"phantom": "body", "CTDIvol_mGy": 25, "scan_length_cm": 25, "DLP": 625},
-      "pelvis":  {"phantom": "body", "CTDIvol_mGy": 25, "scan_length_cm": 20, "DLP": 500},
-      "body_average": {"phantom": "body", "DLP": 550, "note": "average chest/abdomen/pelvis when procedure-specific data unavailable"}
+      "head":    {"CTDIvol_mGy": 60, "scan_length_cm": 20, "DLP": 1200},
+      "chest":   {"CTDIvol_mGy": 15, "scan_length_cm": 35, "DLP": 525},
+      "abdomen": {"CTDIvol_mGy": 25, "scan_length_cm": 25, "DLP": 625},
+      "pelvis":  {"CTDIvol_mGy": 25, "scan_length_cm": 20, "DLP": 500},
+      "body_average": {"DLP": 550, "note": "average chest/abdomen/pelvis when procedure-specific data unavailable"}
     },
     "scatter_air_kerma_per_DLP": {
-      "_comment": "NCRP 147 Eq. 5.5 uses kappa_head=9e-5. Eq. 5.10 uses 1.2*kappa_body with kappa_body=3e-4. The 1.4 contrast/repeated-acquisition factor discussed separately by NCRP is not applied automatically; enter the resulting DLP workload explicitly when applicable.",
-      "head": {
-        "kappa_mGy_per_mGy_cm_at_1m": 9.0e-5,
-        "dlp_to_peripheral_factor": 1.0,
-        "ref": "NCRP147 Eq. 5.5"
-      },
-      "body": {
-        "kappa_mGy_per_mGy_cm_at_1m": 3.0e-4,
-        "dlp_to_peripheral_factor": 1.2,
-        "ref": "NCRP147 Eq. 5.10"
-      },
+      "value": 9.0e-5,
+      "units": "mGy at 1 m per (mGy*cm of DLP)",
+      "ref": "NCRP147 Section 5.5 (representative); confirm with scanner isodose/scatter map",
       "needs_verification": true,
-      "note": "NCRP head/body normalizations are editable defaults. Manufacturer isodose data are preferred for a specific scanner."
+      "note": "Scattered air kerma at 1 m per unit DLP. Manufacturer isodose data are preferred; this representative value is editable. Some references quote a head/body split - add scanner-specific values here."
     }
   },
 

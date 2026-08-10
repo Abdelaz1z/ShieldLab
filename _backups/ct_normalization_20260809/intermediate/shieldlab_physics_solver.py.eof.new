@@ -161,3 +161,4 @@ def preferred_thickness(required_mm: float, material: str) -> float:
     if required_mm <= 0:
         return 0.0
     return math.ceil(required_mm / inc) * inc
+

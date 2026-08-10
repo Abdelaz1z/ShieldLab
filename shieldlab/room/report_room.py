@@ -15,9 +15,10 @@ from __future__ import annotations
 import base64
 import datetime as _dt
 import io
+from html import escape as _html_escape
 from typing import Dict, List
 
-from .model import RoomDesign, WALL_NAMES
+from .model import RoomDesign
 from .engines import EngineResult
 from .decision_support import explain_failures, summarize_results
 
@@ -44,10 +45,114 @@ def _fmt(x, nd=3):
     return str(x)
 
 
-def build_report(design: RoomDesign, results: List[EngineResult],
-                 mode: str, diagram_png: bytes,
-                 surrogate_results: List[EngineResult] = None) -> Dict:
+def _unit_metadata(design: RoomDesign) -> Dict[str, str]:
+    goal_unit = "mGy/week" if design.framework == "NCRP" else "mSv/week"
+    unit_note = (
+        "Calculated photon dose is reported in mSv/week; the NCRP regulatory goal "
+        "is reported in mGy/week. The comparison uses 1 mGy ≈ 1 mSv for photons."
+        if design.framework == "NCRP"
+        else "Calculated dose and the regulatory goal are reported in mSv/week."
+    )
+    return {
+        "dose": "mSv/week",
+        "goal": goal_unit,
+        "note": unit_note,
+    }
+
+
+def _uncertainty_crosses_limit(result: EngineResult) -> bool:
+    if (
+        result.ci_high is None
+        or not result.B_achieved
+        or result.dose_mSv_wk is None
+        or result.goal_over_T is None
+    ):
+        return False
+    upper_dose = result.dose_mSv_wk * result.ci_high / result.B_achieved
+    return upper_dose > result.goal_over_T
+
+
+def _result_requires_review(result: EngineResult) -> bool:
+    engine_name = (result.engine or "").lower()
+    return (
+        result.passes is None
+        or result.geometry_bias
+        or "deep tail" in engine_name
+        or (result.margin is not None and result.margin < 1.20)
+        or _uncertainty_crosses_limit(result)
+    )
+
+
+def _export_verdict(
+    result: EngineResult,
+    status_override: str | None,
+) -> str:
+    if status_override:
+        return status_override.upper()
+    if result.passes is False:
+        return "FAIL"
+    if _result_requires_review(result):
+        return "REVIEW"
+    return "PASS" if result.passes is True else "REVIEW"
+
+
+def _display_verdict(verdict: str) -> str:
+    return "REVIEW REQUIRED" if verdict in ("MARGINAL", "REVIEW") else verdict
+
+
+def _summary_for_export(
+    primary_results: List[EngineResult],
+    overall_status: str | None,
+    review_reasons: List[str],
+) -> Dict:
+    summary = summarize_results(primary_results)
+    if summary["status"] == "FAIL" or overall_status == "FAIL":
+        return summary
+
+    review_paths = [
+        result.label
+        for result in primary_results
+        if _result_requires_review(result)
+    ]
+    review_required = (
+        overall_status == "REVIEW"
+        or summary["status"] == "MARGINAL"
+        or bool(review_paths)
+    )
+    if not review_required:
+        return summary
+
+    export_reasons = list(review_reasons)
+    if not export_reasons:
+        if summary["status"] == "MARGINAL":
+            export_reasons.append("safety margin below the review threshold")
+        if review_paths:
+            export_reasons.append(
+                f"path-level assurance review ({', '.join(review_paths)})"
+            )
+    reason_text = "; ".join(export_reasons) or "engineering assurance review"
+    return {
+        **summary,
+        "point_estimate_status": summary["status"],
+        "status": "REVIEW",
+        "message": f"Review Required before approval: {reason_text}.",
+        "review_reasons": export_reasons,
+    }
+
+def build_report(
+    design: RoomDesign,
+    results: List[EngineResult],
+    mode: str,
+    diagram_png: bytes,
+    surrogate_results: List[EngineResult] = None,
+    overall_status: str | None = None,
+    review_reasons: List[str] = None,
+    status_by_label: Dict[str, str] = None,
+) -> Dict:
     s = design.source
+    units = _unit_metadata(design)
+    review_reasons = list(review_reasons or [])
+    status_by_label = status_by_label or {}
     smap = {r.label: r for r in (surrogate_results or [])}
     rows = []
     for r in results:
@@ -71,8 +176,11 @@ def build_report(design: RoomDesign, results: List[EngineResult],
             "surrogate_CI95": s_ci,
             "tier": tier,
             "dose_mSv_wk": _fmt(prim.dose_mSv_wk),
-            "limit_mSv_wk": _fmt(prim.goal_over_T),
-            "verdict": _fmt(prim.passes),
+            "limit_weekly": _fmt(prim.goal_over_T),
+            "verdict": _export_verdict(
+                prim,
+                status_by_label.get(r.label),
+            ),
             "margin": _fmt(prim.margin, 3),
             "engine": prim.engine,
             "note": prim.note,
@@ -83,6 +191,11 @@ def build_report(design: RoomDesign, results: List[EngineResult],
             "mu_x": getattr(prim, "mu_x", None),
         })
     primary_results = [smap.get(result.label, result) for result in results]
+    summary = _summary_for_export(
+        primary_results,
+        overall_status,
+        review_reasons,
+    )
     return {
         "title": "ShieldLab — Room Shielding Report",
         "timestamp": _dt.datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -95,9 +208,15 @@ def build_report(design: RoomDesign, results: List[EngineResult],
             "Room (W×L×H, m)": f"{design.room.width_m:g} × {design.room.length_m:g} × {design.room.height_m:g}",
             "Source position (x,y m)": f"({s.x_m:g}, {s.y_m:g})",
             "Framework": design.framework,
+            "Unit basis": units["note"],
         },
+        "units": {
+            "dose": units["dose"],
+            "goal": units["goal"],
+        },
+        "unit_note": units["note"],
         "rows": rows,
-        "summary": summarize_results(primary_results),
+        "summary": summary,
         "failure_explanations": explain_failures(design, primary_results),
         "diagram_png": diagram_png,
         "disclaimer": DISCLAIMER,
@@ -167,8 +286,10 @@ def to_pdf(report: Dict) -> bytes:
     # results table
     pdf.set_font(FONT, "B", 11)
     pdf.cell(0, 6, "Per-barrier results", ln=1)
+    dose_unit = report["units"]["dose"].replace("/week", "/wk")
     headers = [("Barrier", 28), ("Mat.", 16), ("Sug. mm", 16), ("Analyt. B", 20),
-               ("Surrogate B (95% CI)", 44), ("Dose", 20), ("Verdict", 16), ("Margin", 14)]
+               ("Surrogate B (95% CI)", 44), (f"Dose ({dose_unit})", 20),
+               ("Verdict", 16), ("Margin", 14)]
     pdf.set_font(FONT, "B", 8)
     pdf.set_fill_color(230, 234, 240)
     for h, w in headers:
@@ -181,6 +302,8 @@ def to_pdf(report: Dict) -> bytes:
             pdf.set_text_color(30, 110, 45)
         elif v == "FAIL":
             pdf.set_text_color(190, 30, 30)
+        elif v == "REVIEW":
+            pdf.set_text_color(150, 95, 0)
         else:
             pdf.set_text_color(120, 120, 120)
         s_col = row["B_surrogate"]
@@ -188,7 +311,7 @@ def to_pdf(report: Dict) -> bytes:
             s_col = f"{row['B_surrogate']} {row['surrogate_CI95']}"
         cells = [(row["barrier"], 28), (row["material"], 16), (row["suggested_mm"], 16),
                  (row["B_achieved"], 20), (s_col, 44), (row["dose_mSv_wk"], 20),
-                 (v, 16), (row["margin"], 14)]
+                 (_display_verdict(v), 16), (row["margin"], 14)]
         for txt, w in cells:
             pdf.cell(w, 6, sane(str(txt)[:30]), border=1, align="C")
         pdf.ln(6)
@@ -221,7 +344,12 @@ def to_summary_pdf(report: Dict) -> bytes:
 
     summary = report["summary"]
     critical = summary["critical"]
-    colors = {"PASS": (31, 122, 61), "FAIL": (190, 45, 45), "MARGINAL": (185, 122, 0)}
+    colors = {
+        "PASS": (31, 122, 61),
+        "FAIL": (190, 45, 45),
+        "MARGINAL": (185, 122, 0),
+        "REVIEW": (185, 122, 0),
+    }
     red, green, blue = colors[summary["status"]]
 
     pdf.set_font(font, "B", 16)
@@ -235,7 +363,12 @@ def to_summary_pdf(report: Dict) -> bytes:
     pdf.set_fill_color(red, green, blue)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font(font, "B", 18)
-    pdf.cell(0, 14, summary["status"], fill=True, align="C", ln=1)
+    display_status = (
+        "REVIEW REQUIRED"
+        if summary["status"] in ("MARGINAL", "REVIEW")
+        else summary["status"]
+    )
+    pdf.cell(0, 14, display_status, fill=True, align="C", ln=1)
     pdf.set_text_color(0, 0, 0)
     pdf.set_font(font, "", 9)
     pdf.multi_cell(0, 5, sane(summary["message"]), align="C")
@@ -251,7 +384,13 @@ def to_summary_pdf(report: Dict) -> bytes:
         pdf.cell(55, 7, "Calculated dose", border=1, fill=True)
         pdf.cell(0, 7, sane(f"{critical.dose_mSv_wk:.3g} mSv/week"), border=1, ln=1)
         pdf.cell(55, 7, "Regulatory design goal", border=1, fill=True)
-        pdf.cell(0, 7, sane(f"{critical.goal_over_T:.3g} mSv/week"), border=1, ln=1)
+        pdf.cell(
+            0,
+            7,
+            sane(f"{critical.goal_over_T:.3g} {report['units']['goal']}"),
+            border=1,
+            ln=1,
+        )
         pdf.cell(55, 7, "Safety margin", border=1, fill=True)
         pdf.cell(0, 7, sane(f"{critical.margin:.2f}x" if critical.margin is not None else "Not available"),
                  border=1, ln=1)
@@ -282,7 +421,15 @@ def to_summary_pdf(report: Dict) -> bytes:
     pdf.ln(3)
     pdf.set_font(font, "B", 11)
     pdf.cell(0, 6, "Barrier status", ln=1)
-    headers = [("Barrier", 54), ("Dose (mSv/wk)", 36), ("Goal", 32), ("Verdict", 28), ("Tier", 40)]
+    dose_unit = report["units"]["dose"].replace("/week", "/wk")
+    goal_unit = report["units"]["goal"].replace("/week", "/wk")
+    headers = [
+        ("Barrier", 54),
+        (f"Dose ({dose_unit})", 36),
+        (f"Goal ({goal_unit})", 32),
+        ("Verdict", 28),
+        ("Tier", 40),
+    ]
     pdf.set_font(font, "B", 7.5)
     pdf.set_fill_color(48, 84, 150)
     pdf.set_text_color(255, 255, 255)
@@ -294,8 +441,14 @@ def to_summary_pdf(report: Dict) -> bytes:
     for row in report["rows"][:8]:
         pdf.cell(54, 5.5, sane(row["barrier"][:28]), border=1)
         pdf.cell(36, 5.5, sane(row["dose_mSv_wk"]), border=1, align="C")
-        pdf.cell(32, 5.5, sane(row["limit_mSv_wk"]), border=1, align="C")
-        pdf.cell(28, 5.5, sane(row["verdict"]), border=1, align="C")
+        pdf.cell(32, 5.5, sane(row["limit_weekly"]), border=1, align="C")
+        pdf.cell(
+            28,
+            5.5,
+            sane(_display_verdict(row["verdict"])),
+            border=1,
+            align="C",
+        )
         pdf.cell(40, 5.5, sane(row["tier"][:22]), border=1, align="C")
         pdf.ln(5.5)
 
@@ -317,7 +470,7 @@ def to_summary_pdf(report: Dict) -> bytes:
 # ------------------------------------------------------------------------- Excel
 def to_xlsx(report: Dict) -> bytes:
     from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.styles import Font, PatternFill
 
     wb = Workbook()
     ws = wb.active
@@ -327,14 +480,19 @@ def to_xlsx(report: Dict) -> bytes:
 
     cols = ["barrier", "material", "suggested_mm", "B_required", "B_achieved",
             "B_surrogate", "surrogate_CI95", "tier",
-            "dose_mSv_wk", "limit_mSv_wk", "verdict", "margin", "engine", "note"]
+            "dose_mSv_wk", "limit_weekly", "verdict", "margin", "engine", "note"]
+    headers = {
+        "dose_mSv_wk": f"dose ({report['units']['dose']})",
+        "limit_weekly": f"limit P/T ({report['units']['goal']})",
+    }
     for j, c in enumerate(cols, 1):
-        cell = ws.cell(1, j, c)
+        cell = ws.cell(1, j, headers.get(c, c))
         cell.font = hdr
         cell.fill = fill
     for i, row in enumerate(report["rows"], 2):
         for j, c in enumerate(cols, 1):
-            ws.cell(i, j, row[c])
+            value = _display_verdict(row[c]) if c == "verdict" else row[c]
+            ws.cell(i, j, value)
     for col in "ABEFGHIJK":
         ws.column_dimensions[col].width = 16
     ws.column_dimensions["K"].width = 40
@@ -359,27 +517,53 @@ def to_xlsx(report: Dict) -> bytes:
 
 
 # -------------------------------------------------------------------------- HTML
+def _html_text(value: object) -> str:
+    """Escape report data before interpolating it into the HTML artifact."""
+    return _html_escape(str(value), quote=True)
+
+
 def to_html(report: Dict) -> bytes:
-    img_b64 = base64.b64encode(report["diagram_png"]).decode() if report.get("diagram_png") else ""
+    img_b64 = (
+        base64.b64encode(report["diagram_png"]).decode()
+        if report.get("diagram_png")
+        else ""
+    )
     rows_html = ""
     for row in report["rows"]:
-        v = row["verdict"]
-        color = {"PASS": "#2e7d32", "FAIL": "#c62828"}.get(v, "#9e9e9e")
+        verdict = row["verdict"]
+        color = {
+            "PASS": "#2e7d32",
+            "FAIL": "#c62828",
+            "REVIEW": "#8a5a00",
+        }.get(verdict, "#9e9e9e")
+        display_verdict = _display_verdict(verdict)
         rows_html += (
-            f"<tr><td>{row['barrier']}</td><td>{row['material']}</td>"
-            f"<td>{row['suggested_mm']}</td><td>{row['B_achieved']}</td>"
-            f"<td>{row['B_surrogate']} <span style='color:#666;font-size:11px'>"
-            f"{row['surrogate_CI95']}</span></td>"
-            f"<td>{row['dose_mSv_wk']}</td><td>{row['limit_mSv_wk']}</td>"
-            f"<td style='color:{color};font-weight:bold'>{v}</td>"
-            f"<td>{row['margin']}</td><td>{row['tier']}</td></tr>"
+            f"<tr><td>{_html_text(row['barrier'])}</td>"
+            f"<td>{_html_text(row['material'])}</td>"
+            f"<td>{_html_text(row['suggested_mm'])}</td>"
+            f"<td>{_html_text(row['B_achieved'])}</td>"
+            f"<td>{_html_text(row['B_surrogate'])} "
+            "<span style='color:#666;font-size:11px'>"
+            f"{_html_text(row['surrogate_CI95'])}</span></td>"
+            f"<td>{_html_text(row['dose_mSv_wk'])}</td>"
+            f"<td>{_html_text(row['limit_weekly'])}</td>"
+            f"<td style='color:{color};font-weight:bold'>"
+            f"{_html_text(display_verdict)}</td>"
+            f"<td>{_html_text(row['margin'])}</td>"
+            f"<td>{_html_text(row['tier'])}</td></tr>"
         )
     inputs_html = "".join(
-        f"<tr><td style='font-weight:bold'>{k}</td><td>{v}</td></tr>"
-        for k, v in report["inputs"].items()
+        f"<tr><td style='font-weight:bold'>{_html_text(key)}</td>"
+        f"<td>{_html_text(value)}</td></tr>"
+        for key, value in report["inputs"].items()
+    )
+    notes_html = (
+        f'<p class="note">Notes: {_html_text(report["notes"])}</p>'
+        if report.get("notes")
+        else ""
     )
     html = f"""<!doctype html><html><head><meta charset="utf-8">
-<title>{report['title']}</title>
+<title>{_html_text(report['title'])}</title>
 <style>
  body{{font-family:Arial,Helvetica,sans-serif;margin:32px;color:#222}}
  h1{{font-size:20px}} .sub{{color:#666;font-size:13px}}
@@ -388,16 +572,18 @@ def to_html(report: Dict) -> bytes:
  th{{background:#305496;color:#fff}}
  .note{{color:#666;font-size:11px;font-style:italic;max-width:720px}}
 </style></head><body>
-<h1>{report['title']}</h1>
-<div class="sub">{report['mode']} &nbsp;|&nbsp; generated {report['timestamp']}</div>
+<h1>{_html_text(report['title'])}</h1>
+<div class="sub">{_html_text(report['mode'])} &nbsp;|&nbsp; generated {_html_text(report['timestamp'])}</div>
 <h3>Inputs</h3><table>{inputs_html}</table>
 <img src="data:image/png;base64,{img_b64}" width="520"/>
 <h3>Per-barrier results</h3>
 <table><tr><th>Barrier</th><th>Material</th><th>Suggested mm</th><th>Analytical B</th>
-<th>Surrogate B (95% CI)</th><th>Dose mSv/wk</th>
-<th>Limit</th><th>Verdict</th><th>Margin</th><th>Tier</th></tr>{rows_html}</table>
-<p class="note">{report['disclaimer']}</p>
-{'<p class="note">Notes: ' + report['notes'] + '</p>' if report.get('notes') else ''}
+<th>Surrogate B (95% CI)</th><th>Dose {_html_text(report['units']['dose'])}</th>
+<th>Limit P/T {_html_text(report['units']['goal'])}</th><th>Verdict</th><th>Margin</th>
+<th>Tier</th></tr>{rows_html}</table>
+<p class="note">{_html_text(report['unit_note'])}</p>
+<p class="note">{_html_text(report['disclaimer'])}</p>
+{notes_html}
 </body></html>"""
     return html.encode("utf-8")
 
@@ -411,3 +597,4 @@ def export(report: Dict, fmt: str) -> tuple:
         return (to_xlsx(report),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlsx")
     return to_html(report), "text/html", "html"
+

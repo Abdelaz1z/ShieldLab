@@ -1,51 +1,53 @@
 """
-ShieldLab - Streamlit application (Part 3: User Interface)
-==================================================================
-Run from this folder with:
+ShieldLab - commercial Streamlit application shell.
 
-    py -3.11 -m streamlit run app.py
-
-The UI is a wizard:
-    1. choose a MODALITY and its MAXIMUM ENERGY
-    2. enter WORKLOAD (editable defaults from NCRP 147 / Saudi SFDA)
-    3. enter GEOMETRY (distance device->barrier, occupancy of the area)
-    4. choose the REGULATORY FRAMEWORK and design goal
-    5. build the BARRIER from one or more material layers (mix any materials)
-    6. read RESULTS: transmitted primary & scattered (secondary) dose, the
-       pass/fail verdict and margin, the required & preferred thicknesses,
-       lead/concrete equivalents, and a transmission plot.
-
-All physics lives in the shieldlab package; this file only collects inputs and
-shows results, so it is easy to read and edit.
+All calculations remain in ``shieldlab``; this entry point only assembles the
+shared product navigation and the single-barrier assessment workspace.
 """
 
 import os
 import sys
 
-# make the shieldlab package importable when Streamlit runs this file directly
+# Make the shieldlab package importable when Streamlit runs this file directly.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import streamlit as st
 
-from shieldlab import data_loader as dl
-from shieldlab.physics import beams as bm, barriers as ba, sources as src, solver
-from shieldlab.regulatory import limits as reg
-from ui import modality_config as mc
-from ui import views
+from ui import commercial_views as views
+from ui import i18n
+from ui import product_shell as ds
 
 
-st.set_page_config(page_title="ShieldLab", page_icon="🛡️", layout="wide")
+st.set_page_config(
+    page_title=f"{i18n.t('barrier_assessment')} | ShieldLab",
+    page_icon="🛡️",
+    layout="wide",
+    initial_sidebar_state="auto",
+)
 
 
-def main():
-    st.title("🛡️ ShieldLab")
-    st.caption(
-        "Photon shielding design & verification for medical radiation facilities — "
-        "X-ray, CT, dental panoramic, LINAC, I-131 therapy and nuclear medicine. "
-        "Prepared for Abdelaziz Habib (RSO, KSA)."
+def main() -> None:
+    ds.inject_styles()
+    ds.render_sidebar("calculator")
+    ds.page_header(
+        i18n.t("calculator_eyebrow"),
+        i18n.t("calculator_title"),
+        i18n.t("calculator_description"),
+        badges=(
+            i18n.t("badge_traceable"),
+            i18n.t("badge_live"),
+            i18n.t("badge_rso"),
+        ),
     )
 
-    tabs = st.tabs(["🧮 Shielding Calculator", "📚 References & Method", "⚠️ Limitations"])
+    with st.container(key="sl_primary_tabs"):
+        tabs = st.tabs(
+            [
+                i18n.t("tab_assessment"),
+                i18n.t("tab_methods"),
+                i18n.t("tab_safety"),
+            ]
+        )
 
     with tabs[0]:
         views.calculator_tab()
@@ -53,6 +55,7 @@ def main():
         views.references_tab()
     with tabs[2]:
         views.limitations_tab()
+    ds.render_sidebar_footer()
 
 
 if __name__ == "__main__":

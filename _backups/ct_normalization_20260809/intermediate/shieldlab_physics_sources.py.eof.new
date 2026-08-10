@@ -326,3 +326,4 @@ def i131_released_patient_dose(activity_mCi: float, condition: str,
         "condition": condition,
         "activity_mCi": activity_mCi,
     }
+

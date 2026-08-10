@@ -1,5 +1,10 @@
 # ShieldLab — Project Progress Log
 
+> **Historical v1.0 analytical log; superseded 2026-08-08.** The current application also includes
+> a scalar Monte-Carlo surrogate and a 3-D field-map screening tier in Room Designer. The original
+> “No Monte Carlo” decision below is historical, not the current feature set. See
+> ROOM_DESIGNER_PLAN.md and ../PROJECT_STATE.md for current status.
+
 **Project:** Photon shielding design & verification software for medical radiation facilities
 **Owner:** Radiation Safety Officer (KSA) — M.Sc. Radiation Protection, Cairo University
 **Started:** 2026-06-10

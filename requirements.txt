@@ -1,6 +1,7 @@
 # ShieldLab - Python dependencies
 # Install with:  py -3.11 -m pip install -r requirements.txt
-streamlit>=1.30
+# Exact pin: the commercial UI uses and tests Streamlit 1.58 component APIs and stable selectors.
+streamlit==1.58.0
 pandas>=2.0
 matplotlib>=3.7
 # (the physics engine itself uses only the Python standard library)

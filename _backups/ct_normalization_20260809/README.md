@@ -52,7 +52,7 @@ ShieldLab uses the **standard analytical formalism** prescribed by the reference
 | Modality | Transmission model | Source data |
 |----------|--------------------|-------------|
 | Diagnostic X-ray, fluoro, mammo, dental, angio | **Archer** broad-beam `B(x)=[(1+β/α)e^{αγx}−β/α]^{−1/γ}` | NCRP 147 Tables B.1 (primary) & C.1 (secondary) |
-| CT | scatter from exam-specific head/body DLP normalization | NCRP 147 §5.5 / Table 5.2; Saudi SFDA NDRLs |
+| CT | scatter ∝ DLP | NCRP 147 §5.5 / Table 5.2; Saudi SFDA NDRLs |
 | LINAC / Co-60 | **TVL** `n=x₁/TVL₁+(x−x₁)/TVLₑ, B=10⁻ⁿ` | IAEA SRS 47 Tables 4, 5, 8, 11 |
 | I-131, Tc-99m, F-18, Lu-177 | broad-beam **TVL/HVL** | Oumano et al. 2025; AAPM TG-108 (PET) |
 | I-131 released-patient dose | RG 8.39 biokinetic integral (Eq. B-5) | NRC RG 8.39 |
@@ -107,4 +107,4 @@ PROGRESS.md             development log
 
 ## 6. Limitations (read the app's **Limitations** tab)
 
-Photons only — **LINAC > 10 MV photoneutrons are not modelled** (warned, with guidance). Multi-layer transmission is the product of per-layer broad-beam factors (slightly conservative). CT uses NCRP 147's separate head/body normalization; replace it with scanner isodose data when available, and enter DLP including any contrast or repeated acquisitions because no automatic multiplier is applied. Skyshine/ducts/maze are qualitative in v1.0. **A qualified expert must review any design used for construction.**
+Photons only — **LINAC > 10 MV photoneutrons are not modelled** (warned, with guidance). Multi-layer transmission is the product of per-layer broad-beam factors (slightly conservative). CT κ and some workloads are editable representative defaults. Skyshine/ducts/maze are qualitative in v1.0. **A qualified expert must review any design used for construction.**

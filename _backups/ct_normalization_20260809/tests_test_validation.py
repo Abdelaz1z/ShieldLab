@@ -87,55 +87,6 @@ def test_rg839_i131_hyperthyroid_simple():
     assert abs(dose_mSv - 4.59) < 0.05, f"got {dose_mSv:.2f} mSv, expected 4.59"
 
 
-def test_ct_head_normalization_is_unchanged():
-    """NCRP 147 Eq. 5.5: head CT uses kappa=9e-5 without a DLP factor."""
-    workload = src.CTExamWorkload("head", 1200.0, 1.0)
-    result = src.ct_source([workload], 1.0)
-    assert math.isclose(result.total_unshielded(), 0.108, rel_tol=1e-12)
-
-
-def test_ct_body_normalization_is_four_times_previous_value():
-    """NCRP 147 Eq. 5.10: body CT uses 1.2*3e-4, four times old 9e-5."""
-    workload = src.CTExamWorkload("body_average", 550.0, 1.0)
-    corrected = src.ct_source([workload], 1.0).total_unshielded()
-    previous = 9.0e-5 * 550.0
-    assert math.isclose(corrected, 0.198, rel_tol=1e-12)
-    assert math.isclose(corrected, 4.0 * previous, rel_tol=1e-12)
-
-
-def test_ct_mixed_ncrp147_worked_example():
-    """NCRP 147 worked example: 150 body and 30 head exams at 3 m."""
-    workloads = [
-        src.CTExamWorkload("body_average", 770.0, 150.0),
-        src.CTExamWorkload("head", 1680.0, 30.0),
-    ]
-    source = src.ct_source(workloads, 3.0)
-    assert math.isclose(source.components[0].unshielded, 4.62, rel_tol=1e-12)
-    assert math.isclose(source.components[1].unshielded, 0.504, rel_tol=1e-12)
-    assert math.isclose(source.total_unshielded(), 5.124, rel_tol=1e-12)
-    assert [component.name for component in source.components] == [
-        "scatter (body_average)", "scatter (head)",
-    ]
-
-    rounded_example = (0.28 * 150.0 + 0.15 * 30.0) / 9.0
-    assert round(rounded_example, 1) == 5.2
-
-    goal = reg.design_goal("NCRP", "uncontrolled", occupancy_T=1.0)
-    evaluation = solver.evaluate(source, ba.Barrier(), goal)
-    assert math.isclose(evaluation.transmitted_secondary, 5.124, rel_tol=1e-12)
-
-
-def test_ct_unknown_exam_type_fails():
-    """An unknown exam must not silently inherit head or body normalization."""
-    workload = src.CTExamWorkload("unknown", 550.0, 1.0)
-    try:
-        src.ct_source([workload], 1.0)
-    except ValueError as exc:
-        assert "Unknown CT exam type 'unknown'" in str(exc)
-    else:
-        raise AssertionError("unknown CT exam type did not raise ValueError")
-
-
 def test_pet_511kev_lead_tvl():
     """F-18 (511 keV) lead TVL ~15.4 mm (Oumano 2025): 15.4 mm -> B~0.1."""
     beam = bm.Beam(kind=bm.KIND_RADIONUCLIDE, nuclide="F-18")

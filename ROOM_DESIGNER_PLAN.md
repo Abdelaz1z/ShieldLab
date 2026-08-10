@@ -1,4 +1,9 @@
-# ShieldLab Room Designer — Implementation Plan (for Opus to execute)
+# ShieldLab Room Designer — implemented design record
+
+> **Implementation complete (audited 2026-08-08).** The analytical design/check flow, scalar
+> surrogate, corner screening, 3-D field tier, diagram, and report outputs are implemented. Current
+> sources are pages/1_Room_Designer.py and shieldlab/room/; the regression suite has 46 passing
+> tests. The original plan below is retained for design provenance, not as an execution checklist.
 *Written by Fable 5, 2026-07-04, per the user's spec. This is the ShieldCAD MVP living inside ShieldLab
 (this repo). The user draws/parametrizes a room, places the source, and the app either SUGGESTS the
 shielding per wall (Design mode) or EVALUATES the user's declared shielding (Check mode), with a live

@@ -68,7 +68,7 @@ def evaluate(source: src.SourceTerm, barrier: ba.Barrier,
         B = barrier.transmission(c.beam)
         transmitted = c.unshielded * B
         comp_results.append(ComponentResult(c.name, c.unshielded, B, transmitted, c.detail))
-        if c.name in secondary_names or c.name.startswith("scatter ("):
+        if c.name in secondary_names:
             transmitted_secondary += transmitted
 
     transmitted_total = sum(cr.transmitted for cr in comp_results)

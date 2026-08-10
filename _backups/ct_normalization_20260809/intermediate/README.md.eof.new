@@ -108,3 +108,4 @@ PROGRESS.md             development log
 ## 6. Limitations (read the app's **Limitations** tab)
 
 Photons only — **LINAC > 10 MV photoneutrons are not modelled** (warned, with guidance). Multi-layer transmission is the product of per-layer broad-beam factors (slightly conservative). CT uses NCRP 147's separate head/body normalization; replace it with scanner isodose data when available, and enter DLP including any contrast or repeated acquisitions because no automatic multiplier is applied. Skyshine/ducts/maze are qualitative in v1.0. **A qualified expert must review any design used for construction.**
+

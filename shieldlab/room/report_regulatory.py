@@ -18,7 +18,6 @@ which keeps fonts, tables and the plan-view image intact without a PDF font depe
 from __future__ import annotations
 
 import base64
-import datetime as _dt
 import html
 from typing import Dict, Optional
 
@@ -34,21 +33,30 @@ def _esc(x) -> str:
     return html.escape("" if x is None else str(x))
 
 
-def _rows_table(rows) -> str:
-    head = ("<tr><th>Barrier</th><th>Material</th><th>Thickness (mm)</th>"
-            "<th>Dose (mSv/wk)</th><th>Limit P/T (mSv/wk)</th><th>Margin</th>"
-            "<th>Method tier</th><th>Verdict</th></tr>")
+def _rows_table(rows, units: Dict[str, str]) -> str:
+    dose_unit = _esc(units.get("dose", "mSv/week"))
+    goal_unit = _esc(units.get("goal", "mSv/week"))
+    head = (
+        "<tr><th>Barrier</th><th>Material</th><th>Thickness (mm)</th>"
+        f"<th>Dose ({dose_unit})</th><th>Limit P/T ({goal_unit})</th><th>Margin</th>"
+        "<th>Method tier</th><th>Verdict</th></tr>"
+    )
     body = ""
     for r in rows:
         v = r.get("verdict", "—")
-        colour = {"PASS": "#1b5e20", "FAIL": "#b71c1c"}.get(v, "#8a6d1b")
+        display_verdict = "REVIEW REQUIRED" if v in ("MARGINAL", "REVIEW") else v
+        colour = {
+            "PASS": "#1b5e20",
+            "FAIL": "#b71c1c",
+            "REVIEW": "#8a5a00",
+        }.get(v, "#8a6d1b")
         thick = r.get("suggested_mm") if r.get("suggested_mm") not in (None, "—") else "as declared"
         body += (
             f"<tr><td class='l'>{_esc(r.get('barrier'))}</td>"
             f"<td>{_esc(r.get('material'))}</td><td>{_esc(thick)}</td>"
-            f"<td>{_esc(r.get('dose_mSv_wk'))}</td><td>{_esc(r.get('limit_mSv_wk'))}</td>"
+            f"<td>{_esc(r.get('dose_mSv_wk'))}</td><td>{_esc(r.get('limit_weekly'))}</td>"
             f"<td>{_esc(r.get('margin'))}</td><td>{_esc(r.get('tier'))}</td>"
-            f"<td style='color:{colour};font-weight:700'>{_esc(v)}</td></tr>")
+            f"<td style='color:{colour};font-weight:700'>{_esc(display_verdict)}</td></tr>")
     return f"<table>{head}{body}</table>"
 
 
@@ -85,7 +93,19 @@ def build_submission_html(report: Dict, meta: Dict,
     """
     s = report.get("summary", {}) or {}
     status = s.get("status", "—")
-    colour = {"PASS": "#1b5e20", "FAIL": "#b71c1c", "MARGINAL": "#8a5a00"}.get(status, "#333")
+    status_label = (
+        "REVIEW REQUIRED" if status in ("MARGINAL", "REVIEW") else status
+    )
+    colour = {
+        "PASS": "#1b5e20",
+        "FAIL": "#b71c1c",
+        "MARGINAL": "#8a5a00",
+        "REVIEW": "#8a5a00",
+    }.get(status, "#333")
+    units = report.get("units") or {
+        "dose": "mSv/week",
+        "goal": "mSv/week",
+    }
 
     inputs_html = "".join(
         f"<tr><td class='l'>{_esc(k)}</td><td>{_esc(v)}</td></tr>"
@@ -130,13 +150,18 @@ def build_submission_html(report: Dict, meta: Dict,
             "<b>Declaration.</b> I confirm that the inputs above reflect the intended use of this "
             "room and that the shielding specified meets the stated design goals under the cited "
             "regulatory framework.")
+    elif status in ("MARGINAL", "REVIEW"):
+        declaration_html = (
+            "<b>Declaration — review required.</b> I confirm that the inputs above reflect the intended use "
+            "of this room. Approval remains pending because one or more paths require independent "
+            "engineering or model-assurance review. This is not a declaration of compliance.")
     else:
         declaration_html = (
             f"<b>Declaration.</b> I confirm that the inputs above reflect the intended use of this "
-            f"room. The overall assessment is <b>{_esc(status)}</b>: the shielding as specified does "
-            f"<b>not</b> meet all stated design goals under the cited regulatory framework "
-            f"(see sections 6 and 7). This submission documents the assessment and the outstanding "
-            f"items; it is not a declaration of compliance.")
+            f"room. The overall assessment is <b>{_esc(status_label)}</b>: the shielding as "
+            f"specified does <b>not</b> meet all stated design goals under the cited regulatory "
+            f"framework (see sections 6 and 7). This submission documents the assessment and the "
+            f"outstanding items; it is not a declaration of compliance.")
 
     diagram_html = ""
     if report.get("diagram_png"):
@@ -184,7 +209,7 @@ annual dose constraints of IAEA GSR Part 3 as adopted by the Saudi NRRC, apporti
 basis. The design goal applied to each barrier is the area's constraint <i>P</i> divided by its
 occupancy factor <i>T</i>; both are listed per barrier in section 5 and were selected from the
 NCRP occupancy table or entered explicitly.</p>
-<div class="band"><b>Overall assessment: {_esc(status)}</b> — {_esc(s.get('message'))}</div>
+<div class="band"><b>Overall assessment: {_esc(status_label)}</b> — {_esc(s.get('message'))}</div>
 
 <h2>3. Design assumptions and inputs</h2>
 <table>{inputs_html}</table>
@@ -202,10 +227,11 @@ broad-beam model carries no geometric term for them.</p>
 <ul>{refs_html}</ul>
 
 <h2>6. Barrier-by-barrier compliance</h2>
-{_rows_table(report.get('rows') or [])}
+{_rows_table(report.get('rows') or [], units)}
 <p class="muted">Dose is the calculated weekly dose at the point of protection (0.3 m beyond the
 barrier); the limit is the area's design goal divided by its occupancy factor. Margin is the ratio
-of limit to calculated dose; a value below 1 indicates non-compliance.</p>
+of limit to calculated dose; a value below 1 indicates non-compliance.
+{_esc(report.get('unit_note'))}</p>
 
 <h2>7. Findings</h2>
 <ul>{findings_html}</ul>

@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import datetime
 import html
-from typing import List
-
 from .. import data_loader as dl
 
 
@@ -24,7 +22,7 @@ def _row(cells, tag="td"):
 
 
 def build_html(*, source, barrier, goal, evaluation,
-               inputs: dict, prepared_by: str = "Abdelaziz Habib",
+               inputs: dict, prepared_by: str = "",
                facility: str = "") -> str:
     """Return a complete HTML document string for the calculation.
 
@@ -39,8 +37,16 @@ def build_html(*, source, barrier, goal, evaluation,
     """
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     verdict = evaluation.verdict
-    verdict_color = "#1a7f37" if verdict.acceptable else "#cf222e"
-    verdict_word = "ACCEPTABLE" if verdict.acceptable else "NOT ACCEPTABLE"
+    review_required = verdict.acceptable and verdict.margin_ratio < 1.20
+    if review_required:
+        verdict_color = "#8a5a00"
+        verdict_word = "REVIEW REQUIRED"
+    elif verdict.acceptable:
+        verdict_color = "#1a7f37"
+        verdict_word = "PASS"
+    else:
+        verdict_color = "#cf222e"
+        verdict_word = "FAIL"
 
     # input rows
     input_rows = "".join(_row([html.escape(str(k)), html.escape(str(v))])
@@ -127,7 +133,7 @@ review any design used for construction. Photons only; LINAC &gt; 10 MV neutron 
 
 
 def build_pdf_summary(*, source, barrier, goal, evaluation, inputs: dict,
-                      prepared_by: str = "Abdelaziz Habib", facility: str = "") -> bytes:
+                      prepared_by: str = "", facility: str = "") -> bytes:
     """Return a clean, one-page decision summary for the core calculator."""
     from fpdf import FPDF
 
@@ -137,8 +143,12 @@ def build_pdf_summary(*, source, barrier, goal, evaluation, inputs: dict,
     margin = evaluation.verdict.margin_ratio
     status = "PASS" if evaluation.verdict.acceptable else "FAIL"
     if evaluation.verdict.acceptable and margin < 1.20:
-        status = "MARGINAL"
-    colors = {"PASS": (31, 122, 61), "FAIL": (190, 45, 45), "MARGINAL": (185, 122, 0)}
+        status = "REVIEW"
+    colors = {
+        "PASS": (31, 122, 61),
+        "FAIL": (190, 45, 45),
+        "REVIEW": (185, 122, 0),
+    }
     red, green, blue = colors[status]
     limit = goal.P_weekly / goal.occupancy_T
 
@@ -155,7 +165,8 @@ def build_pdf_summary(*, source, barrier, goal, evaluation, inputs: dict,
     pdf.set_fill_color(red, green, blue)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 18)
-    pdf.cell(0, 14, status, fill=True, align="C", ln=1)
+    display_status = "REVIEW REQUIRED" if status == "REVIEW" else status
+    pdf.cell(0, 14, display_status, fill=True, align="C", ln=1)
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Helvetica", "", 9)
     pdf.multi_cell(0, 5, evaluation.verdict.message.replace("≤", "<="), align="C")
@@ -166,10 +177,12 @@ def build_pdf_summary(*, source, barrier, goal, evaluation, inputs: dict,
     pdf.set_font("Helvetica", "", 9)
     values = [
         ("Transmitted total", f"{evaluation.transmitted_total:.4g} {source.unit}"),
-        ("Regulatory design goal / T", f"{limit:.4g} {source.unit}"),
+        ("Regulatory design goal / T", f"{limit:.4g} {goal.unit}"),
         ("Safety margin", f"{margin:.2f}x"),
         ("AI 95% confidence interval", "Not applicable - analytical calculation"),
     ]
+    if source.unit != goal.unit:
+        values.append(("Photon unit basis", "1 mGy ~ 1 mSv for photons"))
     pdf.set_fill_color(245, 247, 250)
     for label, value in values:
         pdf.cell(60, 7, label, border=1, fill=True)
