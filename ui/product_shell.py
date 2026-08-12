@@ -134,7 +134,9 @@ def _active_workspace_html(active_label: str) -> str:
     return (
         f'<div class="sl-sidebar-context" {i18n.html_attributes()}>'
         f'<span>{escape(i18n.t("active_workspace"))}</span>'
-        f'<strong>{escape(active_label)}</strong></div>'
+        f'<strong>{escape(active_label)}</strong>'
+        f'<small class="sl-sidebar-status">{escape(i18n.t("decision_support"))}</small>'
+        "</div>"
     )
 
 

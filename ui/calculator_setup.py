@@ -37,14 +37,13 @@ class CalculatorSetup:
 
 
 def _sidebar_step(number: str, title: str, description: str) -> None:
+    """Render a compact, consistently styled setup milestone in the product rail."""
     st.sidebar.markdown(
-        f'<div style="margin:18px 0 8px">'
-        f'<div style="color:var(--sl-sidebar-accent);font-size:13px;font-weight:800;letter-spacing:.12em">'
-        f'{escape(t("step", number=number))}</div>'
-        f'<div style="color:var(--sl-sidebar-ink);font-size:16px;font-weight:750;margin-top:2px">'
-        f'{escape(title)}</div>'
-        f'<div style="color:var(--sl-sidebar-soft);font-size:14px;line-height:1.5;margin-top:3px">'
-        f'{escape(description)}</div></div>',
+        f'<section class="sl-sidebar-step">'
+        f'<div class="sl-sidebar-step-index">{escape(t("step", number=number))}</div>'
+        f'<div class="sl-sidebar-step-title">{escape(title)}</div>'
+        f'<div class="sl-sidebar-step-copy">{escape(description)}</div>'
+        "</section>",
         unsafe_allow_html=True,
     )
 

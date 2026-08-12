@@ -302,12 +302,16 @@ def _render_reports(assessment: CalculatorAssessment) -> None:
 
 
 def render(assessment: CalculatorAssessment) -> None:
-    st.markdown(f"## {t('compliance_decision')}")
-    _render_decision(assessment)
-    _render_metrics(assessment)
-    evidence_tab, options_tab, report_tab = st.tabs(
-        [t("tab_evidence"), t("tab_materials"), t("tab_report")]
-    )
+    # The decision receives its own visual surface; supporting proof follows below.
+    with st.container(border=True, key="sl_decision_panel"):
+        st.markdown(f"## {t('compliance_decision')}")
+        _render_decision(assessment)
+        _render_metrics(assessment)
+
+    with st.container(key="sl_result_tabs"):
+        evidence_tab, options_tab, report_tab = st.tabs(
+            [t("tab_evidence"), t("tab_materials"), t("tab_report")]
+        )
     with evidence_tab:
         _render_evidence(assessment)
     with options_tab:
