@@ -1,19 +1,40 @@
 # ShieldLab Streamlit runtime config (used both locally and in the container).
+
+
+
 [server]
+
 headless = true
+
 address = "0.0.0.0"
+
 port = 8501
+
 # XSRF protection stays ON; Streamlit therefore enforces compatible CORS.
+
 enableCORS = true
+
 enableXsrfProtection = true
 
+
+
 [browser]
+
 gatherUsageStats = false
 
+
+
 [theme]
+
 base = "light"
-primaryColor = "#006574"
-backgroundColor = "#E8EEF2"
+
+primaryColor = "#0B7285"
+
+backgroundColor = "#F6F8FB"
+
 secondaryBackgroundColor = "#FFFFFF"
-textColor = "#071C27"
+
+textColor = "#102A43"
+
 font = "sans-serif"
+
