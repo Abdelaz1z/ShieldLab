@@ -39,11 +39,11 @@ class CalculatorSetup:
 def _sidebar_step(number: str, title: str, description: str) -> None:
     st.sidebar.markdown(
         f'<div style="margin:18px 0 8px">'
-        f'<div style="color:#76aeb4;font-size:13px;font-weight:800;letter-spacing:.12em">'
+        f'<div style="color:var(--sl-sidebar-accent);font-size:13px;font-weight:800;letter-spacing:.12em">'
         f'{escape(t("step", number=number))}</div>'
-        f'<div style="color:#fff;font-size:16px;font-weight:750;margin-top:2px">'
+        f'<div style="color:var(--sl-sidebar-ink);font-size:16px;font-weight:750;margin-top:2px">'
         f'{escape(title)}</div>'
-        f'<div style="color:#9fb3bf;font-size:14px;line-height:1.5;margin-top:3px">'
+        f'<div style="color:var(--sl-sidebar-soft);font-size:14px;line-height:1.5;margin-top:3px">'
         f'{escape(description)}</div></div>',
         unsafe_allow_html=True,
     )
@@ -294,8 +294,3 @@ def barrier_builder() -> ba.Barrier:
         f"{t('areal_load')} ≈ **{barrier.areal_density_kg_m2():,.0f} kg/m²**"
     )
     return barrier
-
-
-
-
-

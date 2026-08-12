@@ -543,7 +543,7 @@ def to_html(report: Dict) -> bytes:
             f"<td>{_html_text(row['suggested_mm'])}</td>"
             f"<td>{_html_text(row['B_achieved'])}</td>"
             f"<td>{_html_text(row['B_surrogate'])} "
-            "<span style='color:#666;font-size:11px'>"
+            "<span style='color:#666;font-size:13px'>"
             f"{_html_text(row['surrogate_CI95'])}</span></td>"
             f"<td>{_html_text(row['dose_mSv_wk'])}</td>"
             f"<td>{_html_text(row['limit_weekly'])}</td>"
@@ -570,7 +570,7 @@ def to_html(report: Dict) -> bytes:
  table{{border-collapse:collapse;margin:12px 0}}
  td,th{{border:1px solid #ccc;padding:5px 9px;font-size:13px}}
  th{{background:#305496;color:#fff}}
- .note{{color:#666;font-size:11px;font-style:italic;max-width:720px}}
+ .note{{color:#666;font-size:13px;font-style:italic;max-width:720px}}
 </style></head><body>
 <h1>{_html_text(report['title'])}</h1>
 <div class="sub">{_html_text(report['mode'])} &nbsp;|&nbsp; generated {_html_text(report['timestamp'])}</div>
@@ -597,4 +597,3 @@ def export(report: Dict, fmt: str) -> tuple:
         return (to_xlsx(report),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlsx")
     return to_html(report), "text/html", "html"
-
