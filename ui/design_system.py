@@ -1362,7 +1362,12 @@ code, kbd, samp, .stDataFrame {
 /* Product rail */
 [data-testid="stSidebar"] { background: radial-gradient(circle at 0 0, rgba(22,130,143,.42), transparent 19rem), linear-gradient(180deg, #0a273a, var(--sl-navy-deep) 74%); border-inline-end-color: #264b5e; }
 [data-testid="stSidebarContent"] { padding-inline: .92rem; }
-.sl-brand { gap: 11px; margin: .2rem 0 .7rem; padding: .52rem .18rem 1rem; border-bottom: 1px solid rgba(173,221,225,.22); }
+.sl-brand { gap: 11px; margin: .2rem 0 .7rem; padding: .52rem .18rem .7rem; }
+.st-key-sl_language_top { display: flex; justify-content: flex-end; padding-top: .54rem; }
+.st-key-sl_language_top .stButtonGroup { width: auto; margin: 0; }
+.st-key-sl_language_top .stButtonGroup [data-baseweb="button-group"] { width: auto; min-width: 66px; padding: 2px; background: rgba(5, 26, 40, .64); border-color: rgba(143, 219, 224, .38); border-radius: 9px; }
+.st-key-sl_language_top .stButtonGroup button { min-width: 28px; min-height: 27px; padding: 2px 6px; color: #c6e7ea; border-radius: 7px; font-size: 11px; font-weight: 780; line-height: 1; }
+.st-key-sl_language_top .stButtonGroup button[aria-checked="true"] { color: #073e4b; background: #c7f1f2; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
 .sl-brand-mark { width: 46px; height: 46px; flex-basis: 46px; padding: 5px; background: linear-gradient(145deg,#f8ffff,#d6f2f4); border-color: rgba(186,245,247,.92); border-radius: 13px; box-shadow: 0 10px 24px rgba(0,0,0,.24), inset 0 0 0 1px rgba(8,122,134,.08); }
 .sl-brand-copy strong { font-size: 19px; letter-spacing: -.035em; }
 .sl-brand-copy span { color: #a7d3d8; font-size: 10px; letter-spacing: .095em; }

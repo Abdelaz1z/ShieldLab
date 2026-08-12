@@ -148,8 +148,12 @@ def render_sidebar(active_workspace: str) -> None:
     active_message_key = workspace_keys.get(active_workspace)
     active_label = i18n.t(active_message_key) if active_message_key else str(active_workspace)
     with st.sidebar:
-        st.markdown(_brand_html(), unsafe_allow_html=True)
-        i18n.render_language_switcher()
+        brand_col, language_col = st.columns([1, 0.38], gap="small")
+        with brand_col:
+            st.markdown(_brand_html(), unsafe_allow_html=True)
+        with language_col:
+            with st.container(key="sl_language_top"):
+                i18n.render_language_switcher(compact=True)
         st.markdown(
             f'<div class="sl-sidebar-label" {i18n.html_attributes()}>'
             f'{escape(i18n.t("workspaces"))}</div>',
