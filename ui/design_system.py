@@ -13,25 +13,26 @@ from typing import Sequence
 import streamlit as st
 
 from . import i18n
+from .brand import sl_mark_svg
 
 
 _STYLES = r"""
 <style>
 :root {
-  --sl-canvas: #e8eef2;
-  --sl-surface: #ffffff;
-  --sl-surface-muted: #dce5e9;
-  --sl-ink: #071c27;
-  --sl-ink-soft: #304b58;
-  --sl-border: #7c95a1;
-  --sl-border-strong: #607d8a;
-  --sl-navy: #0b2a3c;
-  --sl-navy-deep: #061722;
-  --sl-teal: #006574;
-  --sl-teal-hover: #004f5c;
-  --sl-cyan: #20b8c6;
-  --sl-cyan-soft: #8de7ec;
-  --sl-violet: #6557d6;
+  --sl-canvas: #F6F8FB;
+  --sl-surface: #FFFFFF;
+  --sl-surface-muted: #EAF0F5;
+  --sl-ink: #102A43;
+  --sl-ink-soft: #3E566B;
+  --sl-border: #C4D1DC;
+  --sl-border-strong: #879CAB;
+  --sl-navy: #102A43;
+  --sl-navy-deep: #0B2438;
+  --sl-teal: #0B7285;
+  --sl-teal-hover: #075D6A;
+  --sl-cyan: #2B9CAC;
+  --sl-cyan-soft: #9BD8DE;
+  --sl-violet: #52697D;
   --sl-amber: #e59b26;
   --sl-blue: #0f527f;
   --sl-pass: #0a472e;
@@ -76,10 +77,7 @@ html {
 
 body,
 .stApp {
-  background:
-    radial-gradient(circle at 82% 5%, rgba(32, 184, 198, 0.14), transparent 28rem),
-    radial-gradient(circle at 10% 42%, rgba(101, 87, 214, 0.08), transparent 24rem),
-    var(--sl-canvas);
+  background: var(--sl-canvas);
   color: var(--sl-ink);
   font-family: var(--sl-font-sans);
   font-size: var(--sl-text-base);
@@ -173,9 +171,7 @@ samp {
 
 /* Sidebar: product navigation first, assessment setup second. */
 [data-testid="stSidebar"] {
-  background:
-    radial-gradient(circle at 25% 2%, rgba(32, 184, 198, 0.22), transparent 16rem),
-    linear-gradient(180deg, #071f2d 0%, var(--sl-navy-deep) 62%, #04131c 100%);
+  background: var(--sl-navy-deep);
   border-inline-end: 1px solid #345365;
 }
 
@@ -240,15 +236,21 @@ samp {
 
 .sl-brand-mark {
   display: grid;
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
+  padding: 5px;
   place-items: center;
-  flex: 0 0 46px;
-  color: #ffffff;
-  background: linear-gradient(145deg, #21b6c2, #00606f 64%, #184b7a);
-  border: 1px solid #74b9c0;
-  border-radius: 13px;
-  box-shadow: 0 0 0 4px rgba(141, 231, 236, 0.10), 0 12px 28px rgba(0, 0, 0, 0.28);
+  flex: 0 0 48px;
+  background: #ffffff;
+  border: 1px solid #6D899A;
+  border-radius: 10px;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.18);
+}
+
+.sl-brand-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .sl-brand-copy strong {
@@ -354,13 +356,10 @@ samp {
   margin: 2px 0 28px;
   padding: clamp(28px, 4vw, 48px);
   color: #ffffff;
-  background:
-    radial-gradient(circle at 82% 30%, rgba(32, 184, 198, 0.32), transparent 19rem),
-    radial-gradient(circle at 8% 110%, rgba(101, 87, 214, 0.32), transparent 22rem),
-    linear-gradient(125deg, #061a28 0%, #0a3043 54%, #075762 100%);
-  border: 1px solid #477789;
-  border-radius: 26px;
-  box-shadow: 0 28px 70px rgba(7, 28, 39, 0.25);
+  background: var(--sl-navy);
+  border: 1px solid #416277;
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(16, 42, 67, 0.18);
 }
 
 .sl-page-header::before {
@@ -377,17 +376,7 @@ samp {
 }
 
 .sl-page-header::after {
-  position: absolute;
-  z-index: -1;
-  width: 240px;
-  height: 240px;
-  inset-block-start: -110px;
-  inset-inline-start: -90px;
-  background: var(--sl-violet);
-  border-radius: 50%;
-  content: "";
-  filter: blur(95px);
-  opacity: 0.26;
+  display: none;
 }
 
 .sl-hero-copy {
@@ -535,6 +524,25 @@ samp {
 
 .sl-orbit-core svg {
   transform: rotate(-4deg);
+}
+
+/* Selected ShieldLab structural SL monogram. */
+.sl-hero-mark-panel {
+  display: grid;
+  width: 164px;
+  height: 164px;
+  padding: 21px;
+  place-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(155, 216, 222, 0.82);
+  border-radius: 18px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+}
+
+.sl-hero-mark {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 @keyframes sl-orbit-spin {
@@ -1369,17 +1377,7 @@ def page_header(
             {badge_row}
           </div>
           <div class="sl-hero-visual" aria-hidden="true">
-            <div class="sl-orbit-ring one"></div>
-            <div class="sl-orbit-ring two"></div>
-            <div class="sl-orbit-ring three"></div>
-            <div class="sl-orbit-core">
-              <svg viewBox="0 0 24 24" width="38" height="38" fill="none"
-                   stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
-                   stroke-linejoin="round" focusable="false">
-                <path d="M12 2.8 20 6v5.4c0 5.1-3.2 8.2-8 9.8-4.8-1.6-8-4.7-8-9.8V6l8-3.2Z"/>
-                <path d="m8.6 12.1 2.1 2.2 4.8-5"/>
-              </svg>
-            </div>
+            <div class="sl-hero-mark-panel">{sl_mark_svg("sl-hero-mark", "ShieldLab")}</div>
           </div>
         </header>
         """,

@@ -5,6 +5,7 @@ from html import escape
 import streamlit as st
 
 from . import i18n
+from .brand import sl_mark_svg
 from .design_system import (
     assurance_note,
     empty_state,
@@ -120,14 +121,7 @@ def _workspace_links() -> None:
 def _brand_html() -> str:
     return f"""
     <div class="sl-brand" {i18n.html_attributes()}>
-      <div class="sl-brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none"
-             stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-             stroke-linejoin="round" aria-hidden="true" focusable="false">
-          <path d="M12 2.8 20 6v5.4c0 5.1-3.2 8.2-8 9.8-4.8-1.6-8-4.7-8-9.8V6l8-3.2Z"/>
-          <path d="m8.6 12.1 2.1 2.2 4.8-5"/>
-        </svg>
-      </div>
+      <div class="sl-brand-mark">{sl_mark_svg("sl-brand-logo", "ShieldLab")}</div>
       <div class="sl-brand-copy">
         <strong translate="no">ShieldLab</strong>
         <span>{escape(i18n.t("brand_subtitle"))}</span>
