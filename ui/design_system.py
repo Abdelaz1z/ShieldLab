@@ -1442,11 +1442,16 @@ button[kind="primary"], .stDownloadButton > button[kind="primary"] { background:
 [data-testid="stDataFrame"], [data-testid="stTable"] { border-color: #d1e0e5; border-radius: 13px; box-shadow: 0 6px 16px rgba(11,36,56,.045); }
 [data-testid="stExpander"] { border-color: #d3e1e6; border-radius: 13px; }
 
-/* Room design command center */
-.st-key-sl_command_bar > [data-testid="stVerticalBlockBorderWrapper"] { padding: 8px 12px; background: linear-gradient(100deg,#0d2d42,#135068); border-color: #326b7e; box-shadow: 0 12px 28px rgba(8,29,45,.13); }
-.st-key-sl_command_bar [data-testid="stWidgetLabel"] p { color: #b9dce1; }
-.st-key-sl_command_bar div[data-baseweb="input"] > div, .st-key-sl_command_bar div[data-baseweb="select"] > div { background: rgba(255,255,255,.95); }
-.st-key-sl_command_bar .stDownloadButton > button { color: #eaffff; background: transparent; border-color: #78b6c1; }
+/* Room design command center — light surface, dark readable text, one teal action state */
+.st-key-sl_command_bar > [data-testid="stVerticalBlockBorderWrapper"] { padding: 12px; background: #f2f7f9; border-color: #b9cdd6; box-shadow: 0 10px 24px rgba(8,29,45,.10); }
+.st-key-sl_command_bar [data-testid="stWidgetLabel"] p { color: #17324d !important; font-size: 11px; font-weight: 800; letter-spacing: .06em; opacity: 1; }
+.st-key-sl_command_bar [data-testid="stRadio"] label, .st-key-sl_command_bar [data-testid="stRadio"] label p { color: #17324d !important; font-weight: 700; opacity: 1; }
+.st-key-sl_command_bar [data-testid="stRadio"] input { accent-color: #087e8b; }
+.st-key-sl_command_bar div[data-baseweb="input"] > div, .st-key-sl_command_bar div[data-baseweb="select"] > div { color: #17324d !important; background: #ffffff; border-color: #b8cbd3; }
+.st-key-sl_command_bar div[data-baseweb="select"] [role="combobox"], .st-key-sl_command_bar div[data-baseweb="select"] svg { color: #17324d !important; fill: currentColor; opacity: 1; }
+.st-key-sl_command_bar .stButton > button, .st-key-sl_command_bar .stDownloadButton > button { color: #17324d !important; background: #ffffff; border-color: #a9c1cb; box-shadow: none; font-weight: 750; }
+.st-key-sl_command_bar .stButton > button:hover, .st-key-sl_command_bar .stDownloadButton > button:hover { color: #075f6b !important; background: #dff3f4; border-color: #087e8b; box-shadow: 0 5px 12px rgba(8,126,139,.16); }
+.st-key-sl_command_bar .stButton > button:focus-visible, .st-key-sl_command_bar .stDownloadButton > button:focus-visible { outline: 3px solid #7be2e7; outline-offset: 2px; }
 .st-key-sl_room_preview > [data-testid="stVerticalBlockBorderWrapper"] { background: linear-gradient(150deg,#fafdfe,#eaf4f6); border-color: #bcd2da; box-shadow: 0 15px 34px rgba(11,36,56,.09); }
 
 .st-key-sl_decision_panel > [data-testid="stVerticalBlockBorderWrapper"] { position: relative; overflow: hidden; padding: 4px; background: linear-gradient(135deg,#fff,#f3f9fa); border-color: #bcd7df; box-shadow: 0 16px 34px rgba(11,36,56,.10); }
