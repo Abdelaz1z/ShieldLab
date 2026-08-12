@@ -1365,9 +1365,12 @@ code, kbd, samp, .stDataFrame {
 .sl-brand { gap: 11px; margin: .2rem 0 .7rem; padding: .52rem .18rem .7rem; }
 .st-key-sl_language_top { display: flex; justify-content: flex-end; padding-top: .54rem; }
 .st-key-sl_language_top .stButtonGroup { width: auto; margin: 0; }
-.st-key-sl_language_top .stButtonGroup [data-baseweb="button-group"] { width: auto; min-width: 66px; padding: 2px; background: rgba(5, 26, 40, .64); border-color: rgba(143, 219, 224, .38); border-radius: 9px; }
-.st-key-sl_language_top .stButtonGroup button { min-width: 28px; min-height: 27px; padding: 2px 6px; color: #c6e7ea; border-radius: 7px; font-size: 11px; font-weight: 780; line-height: 1; }
-.st-key-sl_language_top .stButtonGroup button[aria-checked="true"] { color: #073e4b; background: #c7f1f2; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+.st-key-sl_language_top .stButtonGroup [data-baseweb="button-group"] { width: auto; min-width: 72px; gap: 3px; padding: 3px; background: rgba(4, 23, 36, .82); border-color: rgba(177, 237, 240, .62); border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(5, 53, 69, .7), 0 4px 12px rgba(0,0,0,.18); }
+.st-key-sl_language_top .stButtonGroup button { min-width: 31px; min-height: 29px; padding: 2px 7px; color: #e7fbfc !important; background: rgba(102, 190, 197, .14); border: 1px solid rgba(173, 235, 238, .30); border-radius: 7px; font-size: 11px; font-weight: 800; line-height: 1; }
+.st-key-sl_language_top .stButtonGroup button * { color: #e7fbfc !important; }
+.st-key-sl_language_top .stButtonGroup button[aria-checked="true"] { color: #062f3a !important; background: #f4ffff; border-color: #ffffff; box-shadow: 0 2px 7px rgba(0,0,0,.26); }
+.st-key-sl_language_top .stButtonGroup button[aria-checked="true"] * { color: #062f3a !important; }
+.st-key-sl_language_top .stButtonGroup button:focus-visible { outline: 2px solid #8ff0f2; outline-offset: 2px; }
 .sl-brand-mark { width: 46px; height: 46px; flex-basis: 46px; padding: 5px; background: linear-gradient(145deg,#f8ffff,#d6f2f4); border-color: rgba(186,245,247,.92); border-radius: 13px; box-shadow: 0 10px 24px rgba(0,0,0,.24), inset 0 0 0 1px rgba(8,122,134,.08); }
 .sl-brand-copy strong { font-size: 19px; letter-spacing: -.035em; }
 .sl-brand-copy span { color: #a7d3d8; font-size: 10px; letter-spacing: .095em; }
