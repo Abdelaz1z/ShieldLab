@@ -1471,6 +1471,79 @@ button[kind="primary"], .stDownloadButton > button[kind="primary"] { background:
 
 @media (max-width: 1080px) { .sl-context-strip { grid-template-columns: repeat(3,minmax(0,1fr)); } .sl-page-header { grid-template-columns: minmax(0,1fr) 140px; } .sl-hero-visual { width: 134px; } .sl-hero-mark-panel { width: 103px; height: 103px; } }
 @media (max-width: 720px) { [data-testid="stMainBlockContainer"], .block-container { padding-block-start: 1rem; } .sl-page-header { grid-template-columns: 1fr; padding: 25px 21px; } .sl-hero-visual { display: none; } .sl-context-strip { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; } .sl-context-item { min-height: 84px; padding: 12px; } .sl-context-item strong { font-size: 12px; } [data-testid="stMetric"] { min-height: 96px; padding: 13px; } }
+
+/* Visual redesign — calm clinical workspace */
+[data-testid="stHeader"] { height: 3rem; background: rgba(248,250,251,.92); border-bottom-color: #d5e0e5; }
+[data-testid="stMainBlockContainer"], .block-container { max-width: 1500px; padding-block: 1.35rem 4.5rem; }
+
+/* Navigation rail: compact, stable, and task-oriented. */
+[data-testid="stSidebar"] { background: #092638; border-inline-end-color: #1f4a5d; }
+[data-testid="stSidebarContent"] { padding-inline: .78rem; }
+.sl-brand { gap: 9px; margin: .1rem 0 .55rem; padding: .45rem .15rem .55rem; }
+.sl-brand-mark { width: 40px; height: 40px; flex-basis: 40px; padding: 4px; border-radius: 10px; box-shadow: none; }
+.sl-brand-copy strong { font-size: 18px; }
+.sl-brand-copy span { margin-top: 2px; font-size: 9px; letter-spacing: .08em; }
+.sl-sidebar-label { margin: .85rem .2rem .3rem; color: #95bbc2; font-size: 9px; letter-spacing: .12em; }
+[data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] { min-height: 40px; margin-block: 3px; padding: .55rem .65rem; border-radius: 8px; font-size: 12px; }
+[data-testid="stSidebar"] [data-testid="stPageLink-NavLink"]:hover { background: #123d50; border-color: transparent; transform: none; }
+[data-testid="stSidebar"] [data-testid="stPageLink-NavLink"][aria-current="page"] { background: #0d5f6e; border-color: transparent; box-shadow: inset 3px 0 0 #9be5e7; }
+.sl-sidebar-context { margin: .9rem 0 .25rem; padding: 11px; background: rgba(12,49,66,.72); border-color: #27576a; border-radius: 10px; }
+.sl-sidebar-context span { font-size: 9px; letter-spacing: .08em; }
+.sl-sidebar-context strong { margin-top: 3px; font-size: 13px; }
+.sl-sidebar-status { font-size: 9px; letter-spacing: .07em; }
+
+/* Compact workspace masthead: task context, no duplicated logo. */
+.sl-page-header { display: block; min-height: 0; margin: 0 0 16px; padding: 24px 28px 22px; background: linear-gradient(115deg,#0a2a3d,#0d3e53); border-color: #24556a; border-radius: 15px; box-shadow: 0 8px 22px rgba(8,29,45,.13); }
+.sl-page-header::before { display: none; }
+.sl-page-header h1 { max-width: 760px; font-size: clamp(29px,3.1vw,39px); letter-spacing: -.035em; line-height: 1.12; }
+.sl-page-header p { max-width: 760px; margin-top: 8px; color: #d3e1e6; font-size: 14px; line-height: 1.55; }
+.sl-eyebrow { margin-bottom: 6px; color: #a9e2e5; font-size: 9px; letter-spacing: .13em; }
+.sl-eyebrow::before { width: 18px; }
+.sl-badge-row { gap: 6px; margin-top: 13px; }
+.sl-badge { min-height: 24px; padding: 4px 8px; color: #d9eff1; background: rgba(255,255,255,.07); border-color: rgba(174,228,231,.28); border-radius: 999px; font-size: 9px; }
+.sl-badge::before { width: 5px; height: 5px; margin-inline-end: 6px; }
+.sl-hero-visual { display: none; }
+
+/* Compact assessment summary: a single band rather than five competing cards. */
+.sl-context-strip { gap: 0; margin: 0 0 16px; overflow: hidden; background: #ffffff; border: 1px solid #d7e3e8; border-radius: 12px; box-shadow: 0 2px 8px rgba(12,42,57,.045); }
+.sl-context-item { min-height: 68px; padding: 11px 14px; background: transparent; border: 0; border-inline-end: 1px solid #e1eaee; border-radius: 0; box-shadow: none; }
+.sl-context-item:last-child { border-inline-end: 0; }
+.sl-context-item::after { display: none; }
+.sl-context-item span { color: #526d7c; font-size: 9px; letter-spacing: .055em; }
+.sl-context-item strong { margin-top: 3px; color: #17324d; font-size: 12px; line-height: 1.3; }
+
+/* One disciplined form-surface language. */
+[data-testid="stVerticalBlockBorderWrapper"] { border-color: #d6e2e7; border-radius: 13px; box-shadow: 0 2px 8px rgba(12,42,57,.045); }
+.st-key-sl_source_inputs > [data-testid="stVerticalBlockBorderWrapper"], .st-key-sl_barrier_builder > [data-testid="stVerticalBlockBorderWrapper"], .st-key-sl_room_source > [data-testid="stVerticalBlockBorderWrapper"], .st-key-sl_wall_editor > [data-testid="stVerticalBlockBorderWrapper"] { background: #ffffff; border-color: #d1dfe5; border-inline-start: 3px solid #087e8b; }
+.st-key-sl_source_inputs > [data-testid="stVerticalBlockBorderWrapper"]::before, .st-key-sl_barrier_builder > [data-testid="stVerticalBlockBorderWrapper"]::before, .st-key-sl_room_source > [data-testid="stVerticalBlockBorderWrapper"]::before, .st-key-sl_wall_editor > [data-testid="stVerticalBlockBorderWrapper"]::before { display: none; }
+.sl-step-header { gap: 10px; margin-bottom: 12px; }
+.sl-step-number { width: 29px; height: 29px; flex-basis: 29px; border-radius: 8px; font-size: 10px; box-shadow: none; }
+.sl-step-title { font-size: 17px; }
+.sl-step-copy { margin-top: 1px; font-size: 12px; }
+[data-testid="stWidgetLabel"] p { color: #3b5566; font-size: 10px; font-weight: 800; letter-spacing: .045em; }
+div[data-baseweb="input"] > div, div[data-baseweb="select"] > div, div[data-baseweb="base-input"], textarea { min-height: 42px; background: #ffffff; border-color: #bdcfd7; border-radius: 8px; }
+.stButton > button, .stDownloadButton > button, [data-testid="stFormSubmitButton"] > button { min-height: 40px; color: #17324d; background: #ffffff; border-color: #b8cad3; border-radius: 8px; font-size: 12px; box-shadow: none; }
+.stButton > button:hover, .stDownloadButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover { background: #e8f5f5; border-color: #087e8b; box-shadow: none; transform: none; }
+button[kind="primary"], .stDownloadButton > button[kind="primary"] { color: #ffffff; background: #087e8b; border-color: #087e8b; }
+button[kind="primary"]:hover, .stDownloadButton > button[kind="primary"]:hover { color: #ffffff; background: #066a75; border-color: #066a75; }
+
+/* Workspace controls, preview, tabs, and decisions follow the same hierarchy. */
+.st-key-sl_command_bar > [data-testid="stVerticalBlockBorderWrapper"] { padding: 10px 12px; background: #ffffff; border-color: #d6e2e7; box-shadow: 0 2px 8px rgba(12,42,57,.045); }
+.st-key-sl_room_preview > [data-testid="stVerticalBlockBorderWrapper"] { background: #ffffff; border-color: #d6e2e7; box-shadow: 0 2px 8px rgba(12,42,57,.045); }
+.st-key-sl_decision_panel > [data-testid="stVerticalBlockBorderWrapper"] { padding: 0; background: #ffffff; border-color: #cddde4; box-shadow: 0 4px 14px rgba(12,42,57,.07); }
+.st-key-sl_decision_panel > [data-testid="stVerticalBlockBorderWrapper"]::before { width: 4px; background: #087e8b; }
+[data-testid="stTabs"] [data-baseweb="tab-list"] { gap: 0; padding: 0 4px; background: #ffffff; border-color: #d7e3e8; border-radius: 10px; }
+[data-testid="stTabs"] button[data-baseweb="tab"] { min-height: 38px; padding: 7px 12px; color: #496475; font-size: 12px; }
+[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] { color: #075f6b; background: #e9f6f6; border-color: transparent; box-shadow: none; }
+[data-testid="stMetric"] { min-height: 92px; padding: 13px; background: #ffffff; border-color: #d8e4e8; border-radius: 12px; box-shadow: none; }
+[data-testid="stMetric"]::before { width: 22px; height: 2px; inset-inline-start: 13px; }
+[data-testid="stMetricLabel"] p { color: #58707f; font-size: 9px; }
+[data-testid="stMetricValue"] { color: #17324d; font-size: clamp(21px,1.8vw,26px); }
+.sl-status-card { gap: 13px; margin: 10px 0 16px; padding: 18px 20px; border-inline-start-width: 5px; border-radius: 13px; box-shadow: none; }
+.sl-status-symbol { width: 34px; height: 34px; font-size: 16px; }
+
+@media (max-width: 1080px) { .sl-context-strip { grid-template-columns: repeat(3,minmax(0,1fr)); } .sl-context-item:nth-child(3n) { border-inline-end: 0; } }
+@media (max-width: 720px) { [data-testid="stMainBlockContainer"], .block-container { padding-inline: 1rem; } .sl-page-header { padding: 20px 18px; } .sl-page-header h1 { font-size: 29px; } .sl-context-strip { grid-template-columns: repeat(2,minmax(0,1fr)); } .sl-context-item { min-height: 64px; padding: 10px; } .sl-context-item:nth-child(2n) { border-inline-end: 0; } }
 </style>
 """
 
@@ -1515,9 +1588,6 @@ def page_header(
             <h1>{escape(title)}</h1>
             <p>{escape(description)}</p>
             {badge_row}
-          </div>
-          <div class="sl-hero-visual" aria-hidden="true">
-            <div class="sl-hero-mark-panel">{sl_mark_svg("sl-hero-mark", "ShieldLab")}</div>
           </div>
         </header>
         """,
