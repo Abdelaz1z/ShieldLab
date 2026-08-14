@@ -79,66 +79,76 @@ def test_deep_wall_served_with_wide_band():
     assert deep_rel > 3.0 * thin_rel
 
 
-def test_deep_wall_geometry_bias_warning():
-    """mu*x > 8: the surrogate must SAY it is biased low there.
-
-    The training labels came from a finite 0.5 m beam, which under-states lateral scatter at
-    depth by about x2 (measured: x1.90/x1.81/x2.01 at mu*x 8/10/12). That makes the surrogate
-    under-predict dose — the unsafe direction — and neither the OOD guard nor the analytical
-    fallback catches it, so the warning is the only mitigation. It must survive refactors, and
-    it must be on BOTH surrogate returns: the banded one and the deep-tail one whose interval
-    is withdrawn, since the deepest walls of all take the second."""
+def test_2026_08_14_finite_beam_priority_warning_at_mux4():
+    """The mu*x>=4 priority policy must not be presented as a measured physical onset."""
     from shieldlab.room import engines as eng
 
-    # optical depth is summed over layers, in the app's own mu/rho and density
-    mu_per_cm = eng.optical_depth(364.0, [("concrete", 10.0)])          # 10 mm = 1 cm
-    assert 0.20 < mu_per_cm < 0.27, mu_per_cm                            # NIST concrete @364 keV
+    mu_per_cm = eng.optical_depth(364.0, [("concrete", 10.0)])
+    assert 0.20 < mu_per_cm < 0.27, mu_per_cm
     assert eng.optical_depth(511.0, [("concrete", 250.0), ("lead", 20.0)]) > \
            eng.optical_depth(511.0, [("concrete", 250.0)])
-    assert eng.optical_depth(511.0, [("unobtainium", 250.0)]) is None    # unknown -> None, not 0
+    assert eng.optical_depth(511.0, [("unobtainium", 250.0)]) is None
 
-    shallow = _both(_room(iso="F-18", thickness=200))[2]["Wall N"]       # mu*x ~ 4
-    assert shallow.mu_x is not None and shallow.mu_x < eng.GEOMETRY_BIAS_MUX
-    assert shallow.geometry_bias is False
-    assert eng.GEOMETRY_BIAS_WARNING not in shallow.note                 # no crying wolf
+    below_priority_threshold = _both(_room(iso="F-18", thickness=100))[2]["Wall N"]
+    assert below_priority_threshold.mu_x is not None
+    assert below_priority_threshold.mu_x < eng.GEOMETRY_BIAS_MUX
+    assert below_priority_threshold.geometry_bias is False
+    assert eng.GEOMETRY_BIAS_WARNING not in below_priority_threshold.note
 
-    banded = _both(_room(iso="F-18", thickness=500))[2]["Wall N"]        # mu*x ~ 10, banded
+    priority_flagged = _both(_room(iso="F-18", thickness=200))[2]["Wall N"]
+    assert priority_flagged.mu_x >= eng.GEOMETRY_BIAS_MUX
+    assert priority_flagged.geometry_bias is True
+    assert eng.GEOMETRY_BIAS_WARNING in priority_flagged.note
+
+    banded = _both(_room(iso="F-18", thickness=500))[2]["Wall N"]
     assert banded.ci_low is not None, "expected the banded branch"
-    assert banded.mu_x > eng.GEOMETRY_BIAS_MUX and banded.geometry_bias is True
+    assert banded.geometry_bias is True
     assert eng.GEOMETRY_BIAS_WARNING in banded.note
 
-    withdrawn = _both(_room(iso="F-18", thickness=700))[2]["Wall N"]     # deep-tail branch
+    withdrawn = _both(_room(iso="F-18", thickness=700))[2]["Wall N"]
     assert "deep tail" in withdrawn.engine and withdrawn.ci_low is None
     assert withdrawn.geometry_bias is True
     assert eng.GEOMETRY_BIAS_WARNING in withdrawn.note
 
-    # the text is the RSO-facing contract; it states the direction of the error and the action
-    w = eng.GEOMETRY_BIAS_WARNING
-    for phrase in ("μx>8", "geometry bias", "under-prediction of scatter", "Monte-Carlo"):
-        assert phrase in w, phrase
+    warning = eng.GEOMETRY_BIAS_WARNING
+    for phrase in (
+        "μx≥4", "geometry bias", "no lower bound on its onset",
+        "lower bounds", "Monte-Carlo",
+    ):
+        assert phrase in warning, phrase
 
-    # and it must reach the document that gets signed, not just the screen
     from shieldlab.room import diagram, report_room, report_regulatory
-    meta = {"facility": "T", "room_ref": "R", "licence": "-",
-            "prepared_by": "-", "reviewed_by": "-"}
-    d = _room(iso="F-18", thickness=250)
-    d.wall("N").thickness1_mm = 500.0                    # one deep wall, three ordinary
-    ae, se_ = AnalyticalEngine(d), SurrogateEngine(d)
-    ar = ae.evaluate_all("check")
-    sr = se_.evaluate_all("check", ar)
-    rep = report_room.build_report(d, ar, "check", diagram.render(d, sr), surrogate_results=sr)
-    rows = {r["barrier"]: r for r in rep["rows"]}
-    assert rows["Wall N"]["geometry_bias"] is True and rows["Wall E"]["geometry_bias"] is False
-    doc = report_regulatory.build_submission_html(rep, meta).decode("utf-8")
-    assert "Deep-barrier caution" in doc and "Wall N" in doc.split("Deep-barrier caution")[1][:200]
+    metadata = {"facility": "T", "room_ref": "R", "licence": "-",
+                "prepared_by": "-", "reviewed_by": "-"}
+    design = _room(iso="F-18", thickness=100)
+    design.wall("N").thickness1_mm = 200.0
+    analytical = AnalyticalEngine(design).evaluate_all("check")
+    surrogate = SurrogateEngine(design).evaluate_all("check", analytical)
+    report = report_room.build_report(
+        design, analytical, "check", diagram.render(design, surrogate),
+        surrogate_results=surrogate,
+    )
+    rows = {row["barrier"]: row for row in report["rows"]}
+    assert rows["Wall N"]["geometry_bias"] is True
+    assert rows["Wall E"]["geometry_bias"] is False
+    document = report_regulatory.build_submission_html(report, metadata).decode("utf-8")
+    assert "Finite-beam caution" in document
+    assert "Wall N" in document.split("Finite-beam caution")[1][:200]
+    assert "lower bounds" in document
+    assert "9.3% and 9.8%" in document
 
-    d.wall("N").thickness1_mm = 250.0                    # nothing deep -> no caution block
-    ar = AnalyticalEngine(d).evaluate_all("check")
-    sr = SurrogateEngine(d).evaluate_all("check", ar)
-    rep = report_room.build_report(d, ar, "check", diagram.render(d, sr), surrogate_results=sr)
-    assert "Deep-barrier caution" not in \
-           report_regulatory.build_submission_html(rep, meta).decode("utf-8")
-
+    design.wall("N").thickness1_mm = 100.0
+    analytical = AnalyticalEngine(design).evaluate_all("check")
+    surrogate = SurrogateEngine(design).evaluate_all("check", analytical)
+    report = report_room.build_report(
+        design, analytical, "check", diagram.render(design, surrogate),
+        surrogate_results=surrogate,
+    )
+    document = report_regulatory.build_submission_html(report, metadata).decode("utf-8")
+    assert "Finite-beam caution" not in document
+    assert "Model-wide finite-field scope" in document
+    assert "no lower bound on its physical onset" in document
+    assert "lead" in document
 
 def test_offaxis_opening_triggers_ood():
     """An opening far off-axis (offset beyond the ~300 mm training box) is out of domain."""

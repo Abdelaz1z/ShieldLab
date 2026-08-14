@@ -184,7 +184,7 @@ def build_report(
             "margin": _fmt(prim.margin, 3),
             "engine": prim.engine,
             "note": prim.note,
-            # deep-wall geometry bias (mu*x > 8): carried as structured fields, not only inside
+            # finite-beam geometry bias (mu*x >= 4): carried as structured fields, not only inside
             # the note text, so the regulatory submission can raise it in its limitations
             # section rather than leaving it to be read out of a footnote.
             "geometry_bias": bool(getattr(prim, "geometry_bias", False)),

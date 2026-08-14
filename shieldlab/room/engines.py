@@ -51,7 +51,7 @@ class EngineResult:
     ci_low: Optional[float] = None    # Phase B (CQR)
     ci_high: Optional[float] = None
     ood: bool = False
-    geometry_bias: bool = False       # surrogate served a barrier deeper than mu*x = 8 (see below)
+    geometry_bias: bool = False       # finite-field warning at measured optical depth (see below)
     mu_x: Optional[float] = None      # barrier optical depth, when it could be computed
     note: str = ""
 
@@ -208,27 +208,19 @@ RESPONSE_ROUTER_LOGB_MAX = -4.0
 # ---------------------------------------------------------------------------
 # GEOMETRY-BIAS THRESHOLD (uncorrected; disclosed, not fixed)
 #
-# Every training label was generated with a 0.5 m square beam footprint on the slab. That
-# footprint is finite, so photons that would have scattered into the detector from wall
-# material outside it were never transported. The transmission B is therefore a property of
-# the barrier AND of the irradiation rig, and at depth the missing lateral scatter matters:
-# the deep component of B is almost entirely build-up, and build-up is exactly what a wide
-# illuminated field supplies.
+# Every training label used a finite 0.5 m square beam. The locked Beamwidth-2 study measured
+# resolved increases at every tested optical depth. Its shallowest points were concrete/364 keV
+# mu*x=3.97 and 5.95: widening 0.5 -> 1.0 m
+# raised B by 44.8% and 57.3%, then 1.0 -> 1.5 m added another 9.3% and 9.8%. A fixed 0.5 m
+# beam changed only 0.47% when the slab widened from 2 to 3 m at mu*x=8.05, so slab width
+# alone does not explain the production value at that tested point. Historical deep rows rose
+# 1.8-2.0x at mu*x=8-12.
 #
-# A dedicated convergence tier (13 GATE runs, on-axis solid concrete at the I-131 364 keV
-# line, footprints 0.5 / 1.0 / 1.5 m) measured the size of it:
-#
-#     mu*x      B(1.5 m)/B(0.5 m)     effective build-up 0.5 m -> 1.5 m
-#      8.05          x1.90                    6.14 -> 11.63
-#     10.03          x1.81                    9.09 -> 16.48
-#     12.01          x2.01                   10.84 -> 21.83
-#
-# So the training labels UNDER-state transmission by roughly a factor of two beyond
-# mu*x ~ 8, and the surrogate inherits that: it under-predicts dose, which is the unsafe
-# direction. The ratio is flat in mu*x over the measured range rather than growing, and the
-# 1.0 -> 1.5 m step is already small (+14.4% / +6.7% / +2.5%), so 1.5 m is close to converged
-# and the correct correction is not a scalar we can apply here -- it needs the corpus
-# regenerated on a wider slab. Until that happens the bias is stated, not silently carried.
+# The magnitude is measured only for solid concrete at 364 keV. Because the bias was already 1.58x
+# at the shallowest tested depth, the physical onset is unknown and may be below mu*x=3.97. The
+# mu*x>=4 red flag is a priority rule, not an onset claim. Materials/energies without red flags are
+# not thereby validated: every surrogate label remains a finite-field quantity until a wider-field
+# corpus is generated.
 #
 # This is NOT covered by the two guards above:
 #   * the OOD guard is a feature-space test, and a deep wall is an ordinary thickness of an
@@ -237,11 +229,15 @@ RESPONSE_ROUTER_LOGB_MAX = -4.0
 #   * the analytical fallback is not reliably the conservative option on such rows either
 #     (it under-predicted dose on 2 of 12 of them, by up to 0.70 dex).
 # The only honest mitigation is to tell the RSO. Hence a hard, unconditional warning.
-GEOMETRY_BIAS_MUX = 8.0
+GEOMETRY_BIAS_MUX = 4.0
 GEOMETRY_BIAS_WARNING = (
-    "Caution: Deep-wall transmission (μx>8) carries an uncorrected geometry bias "
-    "(under-prediction of scatter). An independent Monte-Carlo check is recommended for "
-    "final design sign-off."
+    "Caution: Finite-beam transmission (μx≥4) carries an uncorrected geometry bias "
+    "(under-prediction of scatter). Bias was measured at every optical depth tested "
+    "(μx≈4–12, concrete at 364 keV): 1.58× to 2.0×. It was already 1.58× at the "
+    "shallowest depth measured, so no lower bound on its onset has been established. "
+    "The measured factors are lower bounds because the shallow width sequences were "
+    "still rising; other materials and energies are unquantified. An independent "
+    "Monte-Carlo check with reviewed irradiation geometry is required for final design sign-off."
 )
 
 
@@ -480,8 +476,8 @@ class SurrogateEngine:
         # Geometry bias is a property of the BARRIER, not of the prediction, so it is
         # evaluated once here and carried by whichever branch below serves the answer.
         mu_x = self._barrier_mu_x(path, wall, thickness_mm)
-        deep_wall = mu_x is not None and mu_x > GEOMETRY_BIAS_MUX
-        gb_note = f"  ⚠ μx≈{mu_x:.1f}. {GEOMETRY_BIAS_WARNING}" if deep_wall else ""
+        finite_beam_bias = mu_x is not None and mu_x >= GEOMETRY_BIAS_MUX
+        gb_note = f"  ⚠ μx≈{mu_x:.1f}. {GEOMETRY_BIAS_WARNING}" if finite_beam_bias else ""
 
         # ---- DEEP-TAIL INTERVAL FLAG (deployment mitigation; NOT part of the sealed
         # pre-registration, and deliberately NOT a substitution).
@@ -518,7 +514,7 @@ class SurrogateEngine:
                 B_achieved=B, dose_mSv_wk=dose, goal_over_T=gT,
                 passes=(dose <= gT), margin=(gT / dose if dose > 0 else None),
                 material=wall.material1, ci_low=None, ci_high=None, ood=True,
-                geometry_bias=deep_wall, mu_x=mu_x,
+                geometry_bias=finite_beam_bias, mu_x=mu_x,
                 note=(gb_note.strip() + ("  " if gb_note else "") +
                       f"Predicted B={B:.2e} is below B=1e{RESPONSE_ROUTER_LOGB_MAX:.0f}, where "
                       f"prospective validation measured the 95% interval to be NOT calibrated "
@@ -555,7 +551,7 @@ class SurrogateEngine:
             B_achieved=B, dose_mSv_wk=dose, goal_over_T=gT,
             passes=passes, margin=(gT / dose if dose > 0 else None),
             material=wall.material1, ci_low=B_lo, ci_high=B_hi,
-            geometry_bias=deep_wall, mu_x=mu_x,
+            geometry_bias=finite_beam_bias, mu_x=mu_x,
             note=((f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}; "
                    f"conservative (upper-bound) margin ×{margin_hi:.2f}."
                    if margin_hi is not None else

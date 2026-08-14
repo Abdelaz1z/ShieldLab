@@ -343,7 +343,7 @@ def _duct_streaming_notices(assessment: RoomAssessment) -> list[str]:
     return notices
 
 
-def _deep_wall_notice(assessment: RoomAssessment) -> str | None:
+def _finite_beam_notice(assessment: RoomAssessment) -> str | None:
     affected_results = [
         barrier_result
         for barrier_result in (assessment.surrogate_results or [])
@@ -359,7 +359,7 @@ def _deep_wall_notice(assessment: RoomAssessment) -> str | None:
             key=lambda candidate: -(candidate.mu_x or 0),
         )
     )
-    return i18n.t("deep_wall_warning", paths=rows)
+    return i18n.t("finite_beam_warning", paths=rows)
 
 def _assurance_groups(assessment: RoomAssessment) -> tuple[list, list, list]:
     fallbacks, withdrawn_intervals, unresolved_paths = [], [], []
@@ -412,7 +412,7 @@ def _assessment_review_reasons(assessment: RoomAssessment) -> list[str]:
         barrier_result.geometry_bias
         for barrier_result in assessment.decision_results
     ):
-        reasons.append("known deep-wall geometry bias")
+        reasons.append("known finite-beam geometry bias")
     if withdrawn_intervals:
         reasons.append("withdrawn uncertainty interval")
     if unresolved_paths:
@@ -433,11 +433,11 @@ def _assessment_review_reasons(assessment: RoomAssessment) -> list[str]:
 
 
 def render_safety_notices(assessment: RoomAssessment) -> list[str]:
-    deep_wall_notice = _deep_wall_notice(assessment)
+    finite_beam_notice = _finite_beam_notice(assessment)
     fallbacks, withdrawn_intervals, unresolved_paths = _assurance_groups(assessment)
     uncertainty_paths, narrow_margin_paths = _review_path_groups(assessment)
-    if deep_wall_notice:
-        st.error(deep_wall_notice)
+    if finite_beam_notice:
+        st.error(finite_beam_notice)
     if withdrawn_intervals:
         st.warning(
             i18n.t(
@@ -481,7 +481,7 @@ def render_safety_notices(assessment: RoomAssessment) -> list[str]:
 def _review_reasons_for_display(review_reasons: list[str]) -> list[str]:
     localized = []
     exact_keys = {
-        "known deep-wall geometry bias": "reason_geometry_bias",
+        "known finite-beam geometry bias": "reason_geometry_bias",
         "withdrawn uncertainty interval": "reason_withdrawn_interval",
         "unresolved barrier path": "reason_unresolved_path",
         "duct-streaming path requires penetration review": "reason_duct",
