@@ -1051,20 +1051,23 @@ def _store_selected_language() -> None:
         st.session_state[LANGUAGE_KEY] = selected
 
 
-def render_language_switcher() -> None:
-    """Render the shared language control without coupling it to a page."""
+def render_language_switcher(*, compact: bool = False) -> None:
+    """Render the shared language control, with an optional compact top-rail form."""
     active_language = current_language()
     st.session_state[LANGUAGE_KEY] = active_language
     st.session_state[LANGUAGE_CONTROL_KEY] = active_language
+    compact_labels = {"en": "EN", "ar": "ع"}
     st.segmented_control(
         t("language"),
         SUPPORTED_LANGUAGES,
-        format_func=lambda language: LANGUAGE_NAMES[language],
+        format_func=lambda language: (
+            compact_labels[language] if compact else LANGUAGE_NAMES[language]
+        ),
         key=LANGUAGE_CONTROL_KEY,
         on_change=_store_selected_language,
         selection_mode="single",
         required=True,
-        width="stretch",
+        width="content" if compact else "stretch",
         label_visibility="collapsed",
     )
 

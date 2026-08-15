@@ -5,6 +5,7 @@ from html import escape
 import streamlit as st
 
 from . import i18n
+from .brand import sl_mark_svg
 from .design_system import (
     assurance_note,
     empty_state,
@@ -120,14 +121,7 @@ def _workspace_links() -> None:
 def _brand_html() -> str:
     return f"""
     <div class="sl-brand" {i18n.html_attributes()}>
-      <div class="sl-brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none"
-             stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-             stroke-linejoin="round" aria-hidden="true" focusable="false">
-          <path d="M12 2.8 20 6v5.4c0 5.1-3.2 8.2-8 9.8-4.8-1.6-8-4.7-8-9.8V6l8-3.2Z"/>
-          <path d="m8.6 12.1 2.1 2.2 4.8-5"/>
-        </svg>
-      </div>
+      <div class="sl-brand-mark">{sl_mark_svg("sl-brand-logo", "ShieldLab")}</div>
       <div class="sl-brand-copy">
         <strong translate="no">ShieldLab</strong>
         <span>{escape(i18n.t("brand_subtitle"))}</span>
@@ -140,7 +134,9 @@ def _active_workspace_html(active_label: str) -> str:
     return (
         f'<div class="sl-sidebar-context" {i18n.html_attributes()}>'
         f'<span>{escape(i18n.t("active_workspace"))}</span>'
-        f'<strong>{escape(active_label)}</strong></div>'
+        f'<strong>{escape(active_label)}</strong>'
+        f'<small class="sl-sidebar-status">{escape(i18n.t("decision_support"))}</small>'
+        "</div>"
     )
 
 
@@ -152,8 +148,12 @@ def render_sidebar(active_workspace: str) -> None:
     active_message_key = workspace_keys.get(active_workspace)
     active_label = i18n.t(active_message_key) if active_message_key else str(active_workspace)
     with st.sidebar:
-        st.markdown(_brand_html(), unsafe_allow_html=True)
-        i18n.render_language_switcher()
+        brand_col, language_col = st.columns([1, 0.38], gap="small")
+        with brand_col:
+            st.markdown(_brand_html(), unsafe_allow_html=True)
+        with language_col:
+            with st.container(key="sl_language_top"):
+                i18n.render_language_switcher(compact=True)
         st.markdown(
             f'<div class="sl-sidebar-label" {i18n.html_attributes()}>'
             f'{escape(i18n.t("workspaces"))}</div>',

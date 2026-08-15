@@ -925,27 +925,31 @@ def _detailed_report_downloads(room_report) -> None:
 
 
 def render_export_panel(assessment: RoomAssessment, room_costs: dict) -> None:
-    st.markdown(f"### {i18n.t('project_identification')}")
-    if i18n.is_arabic():
-        ds.assurance_note(i18n.t("exports_english_note"))
-    project_metadata = _project_metadata()
-    include_costs = st.checkbox(
-        i18n.t("include_costs"),
-        value=True,
-        key="rg_cost",
-    )
-    export_signature = (
-        assessment.design.to_json(),
-        assessment.mode,
-        tuple(sorted(project_metadata.items())),
-        include_costs,
-    )
-    if st.button(
-        i18n.t("prepare_export"),
-        type="primary",
-        key="prepare_room_exports",
-        width="stretch",
-    ):
+    # Preserve the established export contract while separating preparation from delivery.
+    with st.container(border=True, key="sl_export_identity"):
+        st.markdown(f"### {i18n.t('project_identification')}")
+        if i18n.is_arabic():
+            ds.assurance_note(i18n.t("exports_english_note"))
+        project_metadata = _project_metadata()
+        include_costs = st.checkbox(
+            i18n.t("include_costs"),
+            value=True,
+            key="rg_cost",
+        )
+        export_signature = (
+            assessment.design.to_json(),
+            assessment.mode,
+            tuple(sorted(project_metadata.items())),
+            include_costs,
+        )
+        prepare_export = st.button(
+            i18n.t("prepare_export"),
+            type="primary",
+            key="prepare_room_exports",
+            width="stretch",
+        )
+
+    if prepare_export:
         st.session_state["_room_export_signature"] = export_signature
     if st.session_state.get("_room_export_signature") != export_signature:
         st.caption(i18n.t("prepare_export_note"))
@@ -958,17 +962,18 @@ def render_export_panel(assessment: RoomAssessment, room_costs: dict) -> None:
             project_metadata,
             costs=room_costs if include_costs else None,
         )
-    st.markdown(f"### {i18n.t('download_package')}")
-    _detailed_report_downloads(room_report)
-    st.download_button(
-        i18n.t("download_submission"),
-        data=submission_html,
-        file_name="ShieldLab_RegulatorySubmission.html",
-        mime="text/html",
-        type="primary",
-        width="stretch",
-        help=i18n.t("submission_help"),
-    )
+    with st.container(border=True, key="sl_export_delivery"):
+        st.markdown(f"### {i18n.t('download_package')}")
+        _detailed_report_downloads(room_report)
+        st.download_button(
+            i18n.t("download_submission"),
+            data=submission_html,
+            file_name="ShieldLab_RegulatorySubmission.html",
+            mime="text/html",
+            type="primary",
+            width="stretch",
+            help=i18n.t("submission_help"),
+        )
 
 def render_assessment_review(assessment: RoomAssessment) -> None:
     with st.container(border=True, key="sl_decision_panel"):

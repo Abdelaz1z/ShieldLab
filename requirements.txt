@@ -1,33 +1,68 @@
 # ShieldLab - Python dependencies
+
 # Install with:  py -3.11 -m pip install -r requirements.txt
+
 # Exact pin: the commercial UI uses and tests Streamlit 1.58 component APIs and stable selectors.
+
 streamlit==1.58.0
+
 pandas>=2.0
+
 matplotlib>=3.7
+
 # (the physics engine itself uses only the Python standard library)
+
 # Room Designer (pages/1_Room_Designer.py) report export:
+
 fpdf2>=2.7        # PDF report (pure-python, deploys on Streamlit Cloud)
+
 openpyxl>=3.1     # Excel report
+
 # Room Designer surrogate tier (models/surrogate_bundle.joblib):
+
 # scikit-learn is PINNED — the bundle is a pickle and must load on the exact version it
+
 # was built with, or the model will not deserialize.
+
 scikit-learn==1.9.0
+
 joblib==1.5.3
+
 numpy>=1.26
+
 # shap is OPTIONAL — TreeSHAP failure explanations light up automatically if it is
+
 # installed, but it is a heavy dep (numba/llvmlite) that can stall a cloud build, and
+
 # the app degrades to physics-aware explanations without it. Kept out of the hard
+
 # requirements on purpose; `pip install shap>=0.46` in any env where you want it live.
+
 #
+
 # Room Designer 3D dose-field map (models/field_unet/, the thesis field-map U-Net).
+
 # Served by ONNX Runtime so the tier deploys on a free cloud container: onnxruntime is
+
 # ~15-40 MB against torch's ~200 MB+, which is what previously kept the 3D map dark on
+
 # Streamlit Cloud. The exported graph was verified against torch on real campaign rooms
+
 # (worst occupied-shell deviation 1.2e-04 dex, four orders below the model's own 0.068 dex
+
 # accuracy), so the runtimes are interchangeable for screening.
+
 onnxruntime>=1.17
+
 #
+
 # torch is OPTIONAL and no longer needed. field_surrogate.py falls back to it only if
+
 # field_unet.onnx is missing; the field map is a screening VISUALISATION that does not drive
+
 # the verdict, so the page degrades cleanly without either. Enable with:
+
 #   pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# Deployment refresh: rebuild selected ShieldLab SL identity from the current main revision.
+
