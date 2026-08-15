@@ -113,7 +113,7 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     warning = eng.GEOMETRY_BIAS_WARNING
     for phrase in (
         "μx≥4", "geometry bias", "no lower bound on its onset",
-        "lower bounds", "Monte-Carlo",
+        "lower bounds", "precision gate", "below 10%", "Monte-Carlo",
     ):
         assert phrase in warning, phrase
 
@@ -149,6 +149,8 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     assert "Model-wide finite-field scope" in document
     assert "no lower bound on its physical onset" in document
     assert "lead" in document
+    assert "precision gate" in document
+    assert "below 10%" in document
 
 def test_offaxis_opening_triggers_ood():
     """An opening far off-axis (offset beyond the ~300 mm training box) is out of domain."""

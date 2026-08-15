@@ -222,6 +222,10 @@ RESPONSE_ROUTER_LOGB_MAX = -4.0
 # not thereby validated: every surrogate label remains a finite-field quantity until a wider-field
 # corpus is generated.
 #
+# A later prospective pure-lead study at 511 and 364 keV completed all 13 fixed-budget rows, but
+# eight missed its preregistered 0.8% precision gate. Its official decision did not constrain the
+# 0.5-to-2.0 m field-width change below 10%, so it does not justify weakening this warning.
+#
 # This is NOT covered by the two guards above:
 #   * the OOD guard is a feature-space test, and a deep wall is an ordinary thickness of an
 #     ordinary material, so it is admitted as in-domain (all 13 extreme-tail rows in the
@@ -236,7 +240,9 @@ GEOMETRY_BIAS_WARNING = (
     "(μx≈4–12, concrete at 364 keV): 1.58× to 2.0×. It was already 1.58× at the "
     "shallowest depth measured, so no lower bound on its onset has been established. "
     "The measured factors are lower bounds because the shallow width sequences were "
-    "still rising; other materials and energies are unquantified. An independent "
+    "still rising. A fixed-budget pure-lead study at 511 and 364 keV failed its "
+    "precision gate and did not constrain the field-width effect below 10%; lead "
+    "and other material/energy cases remain decision-unquantified. An independent "
     "Monte-Carlo check with reviewed irradiation geometry is required for final design sign-off."
 )
 

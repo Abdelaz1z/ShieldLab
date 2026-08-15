@@ -141,10 +141,13 @@ def build_submission_html(report: Dict, meta: Dict,
     finite_field_scope_html = (
         "<div class='band'><b>Model-wide finite-field scope.</b> Every Monte-Carlo surrogate "
         "result is calibrated to a finite 0.5&nbsp;m irradiated field, not a semi-infinite "
-        "broad beam. The bias magnitude has been measured only for concrete at 364&nbsp;keV. "
+        "broad beam. A decision-qualified bias magnitude has been established only for concrete "
+        "at 364&nbsp;keV. A prospective fixed-budget pure-lead study at 511 and 364&nbsp;keV "
+        "failed its preregistered precision gate and did not constrain the 0.5-to-2.0&nbsp;m "
+        "field-width effect below 10%; lead therefore remains decision-unquantified. "
         "It was already present at the shallowest tested depth (&mu;x&nbsp;&asymp;&nbsp;4), so "
-        "no lower bound on its physical onset has been established; behaviour for lead and "
-        "other materials or energies is unquantified. The &mu;x&ge;4 red flag is a priority "
+        "no lower bound on its physical onset has been established; other materials or energies "
+        "remain unquantified. The &mu;x&ge;4 red flag is a priority "
         "classification, not evidence that unflagged surrogate results are free of finite-field bias."
         "</div>"
     )
