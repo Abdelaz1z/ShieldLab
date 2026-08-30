@@ -22,6 +22,7 @@ from typing import List, Optional
 
 from .. import data_loader as dl
 from . import barriers as ba
+from . import beams as bm
 from . import solver
 from ..regulatory import limits as reg
 from . import sources as src
@@ -41,6 +42,7 @@ class MaterialOption:
     feasible: bool              # thickness within a buildable limit
     already_met: bool           # goal met with 0 mm of this material
     note: str = ""
+    narrow_beam: bool = False   # priced off the generic mu/rho model, with no build-up
     is_cheapest: bool = False
     is_lightest: bool = False
     is_thinnest: bool = False
@@ -55,16 +57,24 @@ def rank_options(source: src.SourceTerm, goal: reg.DesignGoal,
     A material is skipped only if it has NO transmission data for this beam (the solver
     raises) or NO cost entry. Materials that cannot practically reach the goal come out
     with feasible=False and sort last, so the caller can still show them greyed out.
+
+    Materials served only by the generic mu/rho model are marked `narrow_beam` and are
+    barred from the "cheapest", "lightest" and "thinnest" badges. Without a build-up
+    factor that model needs less thickness than physics allows, so such a material
+    could take a recommendation away from one that was costed honestly -- but it is
+    still worth showing, clearly labelled, as an order-of-magnitude comparison.
     """
     mats = dl.materials()["materials"]
     costs = dl.materials_cost()["materials"]
     if candidates is None:
         candidates = list(mats.keys())
+    beams = [component.beam for component in source.components]
 
     opts: List[MaterialOption] = []
     for m in candidates:
         if m not in mats or m not in costs:
             continue
+        narrow = any(bm.data_path(beam, m) != bm.PATH_BROAD for beam in beams)
         c = costs[m]
         if "installed_cost_usd_per_m3" not in c:
             continue
@@ -85,12 +95,14 @@ def rank_options(source: src.SourceTerm, goal: reg.DesignGoal,
             cost_low_usd=thick_m * lo, cost_high_usd=thick_m * hi,
             weight_per_m2_kg=thick_m * density, space_mm=pref,
             feasible=(req <= max_buildable_mm), already_met=(req <= 0.0),
-            note=c.get("labour_note", "")))
+            note=c.get("labour_note", ""), narrow_beam=narrow))
 
     # cheapest first; unbuildable options sink to the bottom
     opts.sort(key=lambda o: (not o.feasible, o.cost_per_m2_usd))
 
-    buildable = [o for o in opts if o.feasible and not o.already_met]
+    # Only broad-beam options may win a badge (see the docstring).
+    buildable = [o for o in opts
+                 if o.feasible and not o.already_met and not o.narrow_beam]
     if buildable:
         min(buildable, key=lambda o: o.cost_per_m2_usd).is_cheapest = True
         min(buildable, key=lambda o: o.weight_per_m2_kg).is_lightest = True
@@ -100,7 +112,8 @@ def rank_options(source: src.SourceTerm, goal: reg.DesignGoal,
 
 def headline(options: List[MaterialOption]) -> Optional[str]:
     """One-line recommendation from a ranked list (or None if nothing is buildable)."""
-    buildable = [o for o in options if o.feasible and not o.already_met]
+    buildable = [o for o in options
+                 if o.feasible and not o.already_met and not o.narrow_beam]
     if not buildable:
         return None
     cheap = next(o for o in buildable if o.is_cheapest)

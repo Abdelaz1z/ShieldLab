@@ -38,7 +38,9 @@ def calculator_tab() -> None:
                 t("barrier_assembly"),
                 t("barrier_assembly_help"),
             )
-            barrier = calculator_setup.barrier_builder()
+            # The source is passed in so the material list can be restricted to
+            # what this beam actually has transmission data for.
+            barrier = calculator_setup.barrier_builder(source)
 
     if source is None:
         return
@@ -46,7 +48,13 @@ def calculator_tab() -> None:
         legacy._show_i131_release(setup.modality_config)
 
     ds.live_note(t("live_recalculate"))
-    evaluation = solver.evaluate(source, barrier, setup.design_goal)
+    try:
+        evaluation = solver.evaluate(source, barrier, setup.design_goal)
+    except ValueError as exc:
+        # A data gap is a missing dataset, not a crash: say which combination has
+        # no data and leave the rest of the workspace intact.
+        st.error(f"**{t('barrier_not_evaluated')}** — {t('barrier_not_evaluated_help', reason=exc)}")
+        return
     calculator_results.render(
         calculator_results.CalculatorAssessment(
             source,
