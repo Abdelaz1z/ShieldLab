@@ -82,6 +82,10 @@ def _reference_entries() -> None:
             if reference.get("role"):
                 _label_english_technical_detail()
                 st.write(term(reference["role"]))
+            if reference.get("publisher"):
+                # The standards are not redistributed with the app, so say where
+                # a copy is obtained rather than implying one ships with it.
+                st.caption(f"{t('obtain_from')}: {reference['publisher']}")
             if reference.get("url"):
                 st.markdown(f"[{t('open_reference')}]({reference['url']})")
 

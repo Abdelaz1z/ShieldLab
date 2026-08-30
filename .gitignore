@@ -17,3 +17,19 @@ _smoke_report.*
 # OS
 .DS_Store
 Thumbs.db
+
+# Reference standards. NCRP 147/172, IAEA SRS 47, NRC RG 8.39, NRRC-R-01 and the
+# rest are copyrighted publications and are NOT redistributed with this MIT-licensed
+# repository (see LICENSE). Keep your own copies here; shieldlab/data/references.json
+# cites each one and names its publisher.
+References/
+
+# Output of the one-off PDF extraction scripts in tools/. These are page images and
+# page text taken from the reference standards above, so they carry the same
+# copyright as the originals. The scripts are versioned; their output is not.
+tools/extracted/
+tools/rendered/
+
+# Timestamped pre-edit copies of live modules. Git history serves this purpose, and
+# tracked copies shadow the real modules in grep and code search.
+_backups/
