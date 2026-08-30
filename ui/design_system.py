@@ -54,6 +54,12 @@ _STYLES = r"""
   --sl-sidebar-border: #456273;
   --sl-font-sans: "Segoe UI Variable", "Segoe UI", Tahoma, Arial, sans-serif;
   --sl-font-arabic: "Segoe UI", Tahoma, Arial, sans-serif;
+  /* Quantities in this product span twenty-four orders of magnitude. In a
+     proportional face 4.08e-24 and 4.08e-04 are nearly the same shape, which is a
+     twenty-decade misread; every figure is set in this face with tabular figures
+     so digits align in a column and the exponent stays legible. */
+  --sl-font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas,
+                  "Liberation Mono", Menlo, monospace;
   --sl-text-xs: 12px;
   --sl-text-sm: 14px;
   --sl-text-base: 16px;
@@ -828,9 +834,135 @@ samp {
 }
 
 .sl-results-table .num {
-  font-family: var(--sl-font-sans);
+  font-family: var(--sl-font-mono);
   font-variant-numeric: tabular-nums;
+  font-size: var(--sl-text-sm);
   white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   THE DECADE RAIL
+   Both engines and the regulatory goal on one shared logarithmic axis, so a
+   judgement spanning many decades becomes one spatial question: does anything
+   cross the line? Positioned divs only -- no canvas, no script.
+   Every state is carried by shape as well as hue: the goal is an upright rule,
+   the analytical value a tick, the surrogate a dot, and the part of the 95%
+   interval past the goal is hatched.
+   --------------------------------------------------------------------------- */
+
+.sl-rail {
+  position: relative;
+  width: 168px;
+  height: 22px;
+  min-width: 168px;
+}
+
+.sl-rail-track {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline: 0;
+  border-block-end: 1px solid var(--sl-border);
+}
+
+.sl-rail-permitted {
+  position: absolute;
+  inset-block: 4px;
+  inset-inline-start: 0;
+  background: #eef4f1;
+}
+
+.sl-rail-goal {
+  position: absolute;
+  inset-block: 1px;
+  width: 2px;
+  background: var(--sl-ink);
+}
+
+.sl-rail-ci {
+  position: absolute;
+  inset-block-start: 7px;
+  height: 8px;
+  border-radius: 4px;
+  background: #cfe6ea;
+  border: 1px solid var(--sl-teal);
+}
+
+.sl-rail-breach {
+  position: absolute;
+  inset-block-start: 7px;
+  height: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--sl-fail-border);
+  background: repeating-linear-gradient(
+    135deg,
+    var(--sl-fail-bg) 0 3px,
+    #f0b8be 3px 6px
+  );
+}
+
+.sl-rail-analytical {
+  position: absolute;
+  inset-block-start: 3px;
+  height: 16px;
+  width: 2px;
+  background: var(--sl-ink);
+}
+
+.sl-rail-decision {
+  position: absolute;
+  inset-block-start: 5px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--sl-teal);
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--sl-teal);
+  transform: translateX(-50%);
+}
+
+/* Out of domain: the surrogate does not govern, and says so by shape. */
+.sl-rail-decision.ood {
+  border-radius: 0;
+  width: 10px;
+  height: 10px;
+  background: var(--sl-review-bg);
+  border: 1.5px solid var(--sl-review-border);
+  box-shadow: none;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.sl-rail-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-block-start: 10px;
+  color: var(--sl-ink-soft);
+  font-size: var(--sl-text-xs);
+}
+
+.sl-rail-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sl-rail-key {
+  display: inline-block;
+  width: 16px;
+  height: 9px;
+  border: 1px solid var(--sl-border-strong);
+}
+
+.sl-rail-key.goal { width: 2px; height: 14px; background: var(--sl-ink); border: 0; }
+.sl-rail-key.tick { width: 2px; height: 14px; background: var(--sl-ink); border: 0; }
+.sl-rail-key.dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--sl-teal); border: 1px solid var(--sl-teal);
+}
+.sl-rail-key.ci { background: #cfe6ea; border-color: var(--sl-teal); }
+.sl-rail-key.breach {
+  border-color: var(--sl-fail-border);
+  background: repeating-linear-gradient(135deg, var(--sl-fail-bg) 0 3px, #f0b8be 3px 6px);
 }
 
 .sl-results-table .subtle {
@@ -839,6 +971,10 @@ samp {
   color: var(--sl-ink-soft);
   font-size: var(--sl-text-xs);
   line-height: 1.45;
+}
+
+.sl-status-glyph {
+  flex: 0 0 auto;
 }
 
 .sl-table-status {

@@ -1,30 +1,36 @@
 {
   "_comment": "ShieldLab - master bibliography. Every numeric value in the other data files carries a 'ref' key pointing here. Edit/add entries freely; keys are cited in the UI and in exported reports.",
-
   "NCRP147": {
     "citation": "NCRP Report No. 147, 'Structural Shielding Design for Medical X-Ray Imaging Facilities', National Council on Radiation Protection and Measurements, Bethesda, MD (2004).",
     "role": "Core methodology and data for diagnostic X-ray, fluoroscopy, mammography, CT and dental shielding: design goals, occupancy factors, workload distributions, unshielded kermas, transmission (Archer) parameters.",
     "provided_by_user": true,
-    "file": "References/NCRP Report No. 147.pdf"
+    "local_file_hint": "References/NCRP Report No. 147.pdf",
+    "redistributed": false,
+    "publisher": "NCRP (National Council on Radiation Protection and Measurements), ncrponline.org"
   },
   "NCRP151": {
     "citation": "NCRP Report No. 151, 'Structural Shielding Design and Evaluation for Megavoltage X- and Gamma-Ray Radiotherapy Facilities', National Council on Radiation Protection and Measurements, Bethesda, MD (2005).",
     "role": "Megavoltage (LINAC) vault methodology: B = P d^2 / (W U T), 0.1 % head leakage, IMRT factor, time-averaged dose rate checks. Values cross-checked against IAEA SRS 47.",
     "provided_by_user": false,
-    "note": "Report not freely distributable; methodology and equations encoded from the report formalism as also published in IAEA SRS 47 and peer-reviewed summaries."
+    "note": "Report not freely distributable; methodology and equations encoded from the report formalism as also published in IAEA SRS 47 and peer-reviewed summaries.",
+    "publisher": "NCRP (National Council on Radiation Protection and Measurements), ncrponline.org"
   },
   "NCRP172": {
     "citation": "NCRP Report No. 172, 'Reference Levels and Achievable Doses in Medical and Dental Imaging: Recommendations for the United States', NCRP, Bethesda, MD (2012).",
     "role": "Context for realistic per-patient dose and workload defaults.",
     "provided_by_user": true,
-    "file": "References/NCRP_Report_172_AAPM.pdf"
+    "local_file_hint": "References/NCRP_Report_172_AAPM.pdf",
+    "redistributed": false,
+    "publisher": "NCRP (National Council on Radiation Protection and Measurements), ncrponline.org"
   },
   "SRS47": {
     "citation": "IAEA Safety Reports Series No. 47, 'Radiation Protection in the Design of Radiotherapy Facilities', STI/PUB/1223, International Atomic Energy Agency, Vienna (2006).",
     "role": "LINAC vault data: TVL1/TVLe for concrete, steel and lead at 4-18 MV (primary and leakage), patient scatter fractions vs angle, maze and door guidance, Co-60 and HDR data.",
     "provided_by_user": false,
-    "file": "References/IAEA_SRS_47_Radiotherapy_Facilities.pdf",
-    "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/Pub1223_web.pdf"
+    "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/Pub1223_web.pdf",
+    "local_file_hint": "References/IAEA_SRS_47_Radiotherapy_Facilities.pdf",
+    "redistributed": false,
+    "publisher": "IAEA (International Atomic Energy Agency), www-pub.iaea.org"
   },
   "GSR_PART3": {
     "citation": "IAEA Safety Standards Series No. GSR Part 3, 'Radiation Protection and Safety of Radiation Sources: International Basic Safety Standards', IAEA, Vienna (2014), Schedule III.",
@@ -40,8 +46,11 @@
     "citation": "NRRC-R-01, Technical Regulation 'Radiation Safety', Nuclear and Radiological Regulatory Commission (NRRC), Kingdom of Saudi Arabia (2022).",
     "role": "Saudi dose limits - Section 10: clause 22 occupational (20 mSv/y avg 5 y, 50 mSv max single year; lens 20 mSv/y; extremities/skin 500 mSv/y; apprentices 16-18 y: 6 mSv/y), clause 23 pregnant/breastfeeding worker 1 mSv to embryo/fetus, clause 24 public (1 mSv/y effective; lens 15 mSv/y; skin 50 mSv/y). Section 8 clause 20: dose constraints are practice-specific, set below NRRC generic values (no fixed numeric design constraint given in R-01).",
     "provided_by_user": true,
-    "file": "References/NRRC-R-01.PDF",
-    "pages_verified": "44-47"
+    "pages_verified": "44-47",
+    "local_file_hint": "References/NRRC-R-01.PDF",
+    "redistributed": false,
+    "publisher": "Saudi Nuclear and Radiological Regulatory Commission, nrrc.gov.sa",
+    "url": "https://nrrc.gov.sa/media/vyflxp4s/nrrc-r-01-radiation-safety.pdf"
   },
   "KSA_LAW": {
     "citation": "Law of Nuclear and Radiological Control, Royal Decree No. M/81 of 25/7/1439 AH (11 April 2018), Kingdom of Saudi Arabia.",
@@ -52,25 +61,33 @@
     "citation": "SFDA MDS-G-008-V2, 'National Diagnostic Reference Levels', Version 2.0, Saudi Food and Drug Authority (26/10/2022).",
     "role": "Saudi national DRLs (CT DLP values, etc.) used for KSA-specific default workloads.",
     "provided_by_user": true,
-    "file": "References/NDRL-En.pdf"
+    "local_file_hint": "References/NDRL-En.pdf",
+    "redistributed": false,
+    "publisher": "Saudi Food and Drug Authority, sfda.gov.sa"
   },
   "RG839": {
     "citation": "U.S. NRC Regulatory Guide 8.39, 'Release of Patients Administered Radioactive Materials', U.S. Nuclear Regulatory Commission (April 1997).",
     "role": "I-131 patient-as-source biokinetics: occupancy factor E, uptake fractions and effective half-lives (Table B-1), dose-integration formalism (Equations B-2/B-3).",
     "provided_by_user": true,
-    "file": "References/RG 8.39.pdf"
+    "local_file_hint": "References/RG 8.39.pdf",
+    "redistributed": false,
+    "publisher": "U.S. Nuclear Regulatory Commission, nrc.gov"
   },
   "RPII09": {
     "citation": "RPII 09/01, 'The Design of Diagnostic Medical Facilities where Ionising Radiation is used - A Code of Practice', Radiological Protection Institute of Ireland, Dublin (June 2009).",
     "role": "European constraint-style design basis (0.3 mSv/y public dose constraint) and room design good practice.",
     "provided_by_user": true,
-    "file": "References/RPII_Code_Design_Medical_Facilities_09.pdf"
+    "local_file_hint": "References/RPII_Code_Design_Medical_Facilities_09.pdf",
+    "redistributed": false,
+    "publisher": "Radiological Protection Institute of Ireland (now EPA Ireland), epa.ie"
   },
   "BIR2012": {
     "citation": "Sutton, D.G., Martin, C.J., Williams, J.R., Peet, D.J., 'Radiation Shielding for Diagnostic Radiology', 2nd ed., British Institute of Radiology, London (2012) - Chapter 2 excerpt provided by user.",
     "role": "Barrier-height and tertiary (ceiling/wall) scatter methodology: scatter air kerma per patient KAP (interventional) or per DLP (CT) as a function of barrier height and ceiling height.",
     "provided_by_user": true,
-    "file": "References/shielding height shb.pdf"
+    "local_file_hint": "References/shielding height shb.pdf",
+    "redistributed": false,
+    "publisher": "British Institute of Radiology"
   },
   "TG108": {
     "citation": "Madsen, M.T., Anderson, J.A., Halama, J.R., Kleck, J., Simpkin, D.J., Votaw, J.R., Wendt, R.E. III, Williams, L.E., Yester, M.V., 'AAPM Task Group 108: PET and PET/CT Shielding Requirements', Medical Physics 33(1):4-15 (2006).",
@@ -114,5 +131,6 @@
     "citation": "U.S. Code of Federal Regulations, 10 CFR 20.1301, 'Dose limits for individual members of the public'.",
     "role": "Origin of the 0.02 mSv 'in any one hour' criterion used as the LINAC time-averaged dose-rate check (per NCRP 151).",
     "provided_by_user": false
-  }
+  },
+  "_comment_licensing": "The standards cited here are copyrighted publications and are NOT redistributed with ShieldLab. 'publisher' names where to obtain each one; 'local_file_hint' is the path the author keeps their own copy at, under the gitignored References/ directory. Nothing in the app reads these files at runtime -- every number lives in the JSON datasets."
 }

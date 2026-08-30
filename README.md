@@ -23,8 +23,13 @@ Built for **Abdelaziz Habib** — Radiation Safety Officer (KSA), M.Sc. Radiatio
 ## 1. Install (Windows, Python 3.11 already present)
 
 ```powershell
-cd "D:\Projects\Master\Master-26\Control Claude Program"
 py -3.11 -m pip install -r requirements.txt
+```
+
+To run the test suite as well, add the development dependencies:
+
+```powershell
+py -3.11 -m pip install -r requirements-dev.txt
 ```
 
 ## 2. Run the app
@@ -52,11 +57,11 @@ ShieldLab uses the **standard analytical formalism** prescribed by the reference
 | Modality | Transmission model | Source data |
 |----------|--------------------|-------------|
 | Diagnostic X-ray, fluoro, mammo, dental, angio | **Archer** broad-beam `B(x)=[(1+β/α)e^{αγx}−β/α]^{−1/γ}` | NCRP 147 Tables B.1 (primary) & C.1 (secondary) |
-| CT | scatter from exam-specific head/body DLP normalization | NCRP 147 §5.5 / Table 5.2; Saudi SFDA NDRLs |
+| CT | exam-specific head/body DLP normalization, shielded with the **Archer** broad-beam secondary fit at the scanner kVp | NCRP 147 §5.5 / Table 5.2 / Table C.1; Saudi SFDA NDRLs |
 | LINAC / Co-60 | **TVL** `n=x₁/TVL₁+(x−x₁)/TVLₑ, B=10⁻ⁿ` | IAEA SRS 47 Tables 4, 5, 8, 11 |
 | I-131, Tc-99m, F-18, Lu-177 | broad-beam **TVL/HVL** | Oumano et al. 2025; AAPM TG-108 (PET) |
 | I-131 released-patient dose | RG 8.39 biokinetic integral (Eq. B-5) | NRC RG 8.39 |
-| any other material | **μ/ρ + buildup** `T=B·e^{−(μ/ρ)ρx}` | NIST XCOM / Hubbell-Seltzer |
+| any other material | **μ/ρ**, narrow-beam `T=e^{−(μ/ρ)ρx}` — build-up applied only where a `buildup_mux`/`buildup_B` table exists, so results are labelled **narrow-beam** and read as a *lower bound* on dose | NIST XCOM / Hubbell-Seltzer |
 
 Dose limits: **Saudi NRRC-R-01** (occupational 20 mSv/y, public 1 mSv/y) and **IAEA GSR Part 3**. Full bibliography is in the app's **References** tab and in [`shieldlab/data/references.json`](shieldlab/data/references.json).
 
@@ -64,10 +69,12 @@ Dose limits: **Saudi NRRC-R-01** (occupational 20 mSv/y, public 1 mSv/y) and **I
 - IAEA SRS 47 Co-60 primary barrier → **1034 mm concrete** (report: 1033 mm)
 - NRC RG 8.39 I-131 Example 2 → **4.53 mSv** (report: 4.53 mSv)
 
-Run the tests:
+Run the tests (needs `requirements-dev.txt`, see §1):
 ```powershell
-py -3.11 tests\test_validation.py
+py -3.11 -m pytest
 ```
+
+They also run on every push via [`.github/workflows/tests.yml`](.github/workflows/tests.yml).
 
 ---
 
@@ -86,7 +93,9 @@ The whole model is data-driven. To change a number, edit the JSON in [`shieldlab
 | `scatter.json` | secondary kerma, CT DLP defaults, ceiling scatter |
 | `workloads.json` | patient numbers, primary kerma, Saudi NDRLs, LINAC defaults |
 
-To add a **new material**: add an entry to `materials.json` with its `density_kg_m3` and (optionally) a `mu_rho` grid on the shared `energy_grid_MeV`. To add a **modality**: add an entry to `ui/modality_config.py`.
+To add a **new material**: add an entry to `materials.json` with its `density_kg_m3` and a `mu_rho` grid — either on the shared `energy_grid_MeV` or on its own `energy_grid_MeV` with a `mu_rho_max_energy_MeV` cap. `python tools/build_mu_rho.py --write` regenerates the grids from elemental compositions by the Hubbell & Seltzer mixture rule, and `--verify` checks the generator against the NIST rows already in the file. A material is treated as **narrow-beam** (labelled and warned about) unless it has either a tabulated broad-beam dataset or a `buildup_mux`/`buildup_B` pair. To add a **modality**: add an entry to `ui/modality_config.py`.
+
+**The reference standards are not in this repository.** NCRP 147, IAEA SRS 47 and the rest are copyrighted publications; `references.json` names each publisher so you can obtain your own copy. Nothing is read from them at runtime — every number lives in the JSON datasets.
 
 Project structure:
 ```
@@ -107,4 +116,10 @@ PROGRESS.md             development log
 
 ## 6. Limitations (read the app's **Limitations** tab)
 
-Photons only — **LINAC > 10 MV photoneutrons are not modelled** (warned, with guidance). Multi-layer transmission is the product of per-layer broad-beam factors (slightly conservative). CT uses NCRP 147's separate head/body normalization; replace it with scanner isodose data when available, and enter DLP including any contrast or repeated acquisitions because no automatic multiplier is applied. Skyshine/ducts/maze are qualitative in v1.0. **A qualified expert must review any design used for construction.**
+Photons only — **LINAC > 10 MV photoneutrons are not modelled** (warned, with guidance).
+
+**Multi-layer barriers of MIXED materials are optimistic, not conservative.** The transmission of a stack is taken as the product of the per-layer factors. For the TVL models (megavoltage, radionuclides) that product is exact. For the Archer model it is not: each fit already contains the build-up of the whole slab it was measured on, so multiplying two fits drops that build-up and **under-predicts the dose behind the barrier**. Adjacent layers of the *same* material are now fused before evaluation, so one wall entered as several courses gives the same answer as the single slab it is; a genuine mix of different materials still multiplies different fits, and the app flags it.
+
+**Materials without a broad-beam dataset are marked "narrow-beam".** Barite concrete, brick, lead glass and water fall back to the generic μ/ρ model, which has no build-up factor and therefore reports a *lower bound* on the transmitted dose. They are labelled in the layer selector, carry a warning in the results, and are excluded from the cost optimiser's cheapest/lightest/thinnest recommendations.
+
+CT uses NCRP 147's broad-beam secondary transmission at the scanner kVp; replace the DLP normalization with scanner isodose data when available, and enter DLP including any contrast or repeated acquisitions because no automatic multiplier is applied. Skyshine/ducts/maze are qualitative in v1.0. **A qualified expert must review any design used for construction.**

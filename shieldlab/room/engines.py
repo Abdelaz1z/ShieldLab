@@ -57,17 +57,19 @@ class EngineResult:
 
 
 def usable_wall_materials(isotope: str) -> List[str]:
-    """Materials that actually have a transmission path for this isotope's gamma."""
+    """Materials with a MEASURED broad-beam dataset for this isotope's gamma.
+
+    The probe used to accept any material that returned a number, which let steel
+    through on the generic mu/rho model: no radionuclide in radionuclides.json has a
+    steel TVL, so a steel wall was quietly evaluated narrow-beam and its transmitted
+    dose came out optimistic by the missing build-up factor. A room barrier drives a
+    pass/fail verdict, so only tabulated broad-beam data is admitted here.
+    """
     beam = bm.Beam(kind=bm.KIND_RADIONUCLIDE, nuclide=isotope)
-    ok = []
-    for m in _CANDIDATE_WALL_MATERIALS:
-        try:
-            b = bm.transmission_of_layer(beam, m, 100.0)
-            if b is not None and 0.0 < b <= 1.0:
-                ok.append(m)
-        except Exception:
-            continue
-    return ok
+    return [
+        m for m in _CANDIDATE_WALL_MATERIALS
+        if bm.data_path(beam, m) == bm.PATH_BROAD
+    ]
 
 
 class AnalyticalEngine:
@@ -257,19 +259,26 @@ def optical_depth(energy_keV: float, layers) -> Optional[float]:
     distinguish "not deep" from "not known".
     """
     from .. import data_loader as dl
+    from ..physics import beams as bm
     from ..physics import transmission as tx
     try:
         mats = dl.load("materials")
     except Exception:
         return None
-    grid, table = mats["energy_grid_MeV"], mats["materials"]
+    table = mats["materials"]
     total, seen = 0.0, False
     for material, t_mm in layers:
         m = table.get(material)
         if m is None or not t_mm or t_mm <= 0:
             continue
+        # Per-material grids: a material whose coefficients stop below this energy
+        # must not be silently skipped, or the mu*x warning below goes quiet for it.
+        entry = bm.mu_rho_grid_for(material)
+        if entry is None:
+            continue
+        grid, mu_rho_grid, _limit = entry
         try:
-            mu_rho = tx.interp_mu_rho(energy_keV / 1000.0, grid, m["mu_rho"])
+            mu_rho = tx.interp_mu_rho(energy_keV / 1000.0, grid, mu_rho_grid)
             rho = m["density_kg_m3"] / 1000.0          # kg/m^3 -> g/cm^3
         except Exception:
             continue

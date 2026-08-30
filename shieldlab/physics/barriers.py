@@ -37,18 +37,57 @@ class Barrier:
         self.layers.append(Layer(material, thickness_mm))
         return self
 
+    # --- normalisation -------------------------------------------------------
+
+    def merge_adjacent(self) -> "Barrier":
+        """Return an equivalent barrier with neighbouring same-material layers fused.
+
+        Broad-beam transmission is not multiplicative (see
+        transmission.combined_transmission), so 3 x 100 mm of concrete and 1 x 300 mm
+        of concrete are the same wall but would otherwise get different answers, the
+        split one optimistic by roughly an order of magnitude. Fusing them first makes
+        the verdict depend on the barrier rather than on how it was typed in.
+
+        Only ADJACENT layers are merged: concrete/lead/concrete is a real sandwich and
+        its two concrete courses genuinely see different spectra.
+        """
+        merged: List[Layer] = []
+        for layer in self.layers:
+            if merged and merged[-1].material == layer.material:
+                merged[-1] = Layer(layer.material,
+                                   merged[-1].thickness_mm + layer.thickness_mm)
+            else:
+                merged.append(Layer(layer.material, layer.thickness_mm))
+        return Barrier(merged)
+
+    def was_merged(self) -> bool:
+        """True if this barrier declares adjacent layers of the same material."""
+        return len(self.merge_adjacent().layers) != len(self.layers)
+
     # --- transmission --------------------------------------------------------
 
     def layer_transmissions(self, beam: bm.Beam) -> List[float]:
-        """Transmission factor of each layer for the given beam."""
+        """Transmission factor of each layer for the given beam.
+
+        Reported per DECLARED layer, so the UI breakdown still lines up with the rows
+        the user typed. `transmission()` is the one that normalises first.
+        """
         return [
             bm.transmission_of_layer(beam, layer.material, layer.thickness_mm)
             for layer in self.layers
         ]
 
     def transmission(self, beam: bm.Beam) -> float:
-        """Combined transmission B of the whole barrier (product of layers)."""
-        return tx.combined_transmission(self.layer_transmissions(beam))
+        """Combined transmission B of the whole barrier.
+
+        Adjacent same-material layers are fused first so the answer describes the
+        physical wall, not the way it was entered.
+        """
+        normalised = self.merge_adjacent()
+        return tx.combined_transmission([
+            bm.transmission_of_layer(beam, layer.material, layer.thickness_mm)
+            for layer in normalised.layers
+        ])
 
     # --- physical descriptors ------------------------------------------------
 
