@@ -332,6 +332,8 @@ def barrier_builder(source=None) -> ba.Barrier:
         f"{t('current_build_up')}: **{build_description}** · "
         f"{t('areal_load')} ≈ **{barrier.areal_density_kg_m2():,.0f} kg/m²**"
     )
+    if barrier.was_merged():
+        st.info(t("layers_merged", detail=barrier.merge_adjacent().describe()))
     selected_narrow = [
         layer["material"] for layer in st.session_state.layers
         if layer["material"] in narrow_beam and layer["thickness"] > 0

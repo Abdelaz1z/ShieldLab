@@ -107,4 +107,10 @@ PROGRESS.md             development log
 
 ## 6. Limitations (read the app's **Limitations** tab)
 
-Photons only — **LINAC > 10 MV photoneutrons are not modelled** (warned, with guidance). Multi-layer transmission is the product of per-layer broad-beam factors (slightly conservative). CT uses NCRP 147's separate head/body normalization; replace it with scanner isodose data when available, and enter DLP including any contrast or repeated acquisitions because no automatic multiplier is applied. Skyshine/ducts/maze are qualitative in v1.0. **A qualified expert must review any design used for construction.**
+Photons only — **LINAC > 10 MV photoneutrons are not modelled** (warned, with guidance).
+
+**Multi-layer barriers of MIXED materials are optimistic, not conservative.** The transmission of a stack is taken as the product of the per-layer factors. For the TVL models (megavoltage, radionuclides) that product is exact. For the Archer model it is not: each fit already contains the build-up of the whole slab it was measured on, so multiplying two fits drops that build-up and **under-predicts the dose behind the barrier**. Adjacent layers of the *same* material are now fused before evaluation, so one wall entered as several courses gives the same answer as the single slab it is; a genuine mix of different materials still multiplies different fits, and the app flags it.
+
+**Materials without a broad-beam dataset are marked "narrow-beam".** Barite concrete, brick, lead glass and water fall back to the generic μ/ρ model, which has no build-up factor and therefore reports a *lower bound* on the transmitted dose. They are labelled in the layer selector, carry a warning in the results, and are excluded from the cost optimiser's cheapest/lightest/thinnest recommendations.
+
+CT uses NCRP 147's broad-beam secondary transmission at the scanner kVp; replace the DLP normalization with scanner isodose data when available, and enter DLP including any contrast or repeated acquisitions because no automatic multiplier is applied. Skyshine/ducts/maze are qualitative in v1.0. **A qualified expert must review any design used for construction.**

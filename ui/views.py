@@ -370,7 +370,8 @@ def _build_ct_source(cfg):
         )
         workloads.append(src.CTExamWorkload(exam_type, dlp, exams))
 
-    distance = st.number_input(
+    distance_col, kvp_col = st.columns(2)
+    distance = distance_col.number_input(
         t("distance_scanner_barrier"),
         0.3,
         50.0,
@@ -378,7 +379,16 @@ def _build_ct_source(cfg):
         0.1,
         key="calc_ct_distance",
     )
-    return src.ct_source(workloads, distance)
+    # Selects the broad-beam secondary transmission dataset for the barrier; CT
+    # scatter used to be shielded with a generic 70 keV narrow-beam model.
+    kvp = kvp_col.selectbox(
+        t("ct_kvp"),
+        [80, 100, 120, 140],
+        index=2,
+        help=t("ct_kvp_help"),
+        key="calc_ct_kvp",
+    )
+    return src.ct_source(workloads, distance, kvp)
 
 
 # ---------------------------------------------------------------------------

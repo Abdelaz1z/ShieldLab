@@ -165,6 +165,23 @@ def _mono_params(beam: Beam, material: str):
     return tx.interp_mu_rho(energy, grid, mu_rho_grid), mat["density_kg_m3"]
 
 
+def has_buildup_data(material: str) -> bool:
+    """True if this material ships a dose build-up table (see tx.interp_buildup)."""
+    mat = dl.materials()["materials"].get(material) or {}
+    return bool(mat.get("buildup_mux")) and bool(mat.get("buildup_B"))
+
+
+def _mono_buildup(material: str, mu_rho_cm2_g: float, density_kg_m3: float,
+                  thickness_mm: float) -> float:
+    """Dose build-up factor for this barrier, or 1.0 (narrow beam) if untabulated."""
+    mat = dl.materials()["materials"].get(material) or {}
+    mux_grid, buildup_grid = mat.get("buildup_mux"), mat.get("buildup_B")
+    if not mux_grid or not buildup_grid:
+        return 1.0
+    mu_x = mu_rho_cm2_g * (density_kg_m3 / 1000.0) * (thickness_mm / 10.0)
+    return tx.interp_buildup(mu_x, mux_grid, buildup_grid)
+
+
 # ---------------------------------------------------------------------------
 # main entry point
 # ---------------------------------------------------------------------------
@@ -207,7 +224,12 @@ def transmission_of_layer(beam: Beam, material: str, thickness_mm: float,
     if beam.kind == KIND_MONO:
         mp = _mono_params(beam, material)
         if mp:
-            return tx.mu_buildup_transmission(thickness_mm, mp[0], mp[1], buildup)
+            # An explicit buildup argument wins; otherwise use the material's own
+            # table when it has one, and fall back to 1.0 (narrow beam) when it
+            # does not. data_path() reports which of those two applied.
+            factor = buildup if buildup != 1.0 else _mono_buildup(
+                material, mp[0], mp[1], thickness_mm)
+            return tx.mu_buildup_transmission(thickness_mm, mp[0], mp[1], factor)
         raise ValueError(f"No mu/rho data for material '{material}'. Add a mu_rho grid in materials.json.")
 
     raise ValueError(f"Unknown beam kind '{beam.kind}'.")
@@ -253,7 +275,10 @@ def data_path(beam: Beam, material: str) -> Optional[str]:
         return PATH_NONE                       # unknown beam kind: nothing serves it
 
     # diagnostic, radionuclide and mono beams all fall back to the generic grid
-    return PATH_NARROW if _mono_params(beam, material) else PATH_NONE
+    if not _mono_params(beam, material):
+        return PATH_NONE
+    # A material carrying a build-up table is no longer narrow-beam.
+    return PATH_BROAD if has_buildup_data(material) else PATH_NARROW
 
 
 def available_materials(beam: Beam) -> list:
