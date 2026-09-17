@@ -199,11 +199,17 @@ _BUNDLE_TRIED = False
 _CORNER = None
 _CORNER_TRIED = False
 
-# Response-space routing floor, in log10 B. A query whose PREDICTED transmission falls below
-# this is not served by the surrogate however ordinary its features look: the prospective
-# validation showed the band is not calibrated there and the error is a bias, so widening the
-# interval cannot fix it. Set from the measured failure boundary (B = 1e-4), not tuned.
+# Response-space routing floor, in log10 B, for the LEGACY eight-feature bundle only. A query whose
+# predicted transmission fell below this was served without an interval however ordinary its
+# features looked, because that model's band was measured as not calibrated there and its error was
+# a bias. Model E removed the cause: on the sealed test set it predicted the 182 configurations
+# below B = 1e-4 with the same accuracy as the rest (0.023 in log10 B) and its interval covered
+# 98.4% of them, so no withdrawal applies to it.
 RESPONSE_ROUTER_LOGB_MAX = -4.0
+
+# Model E's test set reached B = 1.1e-5. Below that the model still answers, but no coverage has
+# been measured, so the result carries a note instead of a silent extrapolation.
+BELOW_TESTED_LOGB = -5.0
 
 # ---------------------------------------------------------------------------
 # GEOMETRY-BIAS THRESHOLD (uncorrected; disclosed, not fixed)
@@ -317,7 +323,10 @@ def _corner_provenance(cb) -> str:
 def load_bundle(path: Optional[str] = None):
     """Load the deployed surrogate bundle once (or return None if unavailable, so the
     app degrades gracefully to analytical-only). Aliases the guard module into sys.modules
-    under the name the pickle expects ('surrogate_guard')."""
+    under the name the pickle expects ('surrogate_guard').
+
+    Model E is preferred when its bundle is present, and the eight-feature bundle is the
+    fallback, so a deploy without the larger file still serves predictions."""
     global _BUNDLE, _BUNDLE_TRIED
     if _BUNDLE is not None or _BUNDLE_TRIED:
         return _BUNDLE
@@ -326,9 +335,11 @@ def load_bundle(path: Optional[str] = None):
         import joblib
         from . import surrogate_guard as _sg
         sys.modules.setdefault("surrogate_guard", _sg)   # pickle refers to surrogate_guard.*
-        p = Path(path) if path else (Path(__file__).resolve().parents[2] / "models" /
-                                     "surrogate_bundle.joblib")
-        if not p.exists():
+        models = Path(__file__).resolve().parents[2] / "models"
+        candidates = ([Path(path)] if path else
+                      [models / "surrogate_bundle_e.joblib", models / "surrogate_bundle.joblib"])
+        p = next((c for c in candidates if c.exists()), None)
+        if p is None:
             return None
         _BUNDLE = joblib.load(p)
     except Exception:
@@ -430,6 +441,81 @@ class SurrogateEngine:
                   f"95% band [{B_lo:.1e}, {B_hi:.1e}] is wide by design — confirm the final "
                   f"maze with a full MC run."))
 
+    def _model_e_row(self, path: BarrierPath, wall: Wall, thickness_mm: float):
+        """Feature row and baseline for model E, or None when a material or line is unknown."""
+        from . import surrogate_e as se
+        b = self.bundle
+        energy = b["isotope_energy_keV"].get(self.design.source.isotope)
+        materials = b["material_map"]
+        first = "lead" if path.kind in ("door", "window") else wall.material1
+        if energy is None or first not in materials:
+            return None
+        second, l2t = wall.material2, wall.thickness2_mm
+        use_second = (path.kind == "wall" and second and l2t > 0 and second in materials)
+        try:
+            return se.design_row(
+                b, energy_keV=energy, thickness_mm=thickness_mm,
+                duct_radius_mm=path.duct_radius_mm, det_offset_mm=path.offset_m * 1000.0,
+                zeff=materials[first]["zeff"], density_gcm3=materials[first]["density_gcm3"],
+                layer2_thickness_mm=l2t if use_second else 0.0,
+                layer2_zeff=materials[second]["zeff"] if use_second else 0.0,
+                layer2_density_gcm3=materials[second]["density_gcm3"] if use_second else 0.0)
+        except ValueError:
+            return None            # e.g. a duct wider than the geometry the model was trained on
+
+    def _evaluate_model_e(self, path: BarrierPath, wall: Wall, thickness_mm: float,
+                          analytical: Optional[EngineResult], gT: float,
+                          unshielded: float) -> EngineResult:
+        """Serve model E: point estimate, 95% interval, guard, and the standing beam caveat."""
+        from . import surrogate_e as se
+        b = self.bundle
+        built = self._model_e_row(path, wall, thickness_mm)
+        if built is None:
+            return EngineResult(barrier_id=path.label, label=path.label, engine=self.name,
+                                B_required=None, B_achieved=None, dose_mSv_wk=None, goal_over_T=gT,
+                                passes=None, margin=None, note="No surrogate features for this path.")
+        X, baseline, _ = built
+        if not b["domain"].in_domain(X)[0]:
+            aB = analytical.B_achieved if analytical else None
+            aDose = analytical.dose_mSv_wk if analytical else None
+            if aB is not None:
+                note = ("Outside the surrogate's trusted domain; the analytical value is used. "
+                        "An independent Monte-Carlo run is the safer check.")
+                engine = "analytical (OOD fallback)"
+            else:
+                note = ("Outside the surrogate's trusted domain AND unmodellable analytically "
+                        "(off-axis duct streaming) — a full Monte-Carlo simulation is required.")
+                engine = "OOD — needs MC"
+            return EngineResult(
+                barrier_id=path.label, label=path.label, engine=engine, B_required=None,
+                B_achieved=aB, dose_mSv_wk=aDose, goal_over_T=gT,
+                passes=(analytical.passes if analytical else None),
+                margin=(gT / aDose if aDose else None), material=wall.material1, ood=True, note=note)
+
+        logB, lo, hi, group = se.serve(b, X, baseline)
+        mu_x = self._barrier_mu_x(path, wall, thickness_mm)
+        finite_beam_bias = mu_x is not None and mu_x >= GEOMETRY_BIAS_MUX
+        gb_note = f"  ⚠ μx≈{mu_x:.1f}. {GEOMETRY_BIAS_WARNING}" if finite_beam_bias else ""
+        B, B_lo, B_hi = 10.0 ** logB, 10.0 ** lo, min(10.0 ** hi, 1.0)
+        dose = unshielded * B
+        margin_hi = gT / (unshielded * B_hi) if unshielded * B_hi > 0 else None
+        band_note = {"deep_tail": " (deep tail)", "beam_shadow": " (deep off-axis)"}.get(group, "")
+        below_tested = (" The prediction is below the deepest transmission tested (about 1e-5), "
+                        "where the interval has no measured coverage; confirm with Monte Carlo."
+                        if logB < BELOW_TESTED_LOGB else "")
+        return EngineResult(
+            barrier_id=path.label, label=path.label, engine=self.name,
+            B_required=(min(1.0, gT / unshielded) if unshielded > 0 else 1.0),
+            B_achieved=B, dose_mSv_wk=dose, goal_over_T=gT,
+            passes=(dose <= gT), margin=(gT / dose if dose > 0 else None),
+            material=wall.material1, ci_low=B_lo, ci_high=B_hi,
+            geometry_bias=finite_beam_bias, mu_x=mu_x,
+            note=((f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}; "
+                   f"conservative (upper-bound) margin ×{margin_hi:.2f}."
+                   if margin_hi is not None else
+                   f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
+                  + below_tested + gb_note))
+
     def evaluate(self, path: BarrierPath, wall: Wall, thickness_mm: float,
                  analytical: Optional[EngineResult] = None) -> Optional[EngineResult]:
         if not self.available():
@@ -437,6 +523,13 @@ class SurrogateEngine:
         if path.kind == "maze":
             return self._evaluate_maze(path, wall)
         b = self.bundle
+        from . import surrogate_e as se
+        if se.is_model_e(b):
+            source = self.analytical._source(path)
+            goal = self.analytical._goal(wall)
+            gT = goal.P_weekly / goal.occupancy_T if goal.occupancy_T > 0 else goal.P_weekly
+            return self._evaluate_model_e(path, wall, thickness_mm, analytical, gT,
+                                          source.total_unshielded())
         X = self._features(path, wall, thickness_mm)
         source = self.analytical._source(path)
         goal = self.analytical._goal(wall)

@@ -37,13 +37,58 @@ def _both(d, mode="check"):
 
 def test_bundle_loads():
     se = SurrogateEngine(_room())
-    assert se.available(), "surrogate_bundle.joblib did not load"
-    # Regression guard, not a version lock: the training set only ever GROWS (4,177 rescued
-    # full-domain baseline -> +Lu-177 -> +materials tier). A drop means the bundle was rebuilt
-    # on a subset — the failure this is here to catch.
-    assert se.bundle["meta"]["n_accepted"] >= 4177          # full domain: shadow+deep+boundary rescued
-    assert se.bundle["meta"]["n_excised"] == 0              # zero known bias remaining
-    assert se.bundle["meta"]["cqr95_coverage_holdout"] >= 0.95
+    assert se.available(), "no surrogate bundle loaded"
+    from shieldlab.room import surrogate_e as sur_e
+    meta = se.bundle["meta"]
+    if sur_e.is_model_e(se.bundle):
+        # Model E: the training set only ever grows, and the deployed copy must be the sealed
+        # model whose test-set numbers the paper reports.
+        assert meta["n_rows"] >= 15417
+        assert meta["test_set"]["n"] == 2386
+        assert meta["test_set"]["rmse"] < 0.03
+        assert 0.93 <= meta["test_set"]["coverage"] <= 0.99
+        assert len(se.bundle["features"]) == 12
+    else:
+        # Legacy eight-feature bundle. A drop in the row count means it was rebuilt on a subset.
+        assert meta["n_accepted"] >= 4177
+        assert meta["n_excised"] == 0
+        assert meta["cqr95_coverage_holdout"] >= 0.95
+
+
+# Three configurations from the sealed test set (hpc_campaign/e_predictions_LOCKED.csv), with the
+# predictions recorded before those configurations were simulated. The app must reproduce them from
+# its own feature builder, or it is not serving the model the paper tested.
+SEALED_PREDICTIONS = [
+    # (energy keV, thickness mm, duct radius mm, offset mm, material, layer2, layer2 mm,
+    #  point, lower, upper)
+    (140.5, 129.88, 0.0, 0.0, "concrete", None, 0.0, -1.403838257759, -1.461351705021, -1.339197382552),
+    (140.5, 0.43, 0.0, 0.0, "lead", "concrete", 42.26, -0.913701012432, -0.961900964824, -0.877250948889),
+    (140.5, 233.28, 31.32, 65.1, "concrete", None, 0.0, -1.077336706658, -1.097211350492, -0.952021803018),
+]
+
+
+def test_sealed_test_set_predictions_reproduce():
+    """The app's own feature and interval code reproduces sealed predictions to float precision."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    bundle = SurrogateEngine(_room()).bundle
+    if not sur_e.is_model_e(bundle):
+        print("SKIP sealed-prediction test: model E is not the loaded bundle")
+        return
+    materials = bundle["material_map"]
+    for energy, thickness, radius, offset, first, second, second_mm, point, low, high in SEALED_PREDICTIONS:
+        X, baseline, _ = sur_e.design_row(
+            bundle, energy_keV=energy, thickness_mm=thickness, duct_radius_mm=radius,
+            det_offset_mm=offset, zeff=materials[first]["zeff"],
+            density_gcm3=materials[first]["density_gcm3"],
+            layer2_thickness_mm=second_mm,
+            layer2_zeff=materials[second]["zeff"] if second else 0.0,
+            layer2_density_gcm3=materials[second]["density_gcm3"] if second else 0.0)
+        got_point, got_low, got_high, _ = sur_e.serve(bundle, X, baseline)
+        assert bundle["domain"].in_domain(X)[0], (first, thickness)
+        for got, want, name in ((got_point, point, "point"), (got_low, low, "lower"),
+                                (got_high, high, "upper")):
+            assert abs(got - want) < 1e-9, (first, thickness, name, got, want)
 
 
 def test_solid_wall_envelope():
@@ -61,22 +106,30 @@ def test_solid_wall_envelope():
     assert checked >= 3, "too few in-domain solid-wall cases to validate the envelope"
 
 
-def test_deep_wall_served_with_wide_band():
-    """A deep wall (B < 2e-3) WAS the excised deep-tail regime; after the HPC analog rescue the
-    surrogate is trained on unbiased labels there and now SERVES it (the excised set is empty),
-    under the wider group-conditional (deep-tail) conformal band — an honest inflated interval,
-    not a deferral to the analytical value."""
+def test_deep_wall_is_served_with_an_interval():
+    """A deep wall is served with an interval, and the deep band is the wider of the two.
+
+    How much wider is a property of the model. The eight-feature bundle needed a deep-tail
+    conformal offset twelve times the standard one; model E, which predicted the sealed
+    configurations below B = 1e-4 as accurately as the rest, needs almost none, and its deep
+    interval is wider only because its quantile arms are. Both must still bracket the point
+    estimate and stay usable."""
+    from shieldlab.room import surrogate_e as sur_e
+
     se, am, sm = _both(_room(iso="F-18", thickness=500))
     s = sm["Wall N"]
-    assert s.ood is False                              # no longer routed away
+    assert s.ood is False                              # served, not routed away
     assert s.engine == "surrogate"
     assert s.ci_low is not None and s.ci_high is not None
     assert 0.0 < s.B_achieved <= 1.0 and s.ci_low <= s.B_achieved <= s.ci_high
-    # the deep-tail band must be markedly wider than a thin-wall (standard-group) band
     thin = _both(_room(iso="F-18", thickness=120))[2]["Wall N"]
     deep_rel = s.ci_high / max(s.ci_low, 1e-300)
     thin_rel = thin.ci_high / max(thin.ci_low, 1e-300)
-    assert deep_rel > 3.0 * thin_rel
+    assert deep_rel > thin_rel
+    if sur_e.is_model_e(se.bundle):
+        assert deep_rel < 10.0, deep_rel        # an interval a designer can still use
+    else:
+        assert deep_rel > 3.0 * thin_rel
 
 
 def test_2026_08_14_finite_beam_priority_warning_at_mux4():
@@ -105,10 +158,20 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     assert banded.geometry_bias is True
     assert eng.GEOMETRY_BIAS_WARNING in banded.note
 
-    withdrawn = _both(_room(iso="F-18", thickness=700))[2]["Wall N"]
-    assert "deep tail" in withdrawn.engine and withdrawn.ci_low is None
-    assert withdrawn.geometry_bias is True
-    assert eng.GEOMETRY_BIAS_WARNING in withdrawn.note
+    # A very deep wall. The eight-feature bundle withdrew its interval below B = 1e-4; model E
+    # keeps it, because it was tested there, and flags anything below the deepest transmission
+    # the test set reached instead. Either way the geometry warning survives the branch.
+    from shieldlab.room import surrogate_e as sur_e
+    se_deep, _, deep_map = _both(_room(iso="F-18", thickness=700))
+    very_deep = deep_map["Wall N"]
+    assert very_deep.geometry_bias is True
+    assert eng.GEOMETRY_BIAS_WARNING in very_deep.note
+    if sur_e.is_model_e(se_deep.bundle):
+        assert very_deep.ci_low is not None and very_deep.ci_high is not None
+        if very_deep.B_achieved < 10 ** eng.BELOW_TESTED_LOGB:
+            assert "deepest transmission tested" in very_deep.note
+    else:
+        assert "deep tail" in very_deep.engine and very_deep.ci_low is None
 
     warning = eng.GEOMETRY_BIAS_WARNING
     for phrase in (
