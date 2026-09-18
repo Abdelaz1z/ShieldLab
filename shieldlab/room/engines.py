@@ -441,17 +441,28 @@ class SurrogateEngine:
                   f"95% band [{B_lo:.1e}, {B_hi:.1e}] is wide by design — confirm the final "
                   f"maze with a full MC run."))
 
+    def _model_e_materials(self, path: BarrierPath, wall: Wall):
+        """The layers model E sees for this path: the first material, and the second where it applies.
+
+        A door or window is served as its lead equivalent, so its first layer is lead whatever the
+        wall is made of, and it has no second layer.
+        """
+        first = "lead" if path.kind in ("door", "window") else wall.material1
+        second = (wall.material2 if path.kind == "wall" and wall.material2
+                  and wall.thickness2_mm > 0 else None)
+        return first, second
+
     def _model_e_row(self, path: BarrierPath, wall: Wall, thickness_mm: float):
         """Feature row and baseline for model E, or None when a material or line is unknown."""
         from . import surrogate_e as se
         b = self.bundle
         energy = b["isotope_energy_keV"].get(self.design.source.isotope)
         materials = b["material_map"]
-        first = "lead" if path.kind in ("door", "window") else wall.material1
+        first, second = self._model_e_materials(path, wall)
         if energy is None or first not in materials:
             return None
-        second, l2t = wall.material2, wall.thickness2_mm
-        use_second = (path.kind == "wall" and second and l2t > 0 and second in materials)
+        l2t = wall.thickness2_mm
+        use_second = second is not None and second in materials
         try:
             return se.design_row(
                 b, energy_keV=energy, thickness_mm=thickness_mm,
@@ -493,6 +504,11 @@ class SurrogateEngine:
                 margin=(gT / aDose if aDose else None), material=wall.material1, ood=True, note=note)
 
         logB, lo, hi, group = se.serve(b, X, baseline)
+        # The model is trained in a 0.5 m beam and the standards tabulate a broad one, so the served
+        # transmission is raised to its broad-beam equivalent before it is compared with a design
+        # goal. `serve` is left untouched, so it still reproduces the paper's sealed predictions.
+        factor = se.field_convention_factor(*self._model_e_materials(path, wall))
+        logB, lo, hi = se.apply_field_convention(factor, logB, lo, hi)
         mu_x = self._barrier_mu_x(path, wall, thickness_mm)
         finite_beam_bias = mu_x is not None and mu_x >= GEOMETRY_BIAS_MUX
         gb_note = f"  ⚠ μx≈{mu_x:.1f}. {GEOMETRY_BIAS_WARNING}" if finite_beam_bias else ""
@@ -514,6 +530,7 @@ class SurrogateEngine:
                    f"conservative (upper-bound) margin ×{margin_hi:.2f}."
                    if margin_hi is not None else
                    f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
+                  + f" Includes the ×{factor:.2f} broad-beam field-convention factor."
                   + below_tested + gb_note))
 
     def evaluate(self, path: BarrierPath, wall: Wall, thickness_mm: float,

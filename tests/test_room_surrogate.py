@@ -91,6 +91,59 @@ def test_sealed_test_set_predictions_reproduce():
             assert abs(got - want) < 1e-9, (first, thickness, name, got, want)
 
 
+def test_field_convention_factor_takes_the_larger_layer():
+    """The measured factors, the conservative default, and the rule for a laminate."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    assert sur_e.field_convention_factor("lead") == 1.20
+    assert sur_e.field_convention_factor("concrete") == 1.35
+    assert sur_e.field_convention_factor("steel") == 1.37
+    # An unmeasured material takes the largest measured value, not the smallest.
+    assert sur_e.field_convention_factor("barite_concrete") == sur_e.FIELD_CONVENTION_DEFAULT
+    assert sur_e.field_convention_factor(None) == sur_e.FIELD_CONVENTION_DEFAULT
+    # A laminate takes the larger of its layers, so lead behind concrete is not served at lead's 1.20.
+    assert sur_e.field_convention_factor("lead", "concrete") == 1.35
+    assert sur_e.field_convention_factor("lead", None) == 1.20
+
+
+def test_served_transmission_carries_the_field_convention():
+    """The engine raises the sealed prediction to its broad-beam equivalent, and says so.
+
+    The model is trained in a 0.5 m beam, which under-states lateral scatter, so the raw prediction
+    is on the unsafe side of the tables a design is checked against. The engine applies the measured
+    factor; `serve` itself must stay untouched, because it has to keep reproducing the sealed test
+    set (see test_sealed_test_set_predictions_reproduce).
+    """
+    from shieldlab.room import surrogate_e as sur_e
+
+    design = _room(iso="F-18", thickness=200.0, material="concrete")
+    engine = SurrogateEngine(design)
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP field-convention test: model E is not the loaded bundle")
+        return
+    _, _, served = _both(design)
+    result = served["Wall N"]
+    if result.ood:
+        print("SKIP field-convention test: the reference wall is out of domain")
+        return
+
+    materials = engine.bundle["material_map"]
+    X, baseline, _ = sur_e.design_row(
+        engine.bundle, energy_keV=engine.bundle["isotope_energy_keV"]["F-18"],
+        thickness_mm=200.0, duct_radius_mm=0.0, det_offset_mm=0.0,
+        zeff=materials["concrete"]["zeff"], density_gcm3=materials["concrete"]["density_gcm3"],
+        layer2_thickness_mm=0.0, layer2_zeff=0.0, layer2_density_gcm3=0.0)
+    raw_logB, raw_lo, raw_hi, _ = sur_e.serve(engine.bundle, X, baseline)
+    factor = sur_e.field_convention_factor("concrete")
+
+    assert abs(result.B_achieved - 10.0 ** raw_logB * factor) < 1e-9 * result.B_achieved
+    assert abs(result.ci_low - 10.0 ** raw_lo * factor) < 1e-9 * result.ci_low
+    assert abs(result.ci_high - min(10.0 ** raw_hi * factor, 1.0)) < 1e-9 * result.ci_high
+    assert result.B_achieved > 10.0 ** raw_logB, "the correction must raise the transmission"
+    assert f"×{factor:.2f}" in result.note, result.note
+    assert 0.0 < result.B_achieved <= 1.0
+
+
 def test_solid_wall_envelope():
     """Surrogate B is a valid transmission and, for in-domain solid walls, sits within the
     documented finite-geometry envelope of the analytical value (~0.3-1.5×)."""

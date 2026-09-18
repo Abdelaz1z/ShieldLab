@@ -41,6 +41,11 @@ DET_AREA_MM2 = 200.0 * 200.0
 MIN_LOG_OPEN_FRACTION = -6.0
 
 SCHEME = {"taxonomy": "deployed", "score": "absolute", "centre": "union"}
+
+# The finite-field deficit, measured per material against AAPM TG-108 at 511 keV; see
+# `field_convention_factor` for what it is and why the unmeasured materials take the largest value.
+FIELD_CONVENTION_FACTOR = {"lead": 1.20, "concrete": 1.35, "steel": 1.37}
+FIELD_CONVENTION_DEFAULT = 1.37
 GROUP_NAMES = ("standard", "beam_shadow", "deep_tail")
 
 _MU_CACHE: Dict[Tuple[float, float], float] = {}
@@ -130,6 +135,31 @@ def group_of(bundle: dict, det_offset_mm: float, logB: float) -> str:
             and logB < thresholds["shadow_logB_max"]):
         return "beam_shadow"
     return "standard"
+
+
+def field_convention_factor(*materials: Optional[str]) -> float:
+    """What a served transmission is multiplied by to reach a broad-beam equivalent.
+
+    Every training label was scored under a 0.5 m square beam, which is narrower than the broad beam
+    the shielding tables assume, so it truncates lateral scatter and returns a transmission below the
+    tabulated one. The paper measures that deficit by fitting this work's tenth-value layers against
+    AAPM TG-108 at 511 keV: a constant factor of 1.20 in lead, 1.35 in concrete and 1.37 in steel,
+    with no trend in thickness. It is the non-conservative direction, so a design that does not apply
+    it sizes the barrier too thin.
+
+    Only those three materials were measured. Any other takes the largest measured value, because the
+    deficit is smallest in lead and nothing here licenses a smaller one elsewhere. A laminate takes
+    the largest factor among its layers, for the same reason: how two layers combine was not
+    measured, and the larger factor is the safe reading of that silence.
+    """
+    known = [FIELD_CONVENTION_FACTOR.get(m, FIELD_CONVENTION_DEFAULT) for m in materials if m]
+    return max(known) if known else FIELD_CONVENTION_DEFAULT
+
+
+def apply_field_convention(factor: float, *log10_b: float) -> Tuple[float, ...]:
+    """Raise transmissions in log10 B by the convention factor, keeping them at or below B = 1."""
+    shift = math.log10(factor)
+    return tuple(min(value + shift, 0.0) for value in log10_b)
 
 
 def serve(bundle: dict, X: np.ndarray, baseline_logB: float) -> Tuple[float, float, float, str]:
