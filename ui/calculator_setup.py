@@ -10,10 +10,11 @@ import streamlit as st
 
 from shieldlab import data_loader as dl
 from shieldlab.physics import barriers as ba
+from shieldlab.physics import beams as bm
 from shieldlab.regulatory import limits as reg
 
 from . import modality_config as mc
-from .i18n import t, term
+from .i18n import is_arabic, t, term
 
 
 @dataclass(frozen=True)
@@ -220,11 +221,35 @@ def _prepare_layer_state() -> None:
     ]
 
 
-def _layer_row(layer: dict, layer_index: int, material_names: list[str]) -> str | None:
+def _drop_unavailable_selections(material_names: list[str]) -> None:
+    """Forget any stored layer material the current beam cannot shield with.
+
+    Switching modality changes which materials have data. A selectbox whose stored
+    value is no longer among its options raises, so the stale value is cleared here
+    and the row falls back to the first available material.
+    """
+    allowed = set(material_names)
+    for layer in st.session_state.layers:
+        widget_key = f"premium_mat_{layer['_id']}"
+        if st.session_state.get(widget_key) not in allowed:
+            st.session_state.pop(widget_key, None)
+        if layer["material"] not in allowed:
+            layer["material"] = material_names[0]
+
+
+def _layer_row(layer: dict, layer_index: int, material_names: list[str],
+               narrow_beam: set[str] | None = None) -> str | None:
     layer_id = layer["_id"]
+    narrow_beam = narrow_beam or set()
     st.markdown(f"**{t('layer', number=layer_index + 1)}**")
     material_col, thickness_col, action_col = st.columns([2.4, 1.55, 0.85])
-    material_labels = {material: term(material) for material in material_names}
+    material_labels = {
+        material: (
+            f"{term(material)} · {t('narrow_beam_label')}"
+            if material in narrow_beam else term(material)
+        )
+        for material in material_names
+    }
     layer["material"] = material_col.selectbox(
         t("layer_material", number=layer_index + 1),
         material_names,
@@ -232,7 +257,9 @@ def _layer_row(layer: dict, layer_index: int, material_names: list[str]) -> str 
             material_names.index(layer["material"])
             if layer["material"] in material_names else 0
         ),
-        format_func=lambda material: material_labels[material],
+        # .get, not [] -- a value left in session state by a previous modality must
+        # not raise while the row is being drawn.
+        format_func=lambda material: material_labels.get(material, term(material)),
         key=f"premium_mat_{layer_id}",
         label_visibility="collapsed",
     )
@@ -265,11 +292,24 @@ def _layer_actions() -> None:
         st.rerun()
 
 
-def barrier_builder() -> ba.Barrier:
+def barrier_builder(source=None) -> ba.Barrier:
+    """Render the layer editor and return the assembled barrier.
+
+    `source` is the SourceTerm the barrier will be evaluated against. Its component
+    beams decide which materials are offered: a material with no transmission data
+    for one of them cannot be evaluated at all, and offering it would replace the
+    workspace with a traceback the moment it is picked.
+    """
     _prepare_layer_state()
-    material_names = list(dl.materials()["materials"].keys())
+    beam_list = [component.beam for component in source.components] if source else []
+    material_names = bm.available_materials_for(beam_list)
+    narrow_beam = set(bm.narrow_beam_materials_for(beam_list))
+    if not material_names:                      # no data at all: fall back to the full list
+        material_names = list(dl.materials()["materials"].keys())
+        narrow_beam = set()
+    _drop_unavailable_selections(material_names)
     removal_candidates = [
-        _layer_row(layer, layer_index, material_names)
+        _layer_row(layer, layer_index, material_names, narrow_beam)
         for layer_index, layer in enumerate(st.session_state.layers)
     ]
     removal_id = next(
@@ -292,4 +332,16 @@ def barrier_builder() -> ba.Barrier:
         f"{t('current_build_up')}: **{build_description}** · "
         f"{t('areal_load')} ≈ **{barrier.areal_density_kg_m2():,.0f} kg/m²**"
     )
+    if barrier.was_merged():
+        st.info(t("layers_merged", detail=barrier.merge_adjacent().describe()))
+    selected_narrow = [
+        layer["material"] for layer in st.session_state.layers
+        if layer["material"] in narrow_beam and layer["thickness"] > 0
+    ]
+    if selected_narrow:
+        st.warning(t(
+            "narrow_beam_notice",
+            materials="، ".join(dict.fromkeys(term(m) for m in selected_narrow))
+            if is_arabic() else ", ".join(dict.fromkeys(term(m) for m in selected_narrow)),
+        ))
     return barrier

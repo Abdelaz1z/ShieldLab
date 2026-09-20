@@ -12,7 +12,7 @@ from shieldlab.physics import optimize
 from shieldlab.report import report as report_builder
 
 from . import product_shell as ds
-from . import views as legacy
+from . import source_inputs
 from .i18n import is_arabic, t, term
 
 
@@ -118,7 +118,7 @@ def _render_evidence(assessment: CalculatorAssessment) -> None:
     st.markdown(f"### {t('component_breakdown')}")
     st.dataframe(_component_rows(assessment), width="stretch", hide_index=True)
     _equivalence_note(assessment)
-    legacy._transmission_plot(assessment.source)
+    source_inputs.transmission_plot(assessment.source)
     if assessment.evaluation.notes:
         with st.expander(t("calculation_notes"), expanded=False):
             for calculation_note in assessment.evaluation.notes:

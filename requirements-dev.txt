@@ -1,0 +1,22 @@
+# ShieldLab - development and test dependencies.
+#
+# Install on top of the runtime requirements:
+#     py -3.11 -m pip install -r requirements.txt -r requirements-dev.txt
+#
+# These are NOT needed to run the app. They are what `pytest` needs to collect
+# and execute tests/, which is why a fresh clone could not run the suite before.
+
+pytest>=8.0
+
+# tests/test_ui_regressions.py reads the exported PDF report back to assert its
+# labels, and opens the exported room diagram to assert it rendered.
+pypdf>=4.0
+Pillow>=10.0
+
+# Optional in the app (see requirements.txt), REQUIRED here: the TreeSHAP failure
+# explanation in shieldlab/room/decision_support.py only executes when shap is
+# importable, so without it that path is never exercised by any test.
+shap>=0.46
+
+# Coverage reporting used by the CI workflow.
+coverage>=7.4

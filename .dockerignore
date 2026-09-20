@@ -26,3 +26,10 @@ thesis_chapters
 # Docs (not needed at runtime)
 *.md
 !README.md
+
+# Development-only material that was shipping in the image
+_backups
+tools
+tests
+requirements-dev.txt
+pytest.ini

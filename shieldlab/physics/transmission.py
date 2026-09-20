@@ -168,6 +168,14 @@ def mu_buildup_transmission(x_mm: float, mu_rho_cm2_g: float, density_kg_m3: flo
         mu/rho  in cm^2/g
         rho     in kg/m^3  -> converted to g/cm^3 (divide by 1000)
         x       in mm      -> converted to cm     (divide by 10)
+
+    WITH buildup=1.0 THIS IS NARROW-BEAM. It counts photons removed from the beam
+    but not those scattered back into it, so it under-predicts the dose behind a
+    thick barrier -- by roughly an order of magnitude at the optical depths a real
+    barrier reaches. No material in materials.json currently ships a build-up table,
+    so every call here is narrow-beam; `beams.data_path` reports those materials as
+    PATH_NARROW and the UI labels them. Supply `buildup_mux` / `buildup_B` for a
+    material (see `interp_buildup`) and the factor is applied automatically.
     """
     if x_mm <= 0:
         return 1.0
@@ -175,6 +183,33 @@ def mu_buildup_transmission(x_mm: float, mu_rho_cm2_g: float, density_kg_m3: flo
     x_cm = x_mm / 10.0
     mu_lin_per_cm = mu_rho_cm2_g * rho_g_cm3  # linear attenuation coefficient (1/cm)
     return buildup * math.exp(-mu_lin_per_cm * x_cm)
+
+
+def interp_buildup(mu_x: float, mux_grid: list, buildup_grid: list) -> float:
+    """Interpolate a dose build-up factor B(mu*x) for one material and energy.
+
+    Build-up factors grow smoothly and roughly linearly in mu*x over the range that
+    matters for shielding, so linear interpolation on mu*x is adequate; values are
+    clamped at both ends rather than extrapolated, because extrapolating a build-up
+    factor downwards would reintroduce exactly the optimism this exists to remove.
+
+    A material supplies these as parallel `buildup_mux` and `buildup_B` arrays in
+    materials.json -- e.g. ANS-6.4.3 / Harima geometric-progression values evaluated
+    at the grid energies. Returns 1.0 (narrow beam) if either array is missing.
+    """
+    if not mux_grid or not buildup_grid or len(mux_grid) != len(buildup_grid):
+        return 1.0
+    if mu_x <= mux_grid[0]:
+        return buildup_grid[0]
+    if mu_x >= mux_grid[-1]:
+        return buildup_grid[-1]
+    for i in range(1, len(mux_grid)):
+        if mu_x <= mux_grid[i]:
+            x0, x1 = mux_grid[i - 1], mux_grid[i]
+            b0, b1 = buildup_grid[i - 1], buildup_grid[i]
+            f = (mu_x - x0) / (x1 - x0)
+            return b0 + f * (b1 - b0)
+    return buildup_grid[-1]
 
 
 def hvl_to_tvl(hvl_mm: float) -> float:
@@ -195,11 +230,23 @@ def combined_transmission(layer_transmissions: list) -> float:
 
         B_total = B_1 * B_2 * ... * B_n
 
-    This is slightly conservative for the secondary/leakage component because it
-    ignores spectral hardening between layers (each subsequent layer sees a
-    somewhat harder, more penetrating spectrum). For design (where we want to be
-    safe) this is the appropriate direction. The recommended layer ordering and
-    this caveat are surfaced to the user.
+    DIRECTION OF THE ERROR. This is NOT conservative for the Archer model. An
+    Archer fit is measured on one homogeneous slab, so it already contains the
+    build-up and the spectral hardening of the whole thickness. Multiplying two
+    fits charges the steep first-layer attenuation twice and drops the build-up
+    that the real barrier would have, so the product UNDER-predicts transmission
+    and therefore under-predicts the dose behind the barrier. Splitting a 300 mm
+    concrete wall into three declared 100 mm courses reports about 13x less dose
+    than the same wall declared as one slab.
+
+    For the TVL models the product is exact, not approximate: B = 10^(-x/TVL) is
+    a pure exponential, so megavoltage and radionuclide barriers are unaffected.
+
+    MITIGATION. `barriers.Barrier.merge_adjacent()` combines neighbouring layers of
+    the same material into a single thickness before evaluation, which removes the
+    error entirely for the common case of one wall entered as several courses. A
+    genuine mix of different materials still multiplies different fits, and there
+    the result stays optimistic; the UI says so.
     """
     total = 1.0
     for b in layer_transmissions:

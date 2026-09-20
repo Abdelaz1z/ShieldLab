@@ -9,7 +9,7 @@ from shieldlab.physics import solver
 
 from . import calculator_results, calculator_setup
 from . import product_shell as ds
-from . import views as legacy
+from . import source_inputs
 from .i18n import is_arabic, t, term
 
 
@@ -30,7 +30,7 @@ def calculator_tab() -> None:
                 t("source_workload"),
                 term(setup.modality_config["label"]),
             )
-            source = legacy._build_source(setup.modality_key, setup.modality_config)
+            source = source_inputs.build_source(setup.modality_key, setup.modality_config)
     with barrier_col:
         with st.container(border=True, key="sl_barrier_builder"):
             ds.section_header(
@@ -38,15 +38,23 @@ def calculator_tab() -> None:
                 t("barrier_assembly"),
                 t("barrier_assembly_help"),
             )
-            barrier = calculator_setup.barrier_builder()
+            # The source is passed in so the material list can be restricted to
+            # what this beam actually has transmission data for.
+            barrier = calculator_setup.barrier_builder(source)
 
     if source is None:
         return
     if setup.modality_config["builder"] == "i131":
-        legacy._show_i131_release(setup.modality_config)
+        source_inputs.show_i131_release(setup.modality_config)
 
     ds.live_note(t("live_recalculate"))
-    evaluation = solver.evaluate(source, barrier, setup.design_goal)
+    try:
+        evaluation = solver.evaluate(source, barrier, setup.design_goal)
+    except ValueError as exc:
+        # A data gap is a missing dataset, not a crash: say which combination has
+        # no data and leave the rest of the workspace intact.
+        st.error(f"**{t('barrier_not_evaluated')}** — {t('barrier_not_evaluated_help', reason=exc)}")
+        return
     calculator_results.render(
         calculator_results.CalculatorAssessment(
             source,
@@ -74,6 +82,10 @@ def _reference_entries() -> None:
             if reference.get("role"):
                 _label_english_technical_detail()
                 st.write(term(reference["role"]))
+            if reference.get("publisher"):
+                # The standards are not redistributed with the app, so say where
+                # a copy is obtained rather than implying one ships with it.
+                st.caption(f"{t('obtain_from')}: {reference['publisher']}")
             if reference.get("url"):
                 st.markdown(f"[{t('open_reference')}]({reference['url']})")
 

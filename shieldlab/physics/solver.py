@@ -117,12 +117,12 @@ def required_thickness(source: src.SourceTerm, material: str,
     goal_over_T = goal.P_weekly / goal.occupancy_T if goal.occupancy_T > 0 else goal.P_weekly
 
     def transmitted_with(x_mm: float) -> float:
-        total = 0.0
-        for c in source.components:
-            B_existing = existing.transmission(c.beam) if existing else 1.0
-            B_new = bm.transmission_of_layer(c.beam, material, x_mm)
-            total += c.unshielded * B_existing * B_new
-        return total
+        # Built as one barrier rather than multiplying two factors, so that adding
+        # more of a material the barrier already ends with merges into that layer
+        # instead of being charged as a separate slab (see Barrier.merge_adjacent).
+        trial = ba.Barrier(list(existing.layers) if existing else [])
+        trial.add(material, x_mm)
+        return sum(c.unshielded * trial.transmission(c.beam) for c in source.components)
 
     if transmitted_with(0.0) <= goal_over_T:
         return 0.0  # already acceptable without this material

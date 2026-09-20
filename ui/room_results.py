@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from html import escape
 
@@ -127,6 +128,145 @@ def _uncertainty_crosses_limit(barrier_result) -> bool:
 
 
 
+def _interval_doses(barrier_result) -> tuple[float | None, float | None]:
+    """The 95% interval expressed as dose rather than transmission.
+
+    Dose scales linearly with B at fixed geometry and workload, so the interval on
+    the transmission factor maps straight onto the dose axis the goal lives on.
+    """
+    if (
+        barrier_result.ci_low is None
+        or barrier_result.ci_high is None
+        or not barrier_result.B_achieved
+        or barrier_result.dose_mSv_wk is None
+    ):
+        return None, None
+    scale = barrier_result.dose_mSv_wk / barrier_result.B_achieved
+    return barrier_result.ci_low * scale, barrier_result.ci_high * scale
+
+
+# --- the decade rail --------------------------------------------------------
+# One shared logarithmic axis per table, so the column can be scanned down rather
+# than read row by row. Everything is a positioned div: no canvas, no script.
+
+_RAIL_PAD_DECADES = 0.35
+
+
+def rail_bounds(assessment) -> tuple[float, float]:
+    """Shared log10 bounds across every evaluated row, widened to whole decades.
+
+    A per-row axis would make two rows incomparable, which is the one thing this
+    column exists to fix. Returns a safe default when nothing could be evaluated.
+    """
+    values: list[float] = []
+    for index, analytical_result in enumerate(assessment.analytical_results):
+        decision = _decision_result_at(assessment, index, analytical_result)
+        low, high = _interval_doses(decision)
+        for value in (
+            decision.dose_mSv_wk,
+            decision.goal_over_T,
+            analytical_result.dose_mSv_wk,
+            low,
+            high,
+        ):
+            if isinstance(value, (int, float)) and value > 0:
+                values.append(value)
+    if not values:
+        return -4.0, 0.0
+    low_exp = math.floor(math.log10(min(values)) - _RAIL_PAD_DECADES)
+    high_exp = math.ceil(math.log10(max(values)) + _RAIL_PAD_DECADES)
+    if high_exp - low_exp < 2:
+        high_exp = low_exp + 2
+    return float(low_exp), float(high_exp)
+
+
+def _rail_pct(value, low_exp: float, high_exp: float) -> float | None:
+    if not isinstance(value, (int, float)) or value <= 0:
+        return None
+    position = (math.log10(value) - low_exp) / (high_exp - low_exp)
+    return max(0.0, min(1.0, position)) * 100.0
+
+
+def _rail_html(analytical_result, decision_result, low_exp: float, high_exp: float) -> str:
+    """One row of the rail: goal, analytical tick, governing dot, 95% interval."""
+    goal_pct = _rail_pct(decision_result.goal_over_T, low_exp, high_exp)
+    dose_pct = _rail_pct(decision_result.dose_mSv_wk, low_exp, high_exp)
+    if goal_pct is None or dose_pct is None:
+        return f'<div class="sl-rail"><div class="sl-rail-track"></div></div>'
+
+    parts = [
+        '<div class="sl-rail-track"></div>',
+        f'<div class="sl-rail-permitted" style="width:{goal_pct:.2f}%"></div>',
+    ]
+
+    low_dose, high_dose = _interval_doses(decision_result)
+    low_pct = _rail_pct(low_dose, low_exp, high_exp)
+    high_pct = _rail_pct(high_dose, low_exp, high_exp)
+    if low_pct is not None and high_pct is not None:
+        width = max(high_pct - low_pct, 0.8)
+        parts.append(
+            f'<div class="sl-rail-ci" style="inset-inline-start:{low_pct:.2f}%;'
+            f'width:{width:.2f}%"></div>'
+        )
+        # Hatch only the part of the interval that lies past the goal.
+        if high_pct > goal_pct:
+            breach_start = max(low_pct, goal_pct)
+            parts.append(
+                f'<div class="sl-rail-breach" style="inset-inline-start:{breach_start:.2f}%;'
+                f'width:{max(high_pct - breach_start, 0.8):.2f}%"></div>'
+            )
+
+    analytical_pct = _rail_pct(analytical_result.dose_mSv_wk, low_exp, high_exp)
+    if analytical_pct is not None:
+        parts.append(
+            f'<div class="sl-rail-analytical" style="inset-inline-start:{analytical_pct:.2f}%"></div>'
+        )
+
+    ood_class = " ood" if getattr(decision_result, "ood", False) else ""
+    parts.append(
+        f'<div class="sl-rail-decision{ood_class}" style="inset-inline-start:{dose_pct:.2f}%"></div>'
+    )
+    parts.append(f'<div class="sl-rail-goal" style="inset-inline-start:{goal_pct:.2f}%"></div>')
+    return '<div class="sl-rail">' + "".join(parts) + "</div>"
+
+
+def rail_legend_html() -> str:
+    keys = (
+        ("goal", i18n.t("rail_legend_goal")),
+        ("tick", i18n.t("rail_legend_analytical")),
+        ("dot", i18n.t("rail_legend_decision")),
+        ("ci", i18n.t("rail_legend_ci")),
+        ("breach", i18n.t("rail_legend_breach")),
+    )
+    items = "".join(
+        f'<span><i class="sl-rail-key {key}"></i>{escape(label)}</span>'
+        for key, label in keys
+    )
+    return f'<div class="sl-rail-legend">{items}</div>'
+
+
+# Verdict marks are drawn, not typed: a glyph plus the word means the state
+# survives greyscale printing and colour-vision deficiency.
+_STATUS_PATHS = {
+    "pass": '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/>',
+    "review": '<path d="M12 3.5L22 20H2z"/><path d="M12 10v4.5"/><path d="M12 17.4v.2"/>',
+    "fail": ('<path d="M8.4 3h7.2L21 8.4v7.2L15.6 21H8.4L3 15.6V8.4z"/>'
+             '<path d="M9 9l6 6M15 9l-6 6"/>'),
+}
+
+
+def status_glyph_svg(status_class: str) -> str:
+    """Inline SVG mark for a verdict, or an empty string for an unknown state."""
+    paths = _STATUS_PATHS.get(status_class)
+    if not paths:
+        return ""
+    return (
+        '<svg class="sl-status-glyph" width="13" height="13" viewBox="0 0 24 24" '
+        'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" '
+        f'stroke-linejoin="round" aria-hidden="true" focusable="false">{paths}</svg>'
+    )
+
+
 def row_status_for(barrier_result) -> tuple[str, str, str]:
     if barrier_result.passes is False:
         return "fail", "×", i18n.t("fail")
@@ -221,9 +361,11 @@ def _barrier_row_html(
     analytical_result,
     decision_result,
     assessment_mode: str,
+    rail_range: tuple[float, float] = (-4.0, 0.0),
 ) -> str:
     basis, assurance = _assurance_for(decision_result)
-    status_class, status_symbol, status_label = row_status_for(decision_result)
+    status_class, _status_symbol, status_label = row_status_for(decision_result)
+    status_glyph = status_glyph_svg(status_class)
     build, build_detail = _wall_build_text(
         room_design,
         analytical_result,
@@ -236,11 +378,12 @@ def _barrier_row_html(
         f'<th scope="row">{escape(_display_path_label(analytical_result.label))}</th>'
         f'<td>{escape(build)}<span class="subtle">{escape(build_detail)}</span></td>'
         f'<td>{escape(dose)}<span class="subtle">{escape(dose_detail)}</span></td>'
+        f'<td>{_rail_html(analytical_result, decision_result, *rail_range)}</td>'
         f'<td class="num">{escape(_format_transmission(analytical_result.B_achieved))}</td>'
         f'<td class="num">{escape(_format_transmission(decision_result.B_achieved))}</td>'
         f'<td class="num">{escape(_interval_text(decision_result))}</td>'
         f'<td>{escape(basis)}<span class="subtle">{escape(assurance)}</span></td>'
-        f'<td><span class="sl-table-status {status_class}">{status_symbol} {status_label}</span></td>'
+        f'<td><span class="sl-table-status {status_class}">{status_glyph}{escape(status_label)}</span></td>'
         f'<td class="num">{escape(margin)}</td>'
         "</tr>"
     )
@@ -260,12 +403,14 @@ def _decision_result_at(
 
 
 def results_table_html(assessment: RoomAssessment) -> str:
+    rail_range = rail_bounds(assessment)
     rows = "".join(
         _barrier_row_html(
             assessment.design,
             analytical_result,
             _decision_result_at(assessment, result_index, analytical_result),
             assessment.mode,
+            rail_range,
         )
         for result_index, analytical_result in enumerate(assessment.analytical_results)
     )
@@ -273,6 +418,7 @@ def results_table_html(assessment: RoomAssessment) -> str:
         i18n.t("column_barrier"),
         i18n.t("column_build"),
         i18n.t("column_dose_limit"),
+        i18n.t("column_dose_rail"),
         i18n.t("column_analytical_b"),
         i18n.t("column_decision_b"),
         i18n.t("column_range"),
@@ -290,6 +436,7 @@ def results_table_html(assessment: RoomAssessment) -> str:
         f'<caption>{escape(i18n.t("barrier_table_caption"))}</caption>'
         f'<thead><tr>{header_html}</tr></thead>'
         f'<tbody>{rows}</tbody></table></div>'
+        + rail_legend_html()
     )
 
 def _solid_wall_transmissions(assessment: RoomAssessment) -> dict:
