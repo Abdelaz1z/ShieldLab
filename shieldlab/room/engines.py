@@ -29,6 +29,7 @@ from ..physics import solver as sv
 from ..regulatory import limits as reg
 from .model import RoomDesign, Wall
 from .geometry import BarrierPath, all_paths
+from .transport_materials import served_as_note, simulated_thickness_mm
 
 # candidate wall materials, in the order to offer them; probed for real data below
 _CANDIDATE_WALL_MATERIALS = ("concrete", "lead", "steel", "barite_concrete", "brick", "gypsum")
@@ -370,12 +371,18 @@ class SurrogateEngine:
         mm = b["material_map"]
         if e is None or mat not in mm:
             return None
+        served = simulated_thickness_mm(mat, thickness_mm)
+        if served is None:
+            return None
         z, rho = mm[mat]["zeff"], mm[mat]["density_gcm3"]
         l2t, l2z = 0.0, 0.0
         if path.kind == "wall" and wall.material2 and wall.thickness2_mm > 0 and wall.material2 in mm:
-            l2t, l2z = wall.thickness2_mm, mm[wall.material2]["zeff"]
+            l2t = simulated_thickness_mm(wall.material2, wall.thickness2_mm)
+            if l2t is None:
+                return None
+            l2z = mm[wall.material2]["zeff"]
         # feature order MUST match bundle["features"]
-        return np.array([[e, thickness_mm, path.duct_radius_mm, path.offset_m * 1000.0,
+        return np.array([[e, served, path.duct_radius_mm, path.offset_m * 1000.0,
                           z, rho, l2t, l2z]], dtype=float)
 
     def _barrier_mu_x(self, path: BarrierPath, wall: Wall,
@@ -415,10 +422,18 @@ class SurrogateEngine:
                                 B_required=None, B_achieved=None, dose_mSv_wk=None, goal_over_T=gT,
                                 passes=None, margin=None, ood=True,
                                 note="Corner surrogate unavailable for these materials — full MC needed.")
+        primary = simulated_thickness_mm(wall.material1, wall.thickness1_mm)
+        returned = simulated_thickness_mm(path.ret_material, path.ret_thickness_mm)
+        if primary is None or returned is None:
+            return EngineResult(barrier_id=path.label, label=path.label, engine="OOD — needs MC",
+                                B_required=None, B_achieved=None, dose_mSv_wk=None, goal_over_T=gT,
+                                passes=None, margin=None, ood=True,
+                                note="This product's density differs from the simulated material's "
+                                     "in a way equal mass per area cannot correct — full MC needed.")
         z1, r1 = mm[wall.material1]["zeff"], mm[wall.material1]["density_gcm3"]
         z2, r2 = mm[path.ret_material]["zeff"], mm[path.ret_material]["density_gcm3"]
-        X = np.array([[e, wall.thickness1_mm, z1, r1,
-                       path.ret_thickness_mm, z2, r2,
+        X = np.array([[e, primary, z1, r1,
+                       returned, z2, r2,
                        path.corridor_m * 1000.0, path.shadow_offset_m * 1000.0]], dtype=float)
         if not cb["domain"].in_domain(X)[0]:
             return EngineResult(barrier_id=path.label, label=path.label, engine="OOD — needs MC",
@@ -461,14 +476,17 @@ class SurrogateEngine:
         first, second = self._model_e_materials(path, wall)
         if energy is None or first not in materials:
             return None
-        l2t = wall.thickness2_mm
         use_second = second is not None and second in materials
+        served_first = simulated_thickness_mm(first, thickness_mm)
+        served_second = simulated_thickness_mm(second, wall.thickness2_mm) if use_second else 0.0
+        if served_first is None or served_second is None:
+            return None
         try:
             return se.design_row(
-                b, energy_keV=energy, thickness_mm=thickness_mm,
+                b, energy_keV=energy, thickness_mm=served_first,
                 duct_radius_mm=path.duct_radius_mm, det_offset_mm=path.offset_m * 1000.0,
                 zeff=materials[first]["zeff"], density_gcm3=materials[first]["density_gcm3"],
-                layer2_thickness_mm=l2t if use_second else 0.0,
+                layer2_thickness_mm=served_second,
                 layer2_zeff=materials[second]["zeff"] if use_second else 0.0,
                 layer2_density_gcm3=materials[second]["density_gcm3"] if use_second else 0.0)
         except ValueError:
@@ -519,6 +537,9 @@ class SurrogateEngine:
         below_tested = (" The prediction is below the deepest transmission tested (about 1e-5), "
                         "where the interval has no measured coverage; confirm with Monte Carlo."
                         if logB < BELOW_TESTED_LOGB else "")
+        first, second = self._model_e_materials(path, wall)
+        layers = [(first, thickness_mm)] + ([(second, wall.thickness2_mm)] if second else [])
+        density_note = served_as_note(layers)
         return EngineResult(
             barrier_id=path.label, label=path.label, engine=self.name,
             B_required=(min(1.0, gT / unshielded) if unshielded > 0 else 1.0),
@@ -531,7 +552,7 @@ class SurrogateEngine:
                    if margin_hi is not None else
                    f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
                   + f" Includes the ×{factor:.2f} broad-beam field-convention factor."
-                  + below_tested + gb_note))
+                  + density_note + below_tested + gb_note))
 
     def evaluate(self, path: BarrierPath, wall: Wall, thickness_mm: float,
                  analytical: Optional[EngineResult] = None) -> Optional[EngineResult]:

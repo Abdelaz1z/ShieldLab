@@ -128,9 +128,14 @@ def test_served_transmission_carries_the_field_convention():
         return
 
     materials = engine.bundle["material_map"]
+    # The 200 mm wall is the app's 2.35 g/cm3 concrete; model E learned Geant4's 2.30, so the
+    # engine serves the thickness with the same mass per area. The reference must be built the same
+    # way, or it compares two different walls.
+    from shieldlab.room.transport_materials import simulated_thickness_mm
     X, baseline, _ = sur_e.design_row(
         engine.bundle, energy_keV=engine.bundle["isotope_energy_keV"]["F-18"],
-        thickness_mm=200.0, duct_radius_mm=0.0, det_offset_mm=0.0,
+        thickness_mm=simulated_thickness_mm("concrete", 200.0), duct_radius_mm=0.0,
+        det_offset_mm=0.0,
         zeff=materials["concrete"]["zeff"], density_gcm3=materials["concrete"]["density_gcm3"],
         layer2_thickness_mm=0.0, layer2_zeff=0.0, layer2_density_gcm3=0.0)
     raw_logB, raw_lo, raw_hi, _ = sur_e.serve(engine.bundle, X, baseline)
