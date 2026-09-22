@@ -91,19 +91,30 @@ def test_sealed_test_set_predictions_reproduce():
             assert abs(got - want) < 1e-9, (first, thickness, name, got, want)
 
 
-def test_field_convention_factor_takes_the_larger_layer():
-    """The measured factors, the conservative default, and the rule for a laminate."""
+def test_field_convention_factor_follows_the_measurement():
+    """Convention-3's factors (CONVENTION3_SCORE.json, jobs 332285/332286), and the safe defaults."""
     from shieldlab.room import surrogate_e as sur_e
 
-    assert sur_e.field_convention_factor("lead") == 1.20
-    assert sur_e.field_convention_factor("concrete") == 1.35
-    assert sur_e.field_convention_factor("steel") == 1.37
-    # An unmeasured material takes the largest measured value, not the smallest.
-    assert sur_e.field_convention_factor("barite_concrete") == sur_e.FIELD_CONVENTION_DEFAULT
-    assert sur_e.field_convention_factor(None) == sur_e.FIELD_CONVENTION_DEFAULT
-    # A laminate takes the larger of its layers, so lead behind concrete is not served at lead's 1.20.
-    assert sur_e.field_convention_factor("lead", "concrete") == 1.35
-    assert sur_e.field_convention_factor("lead", None) == 1.20
+    factor = sur_e.field_convention_factor
+    # Lead is served above its measured 1.109; steel is flat at its one measured depth.
+    assert factor(2.0, "lead") == factor(12.0, "lead") == 1.20
+    assert factor(2.0, "steel") == factor(12.0, "steel") == 1.571
+    # Concrete rises with depth through the measured points and holds its end values outside them.
+    assert factor(4.0, "concrete") == 1.699
+    assert factor(6.0, "concrete") == 1.877
+    assert factor(8.0, "concrete") == 2.068
+    assert abs(factor(5.0, "concrete") - (1.699 + 1.877) / 2) < 1e-12
+    assert factor(1.0, "concrete") == 1.699
+    assert factor(14.0, "concrete") == 2.068
+    # An unmeasured material, or an unknown one, takes the concrete factor: the largest at any depth.
+    assert factor(5.0, "barite_concrete") == factor(5.0, "concrete")
+    assert factor(5.0, None) == factor(5.0, "concrete")
+    # An unknown depth takes the deepest value.
+    assert factor(None, "concrete") == 2.068
+    # A laminate takes the larger of its layers at the barrier's total depth.
+    assert factor(8.0, "lead", "concrete") == 2.068
+    assert factor(3.0, "lead", "steel") == 1.571
+    assert factor(3.0, "lead", None) == 1.20
 
 
 def test_served_transmission_carries_the_field_convention():
@@ -139,7 +150,8 @@ def test_served_transmission_carries_the_field_convention():
         zeff=materials["concrete"]["zeff"], density_gcm3=materials["concrete"]["density_gcm3"],
         layer2_thickness_mm=0.0, layer2_zeff=0.0, layer2_density_gcm3=0.0)
     raw_logB, raw_lo, raw_hi, _ = sur_e.serve(engine.bundle, X, baseline)
-    factor = sur_e.field_convention_factor("concrete")
+    factor = sur_e.field_convention_factor(result.mu_x, "concrete")
+    assert 1.699 <= factor <= 2.068
 
     assert abs(result.B_achieved - 10.0 ** raw_logB * factor) < 1e-9 * result.B_achieved
     assert abs(result.ci_low - 10.0 ** raw_lo * factor) < 1e-9 * result.ci_low
@@ -233,8 +245,8 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
 
     warning = eng.GEOMETRY_BIAS_WARNING
     for phrase in (
-        "μx≥4", "geometry bias", "no lower bound on its onset",
-        "lower bounds", "precision gate", "below 10%", "Monte-Carlo",
+        "μx≥4", "0.5 m", "2.07×", "1.57×", "served as 1.20×", "lower bounds",
+        "other materials take the concrete factor", "not the onset", "Monte-Carlo",
     ):
         assert phrase in warning, phrase
 
@@ -256,7 +268,7 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     assert "Finite-beam caution" in document
     assert "Wall N" in document.split("Finite-beam caution")[1][:200]
     assert "lower bounds" in document
-    assert "9.3% and 9.8%" in document
+    assert "5% and 8%" in document
 
     design.wall("N").thickness1_mm = 100.0
     analytical = AnalyticalEngine(design).evaluate_all("check")
@@ -268,10 +280,9 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     document = report_regulatory.build_submission_html(report, metadata).decode("utf-8")
     assert "Finite-beam caution" not in document
     assert "Model-wide finite-field scope" in document
-    assert "no lower bound on its physical onset" in document
-    assert "lead" in document
-    assert "precision gate" in document
-    assert "below 10%" in document
+    assert "the shallowest depth measured" in document
+    assert "other materials take the concrete factor" in document
+    assert "other energies take the same factors untested" in document
 
 def test_offaxis_opening_triggers_ood():
     """An opening far off-axis (offset beyond the ~300 mm training box) is out of domain."""

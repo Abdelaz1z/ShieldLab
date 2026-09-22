@@ -213,25 +213,19 @@ RESPONSE_ROUTER_LOGB_MAX = -4.0
 BELOW_TESTED_LOGB = -5.0
 
 # ---------------------------------------------------------------------------
-# GEOMETRY-BIAS THRESHOLD (uncorrected; disclosed, not fixed)
+# GEOMETRY-BIAS THRESHOLD (corrected by measured factors; the residual is disclosed)
 #
-# Every training label used a finite 0.5 m square beam. The locked Beamwidth-2 study measured
-# resolved increases at every tested optical depth. Its shallowest points were concrete/364 keV
-# mu*x=3.97 and 5.95: widening 0.5 -> 1.0 m
-# raised B by 44.8% and 57.3%, then 1.0 -> 1.5 m added another 9.3% and 9.8%. A fixed 0.5 m
-# beam changed only 0.47% when the slab widened from 2 to 3 m at mu*x=8.05, so slab width
-# alone does not explain the production value at that tested point. Historical deep rows rose
-# 1.8-2.0x at mu*x=8-12.
+# Every training label used a finite 0.5 m square beam, which truncates lateral scatter. Model E's
+# served transmission is raised by the broad-beam factor Convention-3 measured for its material
+# and depth (`surrogate_e.field_convention_factor`): concrete 1.70-2.07x, rising with depth;
+# steel 1.57x; lead 1.11x, served as 1.20x. A fixed 0.5 m beam changed only 0.47% when the slab
+# widened from 2 to 3 m, so this is beam truncation, not slab truncation.
 #
-# The magnitude is measured only for solid concrete at 364 keV. Because the bias was already 1.58x
-# at the shallowest tested depth, the physical onset is unknown and may be below mu*x=3.97. The
-# mu*x>=4 red flag is a priority rule, not an onset claim. Materials/energies without red flags are
-# not thereby validated: every surrogate label remains a finite-field quantity until a wider-field
-# corpus is generated.
-#
-# A later prospective pure-lead study at 511 and 364 keV completed all 13 fixed-budget rows, but
-# eight missed its preregistered 0.8% precision gate. Its official decision did not constrain the
-# 0.5-to-2.0 m field-width change below 10%, so it does not justify weakening this warning.
+# The flag stays because of what is still uncertain. The steel factor and the concrete factors at
+# 511 keV are lower bounds: the 1.5 -> 2.5 m step was still rising (+5% and +8%). Only 364 and
+# 511 keV were measured, and materials other than lead and steel borrow the concrete factor. The
+# deficit was already 1.70x at mu*x 4, the shallowest depth measured, so the mu*x>=4 flag is a
+# priority rule, not an onset claim.
 #
 # This is NOT covered by the two guards above:
 #   * the OOD guard is a feature-space test, and a deep wall is an ordinary thickness of an
@@ -239,18 +233,18 @@ BELOW_TESTED_LOGB = -5.0
 #     prospective validation were);
 #   * the analytical fallback is not reliably the conservative option on such rows either
 #     (it under-predicted dose on 2 of 12 of them, by up to 0.70 dex).
-# The only honest mitigation is to tell the RSO. Hence a hard, unconditional warning.
+# Hence a hard, unconditional warning to the RSO on the residual.
 GEOMETRY_BIAS_MUX = 4.0
 GEOMETRY_BIAS_WARNING = (
-    "Caution: Finite-beam transmission (μx≥4) carries an uncorrected geometry bias "
-    "(under-prediction of scatter). Bias was measured at every optical depth tested "
-    "(μx≈4–12, concrete at 364 keV): 1.58× to 2.0×. It was already 1.58× at the "
-    "shallowest depth measured, so no lower bound on its onset has been established. "
-    "The measured factors are lower bounds because the shallow width sequences were "
-    "still rising. A fixed-budget pure-lead study at 511 and 364 keV failed its "
-    "precision gate and did not constrain the field-width effect below 10%; lead "
-    "and other material/energy cases remain decision-unquantified. An independent "
-    "Monte-Carlo check with reviewed irradiation geometry is required for final design sign-off."
+    "Caution: finite-beam correction (μx≥4). The Monte-Carlo surrogate was trained in a 0.5 m "
+    "beam, which under-states scatter, so its transmission has been raised by the broad-beam "
+    "factor measured for this material and depth: concrete 1.70× at μx 4 rising to 2.07× at "
+    "μx 8, steel 1.57×, lead 1.11× (served as 1.20×). The steel factor and the concrete "
+    "factors at 511 keV are lower bounds, because the widest step measured was still rising. "
+    "Only 364 and 511 keV were measured, and other materials take the concrete factor. The "
+    "deficit was already 1.70× at the shallowest depth measured, so the μx≥4 flag marks "
+    "priority, not the onset. An independent Monte-Carlo check with reviewed irradiation "
+    "geometry is required for final design sign-off."
 )
 
 
@@ -525,9 +519,9 @@ class SurrogateEngine:
         # The model is trained in a 0.5 m beam and the standards tabulate a broad one, so the served
         # transmission is raised to its broad-beam equivalent before it is compared with a design
         # goal. `serve` is left untouched, so it still reproduces the paper's sealed predictions.
-        factor = se.field_convention_factor(*self._model_e_materials(path, wall))
-        logB, lo, hi = se.apply_field_convention(factor, logB, lo, hi)
         mu_x = self._barrier_mu_x(path, wall, thickness_mm)
+        factor = se.field_convention_factor(mu_x, *self._model_e_materials(path, wall))
+        logB, lo, hi = se.apply_field_convention(factor, logB, lo, hi)
         finite_beam_bias = mu_x is not None and mu_x >= GEOMETRY_BIAS_MUX
         gb_note = f"  ⚠ μx≈{mu_x:.1f}. {GEOMETRY_BIAS_WARNING}" if finite_beam_bias else ""
         B, B_lo, B_hi = 10.0 ** logB, 10.0 ** lo, min(10.0 ** hi, 1.0)
@@ -551,7 +545,8 @@ class SurrogateEngine:
                    f"conservative (upper-bound) margin ×{margin_hi:.2f}."
                    if margin_hi is not None else
                    f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
-                  + f" Includes the ×{factor:.2f} broad-beam field-convention factor."
+                  + f" Includes the ×{factor:.2f} broad-beam factor measured for this material "
+                    f"and depth."
                   + density_note + below_tested + gb_note))
 
     def evaluate(self, path: BarrierPath, wall: Wall, thickness_mm: float,

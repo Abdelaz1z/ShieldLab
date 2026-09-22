@@ -42,10 +42,11 @@ MIN_LOG_OPEN_FRACTION = -6.0
 
 SCHEME = {"taxonomy": "deployed", "score": "absolute", "centre": "union"}
 
-# The finite-field deficit, measured per material against AAPM TG-108 at 511 keV; see
-# `field_convention_factor` for what it is and why the unmeasured materials take the largest value.
-FIELD_CONVENTION_FACTOR = {"lead": 1.20, "concrete": 1.35, "steel": 1.37}
-FIELD_CONVENTION_DEFAULT = 1.37
+# The finite-field deficit, measured by widening the training 0.5 m beam (research repository,
+# `hpc_campaign/CONVENTION3_SCORE.json`, jobs 332285/332286); see `field_convention_factor`.
+FIELD_CONVENTION_FACTOR = {"lead": 1.20, "steel": 1.571}
+# Concrete's factor rises with depth, so it is carried as (mu*x, factor) points.
+CONCRETE_FIELD_CONVENTION = ((4.0, 1.699), (6.0, 1.877), (8.0, 2.068))
 GROUP_NAMES = ("standard", "beam_shadow", "deep_tail")
 
 _MU_CACHE: Dict[Tuple[float, float], float] = {}
@@ -137,23 +138,41 @@ def group_of(bundle: dict, det_offset_mm: float, logB: float) -> str:
     return "standard"
 
 
-def field_convention_factor(*materials: Optional[str]) -> float:
+def field_convention_factor(mu_x: Optional[float], *materials: Optional[str]) -> float:
     """What a served transmission is multiplied by to reach a broad-beam equivalent.
 
-    Every training label was scored under a 0.5 m square beam, which is narrower than the broad beam
-    the shielding tables assume, so it truncates lateral scatter and returns a transmission below the
-    tabulated one. The paper measures that deficit by fitting this work's tenth-value layers against
-    AAPM TG-108 at 511 keV: a constant factor of 1.20 in lead, 1.35 in concrete and 1.37 in steel,
-    with no trend in thickness. It is the non-conservative direction, so a design that does not apply
-    it sizes the barrier too thin.
+    Every training label was scored under a 0.5 m square beam, which truncates lateral scatter and
+    returns a transmission below the broad-beam one the shielding tables assume. That is the
+    non-conservative direction, so a design that does not correct for it sizes the barrier too thin.
+    Monte Carlo measured the deficit directly, by widening the beam at fixed barrier and detector:
 
-    Only those three materials were measured. Any other takes the largest measured value, because the
-    deficit is smallest in lead and nothing here licenses a smaller one elsewhere. A laminate takes
-    the largest factor among its layers, for the same reason: how two layers combine was not
-    measured, and the larger factor is the safe reading of that silence.
+      * concrete rises with depth: 1.699 at mu*x 4 and 1.877 at mu*x 6 (511 keV, 2.5 m beam), and
+        2.068 at mu*x 8 (364 keV, converged by 2.5 m and run to 3.5 m; 511 keV read 2.036 at 2.5 m).
+        Between the points it is interpolated; below mu*x 4 it holds the mu*x 4 value, which over-
+        states a factor that rises with depth, and beyond mu*x 8 it holds the mu*x 8 value: an
+        earlier 1.5 m study read 1.90, 1.81 and 2.01 at mu*x 8, 10 and 12, no clear rise;
+      * steel reads 1.571 at mu*x 8 and 511 keV (1.520 at 364 keV), measured at that depth only;
+      * lead converged at 1.109 (511 keV) and read 1.06 at 364 keV. It is served at the 1.20 the
+        app carried before, which stays above both.
+
+    The steel value and the concrete values at 511 keV are lower bounds: their last widening step,
+    1.5 to 2.5 m, was still rising. Only 364 and 511 keV were measured; other lines take the same
+    factors. A material other than lead and steel takes the concrete factor, the largest measured at
+    every depth, because nothing here licenses a smaller one. A laminate takes the largest factor
+    among its layers at the barrier's total depth: how two layers combine was not measured, and the
+    larger factor is the safe reading of that silence. An unknown depth takes the deepest value.
     """
-    known = [FIELD_CONVENTION_FACTOR.get(m, FIELD_CONVENTION_DEFAULT) for m in materials if m]
-    return max(known) if known else FIELD_CONVENTION_DEFAULT
+    known = [m for m in materials if m]
+    if not known:
+        return _concrete_factor(mu_x)
+    return max(FIELD_CONVENTION_FACTOR.get(m) or _concrete_factor(mu_x) for m in known)
+
+
+def _concrete_factor(mu_x: Optional[float]) -> float:
+    depths, factors = zip(*CONCRETE_FIELD_CONVENTION)
+    if mu_x is None:
+        return max(factors)
+    return float(np.interp(mu_x, depths, factors))       # np.interp holds the end values
 
 
 def apply_field_convention(factor: float, *log10_b: float) -> Tuple[float, ...]:
