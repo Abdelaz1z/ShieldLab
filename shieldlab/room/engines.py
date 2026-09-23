@@ -533,8 +533,14 @@ class SurrogateEngine:
                         "where the interval has no measured coverage; confirm with Monte Carlo."
                         if logB < BELOW_TESTED_LOGB else "")
         first, second = self._model_e_materials(path, wall)
-        layers = [(first, thickness_mm)] + ([(second, wall.thickness2_mm)] if second else [])
+        omitted = second is not None and second not in b["material_map"]
+        layers = [(first, thickness_mm)] + ([(second, wall.thickness2_mm)] if second
+                                            and not omitted else [])
         density_note = served_as_note(layers)
+        if omitted:
+            density_note += (f" The second layer ({second}) is not among the surrogate's training "
+                             f"materials and is left out, which over-states the transmission "
+                             f"(the conservative direction).")
         return EngineResult(
             barrier_id=path.label, label=path.label, engine=self.name,
             B_required=(min(1.0, gT / unshielded) if unshielded > 0 else 1.0),
@@ -579,14 +585,16 @@ class SurrogateEngine:
         """Thinnest standard thickness of the wall's first material whose served 95% upper limit
         meets the goal, or None when no thickness inside the trained domain does.
 
-        A thickness is accepted only if every thicker candidate inside the domain meets the goal
-        too: a tree ensemble is piecewise constant in thickness, and a thin candidate that passes on
-        one step of the model must not be offered ahead of thicker ones that fail.
+        A thickness is accepted only if every thicker candidate meets the goal too, served inside
+        the domain: a tree ensemble is piecewise constant in thickness, and a thin candidate that
+        passes on one step of the model must not be offered ahead of a thicker one that fails or
+        that the model cannot vouch for. Only candidates beyond the thick end of the domain are
+        passed over.
         """
         import numpy as np
         from . import surrogate_e as se
         candidates = self._thickness_candidates(path, wall)
-        if not candidates:
+        if not candidates or gT <= 0:
             return None
         X = np.vstack([row for _, (row, _, _) in candidates])
         baselines = np.array([baseline for _, (_, baseline, _) in candidates])
@@ -595,9 +603,13 @@ class SurrogateEngine:
         limit = math.log10(gT / unshielded)
         materials = self._model_e_materials(path, wall)
         sized = None
+        reached_domain = False
         for index in reversed(range(len(candidates))):
             if not inside[index]:
+                if reached_domain:
+                    break
                 continue
+            reached_domain = True
             thickness = candidates[index][0]
             factor = se.field_convention(self._barrier_mu_x(path, wall, thickness), *materials)
             upper = se.apply_field_convention(factor, served[index], lo[index], hi[index])[2]
@@ -610,21 +622,25 @@ class SurrogateEngine:
                      analytical: Optional[EngineResult]) -> EngineResult:
         """Design mode for a solid wall: size it from the surrogate's own 95% upper limit.
 
-        When no thickness inside the trained domain meets the goal, the analytical suggestion is
-        evaluated instead, and the note says so.
+        When no thickness inside the trained domain meets the goal, the analytical suggestion (or,
+        without one, the declared thickness) is evaluated instead, and the note says so. A wall the
+        surrogate cannot model at all, and one that needs no shielding, are evaluated as before.
         """
         gT, unshielded = self._goal_and_unshielded(path, wall)
         analytical_mm = analytical.suggested_thickness_mm if analytical else None
-        sized = self._size_wall_model_e(path, wall, gT, unshielded) if unshielded > gT else None
+        fallback_mm = analytical_mm if analytical_mm is not None else wall.thickness1_mm
+        modelled = self._model_e_row(path, wall, sv.thickness_increment(wall.material1)) is not None
+        sized = (self._size_wall_model_e(path, wall, gT, unshielded)
+                 if modelled and unshielded > gT else None)
         if sized is None:
-            result = self.evaluate(path, wall, analytical_mm if analytical_mm is not None
-                                   else wall.thickness1_mm, analytical=analytical)
-            if unshielded <= gT:
+            result = self.evaluate(path, wall, fallback_mm, analytical=analytical)
+            if not modelled or unshielded <= gT:
                 return result
-            return replace(result, note=("The surrogate found no thickness inside its trained "
-                                         "domain whose 95% upper limit meets the goal; the "
-                                         "analytical suggestion is evaluated instead. "
-                                         + result.note))
+            which = ("the analytical suggestion" if analytical_mm is not None
+                     else "the declared thickness")
+            return replace(result, note=(f"The surrogate found no thickness inside its trained "
+                                         f"domain whose 95% upper limit meets the goal; {which} is "
+                                         f"evaluated instead. " + result.note))
         result = self._evaluate_model_e(path, wall, sized, analytical, gT, unshielded)
         compared = (f" (the analytical method suggests {analytical_mm:g} mm)"
                     if analytical_mm is not None else "")

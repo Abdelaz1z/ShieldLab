@@ -168,6 +168,63 @@ def test_design_mode_sizes_the_wall_from_the_surrogate_upper_limit():
         assert analytical["Wall N"].suggested_thickness_mm is not None
 
 
+class _DomainWithHole:
+    """The bundle's domain, except that one served thickness is refused."""
+
+    def __init__(self, domain, hole_mm):
+        self._domain, self._hole_mm = domain, hole_mm
+
+    def __getattr__(self, name):
+        return getattr(self._domain, name)
+
+    def in_domain(self, X):
+        column = self._domain.features.index("thickness_mm")
+        return self._domain.in_domain(X) & (abs(X[:, column] - self._hole_mm) > 1e-9)
+
+
+def test_sizing_does_not_step_over_an_out_of_domain_thickness():
+    """A thickness the model cannot vouch for, above the answer, pushes the answer above it."""
+    from shieldlab.physics import solver as sv
+    from shieldlab.room import surrogate_e as sur_e
+    from shieldlab.room.transport_materials import simulated_thickness_mm
+
+    design = _room(iso="F-18", mbq=3700.0, material="concrete")
+    engine, analytical, served = _both(design, mode="design")
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP OOD-hole sizing test: model E is not the loaded bundle")
+        return
+    sized = served["Wall N"].suggested_thickness_mm
+    step = sv.thickness_increment("concrete")
+    hole = sized + 2 * step
+    engine.bundle = dict(engine.bundle, domain=_DomainWithHole(
+        engine.bundle["domain"], simulated_thickness_mm("concrete", hole)))
+    holed = {r.label: r for r in engine.evaluate_all("design", list(analytical.values()))}
+    assert holed["Wall N"].suggested_thickness_mm > hole, holed["Wall N"].note
+
+
+def test_design_mode_leaves_an_unmodelled_material_to_the_analytical_tier():
+    """A wall of a material the surrogate never trained on is neither sized nor mislabelled."""
+    design = _room(iso="F-18", mbq=3700.0, material="wood")
+    _, _, served = _both(design, mode="design")
+    result = served["Wall N"]
+    assert result.suggested_thickness_mm is None
+    assert "found no thickness" not in result.note
+    assert "Sized by the surrogate" not in result.note
+
+
+def test_an_unmodelled_second_layer_is_disclosed():
+    """A laminate layer outside the training materials is left out, and the note says so."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    design = _room(iso="F-18", thickness=200.0, material="concrete")
+    design.wall("N").material2, design.wall("N").thickness2_mm = "wood", 50.0
+    engine, _, served = _both(design, mode="check")
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP omitted-layer test: model E is not the loaded bundle")
+        return
+    assert "(wood) is not among the surrogate's training materials" in served["Wall N"].note
+
+
 def test_check_mode_does_not_size():
     """Check mode evaluates the declared build and offers no thickness."""
     _, _, served = _both(_room(iso="F-18", thickness=200.0), mode="check")
