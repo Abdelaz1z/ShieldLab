@@ -154,10 +154,15 @@ def preferred_thickness(required_mm: float, material: str) -> float:
         others      -> 1 mm
     Always rounds up so the goal stays satisfied.
     """
-    increments = {"lead": 0.5, "concrete": 10.0, "barite_concrete": 10.0,
-                  "steel": 1.0, "gypsum": 1.0, "plate_glass": 1.0,
-                  "lead_glass": 1.0, "wood": 5.0, "brick": 10.0}
-    inc = increments.get(material, 1.0)
+    inc = thickness_increment(material)
     if required_mm <= 0:
         return 0.0
     return math.ceil(required_mm / inc) * inc
+
+
+def thickness_increment(material: str) -> float:
+    """The standard construction increment (mm) a thickness of this material is built in."""
+    increments = {"lead": 0.5, "concrete": 10.0, "barite_concrete": 10.0,
+                  "steel": 1.0, "gypsum": 1.0, "plate_glass": 1.0,
+                  "lead_glass": 1.0, "wood": 5.0, "brick": 10.0}
+    return increments.get(material, 1.0)

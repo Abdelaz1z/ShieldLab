@@ -153,18 +153,26 @@ def _interval_text(barrier_result) -> str:
 def _wall_build_text(
     room_design: RoomDesign,
     analytical_result,
+    decision_result,
     assessment_mode: str,
 ) -> tuple[str, str]:
     wall_id = analytical_result.label.split()[1]
     wall = room_design.wall(wall_id)
     if assessment_mode == "design":
-        suggested = analytical_result.suggested_thickness_mm
+        sized_by_surrogate = decision_result.suggested_thickness_mm is not None
+        suggested = (decision_result.suggested_thickness_mm if sized_by_surrogate
+                     else analytical_result.suggested_thickness_mm)
         material = i18n.term(
             (analytical_result.material or wall.material1).replace("_", " ").title()
         )
         if suggested is None:
             return i18n.t("not_determined"), i18n.t("suggested_unavailable")
-        return f"{suggested:g} mm {material}", i18n.t("suggested_build")
+        if not sized_by_surrogate:
+            return f"{suggested:g} mm {material}", i18n.t("suggested_build")
+        analytical_mm = analytical_result.suggested_thickness_mm
+        analytical_text = f"{analytical_mm:g} mm" if analytical_mm is not None else "—"
+        return (f"{suggested:g} mm {material}",
+                i18n.t("surrogate_sized_build", analytical=analytical_text))
 
     layers = [f"{wall.thickness1_mm:g} mm {i18n.term(wall.material1)}"]
     if wall.material2 and wall.thickness2_mm > 0:
@@ -227,6 +235,7 @@ def _barrier_row_html(
     build, build_detail = _wall_build_text(
         room_design,
         analytical_result,
+        decision_result,
         assessment_mode,
     )
     dose, dose_detail = _dose_goal_text(decision_result, room_design.framework)

@@ -92,19 +92,22 @@ def test_sealed_test_set_predictions_reproduce():
 
 
 def test_field_convention_factor_follows_the_measurement():
-    """Convention-3's factors (CONVENTION3_SCORE.json, jobs 332285/332286), and the safe defaults."""
+    """Conventions 3 and 4 as CONVENTION4_PLAN.md maps them (CONVENTION4_SCORE.json, job 333857),
+    and the safe defaults."""
     from shieldlab.room import surrogate_e as sur_e
 
-    factor = sur_e.field_convention_factor
+    def factor(mu_x, *materials):
+        return sur_e.field_convention(mu_x, *materials).value
+
     # Lead is served above its measured 1.109; steel is flat at its one measured depth.
     assert factor(2.0, "lead") == factor(12.0, "lead") == 1.20
-    assert factor(2.0, "steel") == factor(12.0, "steel") == 1.571
+    assert factor(2.0, "steel") == factor(12.0, "steel") == 1.573
     # Concrete rises with depth through the measured points and holds its end values outside them.
-    assert factor(4.0, "concrete") == 1.699
-    assert factor(6.0, "concrete") == 1.877
+    assert factor(4.0, "concrete") == 1.718
+    assert factor(6.0, "concrete") == 1.895
     assert factor(8.0, "concrete") == 2.068
-    assert abs(factor(5.0, "concrete") - (1.699 + 1.877) / 2) < 1e-12
-    assert factor(1.0, "concrete") == 1.699
+    assert abs(factor(5.0, "concrete") - (1.718 + 1.895) / 2) < 1e-12
+    assert factor(1.0, "concrete") == 1.718
     assert factor(14.0, "concrete") == 2.068
     # An unmeasured material, or an unknown one, takes the concrete factor: the largest at any depth.
     assert factor(5.0, "barite_concrete") == factor(5.0, "concrete")
@@ -113,8 +116,67 @@ def test_field_convention_factor_follows_the_measurement():
     assert factor(None, "concrete") == 2.068
     # A laminate takes the larger of its layers at the barrier's total depth.
     assert factor(8.0, "lead", "concrete") == 2.068
-    assert factor(3.0, "lead", "steel") == 1.571
+    assert factor(3.0, "lead", "steel") == 1.573
     assert factor(3.0, "lead", None) == 1.20
+
+
+def test_field_convention_range_carries_the_measurement_uncertainty():
+    """Each factor's 95% range is its Monte-Carlo uncertainty, plus the last step of the one ladder
+    still rising at 3.5 m (concrete at mu*x 4, +0.011)."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    steel = sur_e.field_convention(8.0, "steel")
+    assert abs(steel.high - 1.573 * (1 + 1.96 * 0.0073)) < 1e-12
+    assert abs(steel.low - 1.573 * (1 - 1.96 * 0.0073)) < 1e-12
+    shallow = sur_e.field_convention(4.0, "concrete")
+    assert abs(shallow.high - (1.718 * (1 + 1.96 * 0.0051) + 0.011)) < 1e-12
+    assert abs(shallow.low - 1.718 * (1 - 1.96 * 0.0051)) < 1e-12
+    # Lead is served above its measurement and its uncertainty, so it carries no range.
+    assert sur_e.field_convention(6.0, "lead") == sur_e.FieldFactor(1.20, 1.20, 1.20)
+    for mu_x in (1.0, 4.0, 5.0, 7.0, 8.0, 12.0, None):
+        for materials in (("concrete",), ("steel",), ("lead", "concrete")):
+            f = sur_e.field_convention(mu_x, *materials)
+            assert f.low <= f.value <= f.high, (mu_x, materials, f)
+
+
+def test_design_mode_sizes_the_wall_from_the_surrogate_upper_limit():
+    """Design mode offers the thinnest standard thickness whose served 95% upper limit meets the
+    goal: at it the upper-limit dose is within the limit, and one increment thinner it is not."""
+    from shieldlab.physics import solver as sv
+    from shieldlab.room import surrogate_e as sur_e
+
+    for iso, activity, material in (("F-18", 3700.0, "concrete"), ("I-131", 7400.0, "lead"),
+                                    ("Tc-99m", 3700.0, "steel")):
+        design = _room(iso=iso, mbq=activity, material=material)
+        engine, analytical, served = _both(design, mode="design")
+        if not sur_e.is_model_e(engine.bundle):
+            print("SKIP design-mode sizing test: model E is not the loaded bundle")
+            return
+        result = served["Wall N"]
+        sized = result.suggested_thickness_mm
+        assert sized is not None, (iso, material, result.note)
+        assert result.engine == "surrogate" and not result.ood
+        assert "Sized by the surrogate" in result.note
+        assert result.dose_mSv_wk * result.ci_high / result.B_achieved <= result.goal_over_T
+        step = sv.thickness_increment(material)
+        assert abs(sized / step - round(sized / step)) < 1e-9
+        if sized - step > 0:
+            thinner = engine.evaluate(_path(design, "Wall N"), design.wall("N"), sized - step)
+            if not thinner.ood:
+                assert (thinner.dose_mSv_wk * thinner.ci_high / thinner.B_achieved
+                        > thinner.goal_over_T), (iso, material, sized)
+        assert analytical["Wall N"].suggested_thickness_mm is not None
+
+
+def test_check_mode_does_not_size():
+    """Check mode evaluates the declared build and offers no thickness."""
+    _, _, served = _both(_room(iso="F-18", thickness=200.0), mode="check")
+    assert all(result.suggested_thickness_mm is None for result in served.values())
+
+
+def _path(design, label):
+    from shieldlab.room.geometry import all_paths
+    return next(path for path in all_paths(design) if path.label == label)
 
 
 def test_served_transmission_carries_the_field_convention():
@@ -150,14 +212,14 @@ def test_served_transmission_carries_the_field_convention():
         zeff=materials["concrete"]["zeff"], density_gcm3=materials["concrete"]["density_gcm3"],
         layer2_thickness_mm=0.0, layer2_zeff=0.0, layer2_density_gcm3=0.0)
     raw_logB, raw_lo, raw_hi, _ = sur_e.serve(engine.bundle, X, baseline)
-    factor = sur_e.field_convention_factor(result.mu_x, "concrete")
-    assert 1.699 <= factor <= 2.068
+    factor = sur_e.field_convention(result.mu_x, "concrete")
+    assert 1.718 <= factor.value <= 2.068
 
-    assert abs(result.B_achieved - 10.0 ** raw_logB * factor) < 1e-9 * result.B_achieved
-    assert abs(result.ci_low - 10.0 ** raw_lo * factor) < 1e-9 * result.ci_low
-    assert abs(result.ci_high - min(10.0 ** raw_hi * factor, 1.0)) < 1e-9 * result.ci_high
+    assert abs(result.B_achieved - 10.0 ** raw_logB * factor.value) < 1e-9 * result.B_achieved
+    assert abs(result.ci_low - 10.0 ** raw_lo * factor.low) < 1e-9 * result.ci_low
+    assert abs(result.ci_high - min(10.0 ** raw_hi * factor.high, 1.0)) < 1e-9 * result.ci_high
     assert result.B_achieved > 10.0 ** raw_logB, "the correction must raise the transmission"
-    assert f"×{factor:.2f}" in result.note, result.note
+    assert f"×{factor.value:.2f}" in result.note, result.note
     assert 0.0 < result.B_achieved <= 1.0
 
 
@@ -245,7 +307,7 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
 
     warning = eng.GEOMETRY_BIAS_WARNING
     for phrase in (
-        "μx≥4", "0.5 m", "2.07×", "1.57×", "served as 1.20×", "lower bounds",
+        "μx≥4", "0.5 m", "3.5 m", "2.07×", "1.57×", "served as 1.20×", "lower bound",
         "other materials take the concrete factor", "not the onset", "Monte-Carlo",
     ):
         assert phrase in warning, phrase
@@ -267,8 +329,8 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     document = report_regulatory.build_submission_html(report, metadata).decode("utf-8")
     assert "Finite-beam caution" in document
     assert "Wall N" in document.split("Finite-beam caution")[1][:200]
-    assert "lower bounds" in document
-    assert "5% and 8%" in document
+    assert "lower bound" in document
+    assert "0.7% over its last metre" in document
 
     design.wall("N").thickness1_mm = 100.0
     analytical = AnalyticalEngine(design).evaluate_all("check")

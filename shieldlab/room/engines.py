@@ -18,7 +18,7 @@ compared numerically on that basis and every number traces to the physics packag
 from __future__ import annotations
 
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import List, Optional
 
@@ -216,16 +216,16 @@ BELOW_TESTED_LOGB = -5.0
 # GEOMETRY-BIAS THRESHOLD (corrected by measured factors; the residual is disclosed)
 #
 # Every training label used a finite 0.5 m square beam, which truncates lateral scatter. Model E's
-# served transmission is raised by the broad-beam factor Convention-3 measured for its material
-# and depth (`surrogate_e.field_convention_factor`): concrete 1.70-2.07x, rising with depth;
-# steel 1.57x; lead 1.11x, served as 1.20x. A fixed 0.5 m beam changed only 0.47% when the slab
-# widened from 2 to 3 m, so this is beam truncation, not slab truncation.
+# served transmission is raised by the broad-beam factor Conventions 3 and 4 measured for its
+# material and depth with the beam widened to 3.5 m (`surrogate_e.field_convention`): concrete
+# 1.72-2.07x, rising with depth; steel 1.57x; lead 1.11x, served as 1.20x. A fixed 0.5 m beam
+# changed only 0.47% when the slab widened from 2 to 3 m, so this is beam truncation, not slab
+# truncation.
 #
-# The flag stays because of what is still uncertain. The steel factor and the concrete factors at
-# 511 keV are lower bounds: the 1.5 -> 2.5 m step was still rising (+5% and +8%). Only 364 and
-# 511 keV were measured, and materials other than lead and steel borrow the concrete factor. The
-# deficit was already 1.70x at mu*x 4, the shallowest depth measured, so the mu*x>=4 flag is a
-# priority rule, not an onset claim.
+# The flag stays because of what is still uncertain. Concrete at mu*x 4 is a lower bound: its last
+# step, 2.5 -> 3.5 m, still rose 0.7%. Only 364 and 511 keV were measured, and materials other
+# than lead and steel borrow the concrete factor. The deficit was already 1.72x at mu*x 4, the
+# shallowest depth measured, so the mu*x>=4 flag is a priority rule, not an onset claim.
 #
 # This is NOT covered by the two guards above:
 #   * the OOD guard is a feature-space test, and a deep wall is an ordinary thickness of an
@@ -238,11 +238,12 @@ GEOMETRY_BIAS_MUX = 4.0
 GEOMETRY_BIAS_WARNING = (
     "Caution: finite-beam correction (μx≥4). The Monte-Carlo surrogate was trained in a 0.5 m "
     "beam, which under-states scatter, so its transmission has been raised by the broad-beam "
-    "factor measured for this material and depth: concrete 1.70× at μx 4 rising to 2.07× at "
-    "μx 8, steel 1.57×, lead 1.11× (served as 1.20×). The steel factor and the concrete "
-    "factors at 511 keV are lower bounds, because the widest step measured was still rising. "
-    "Only 364 and 511 keV were measured, and other materials take the concrete factor. The "
-    "deficit was already 1.70× at the shallowest depth measured, so the μx≥4 flag marks "
+    "factor measured for this material and depth with the beam widened to 3.5 m: concrete "
+    "1.72× at μx 4 rising to 2.07× at μx 8, steel 1.57×, lead 1.11× (served as 1.20×). "
+    "Concrete at μx 4 is a lower bound, because its widest step was still rising by 0.7%; "
+    "that step is added to the upper limit. Only 364 and 511 keV were measured, and other "
+    "materials take the concrete factor. The "
+    "deficit was already 1.72× at the shallowest depth measured, so the μx≥4 flag marks "
     "priority, not the onset. An independent Monte-Carlo check with reviewed irradiation "
     "geometry is required for final design sign-off."
 )
@@ -520,7 +521,7 @@ class SurrogateEngine:
         # transmission is raised to its broad-beam equivalent before it is compared with a design
         # goal. `serve` is left untouched, so it still reproduces the paper's sealed predictions.
         mu_x = self._barrier_mu_x(path, wall, thickness_mm)
-        factor = se.field_convention_factor(mu_x, *self._model_e_materials(path, wall))
+        factor = se.field_convention(mu_x, *self._model_e_materials(path, wall))
         logB, lo, hi = se.apply_field_convention(factor, logB, lo, hi)
         finite_beam_bias = mu_x is not None and mu_x >= GEOMETRY_BIAS_MUX
         gb_note = f"  ⚠ μx≈{mu_x:.1f}. {GEOMETRY_BIAS_WARNING}" if finite_beam_bias else ""
@@ -545,9 +546,92 @@ class SurrogateEngine:
                    f"conservative (upper-bound) margin ×{margin_hi:.2f}."
                    if margin_hi is not None else
                    f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
-                  + f" Includes the ×{factor:.2f} broad-beam factor measured for this material "
-                    f"and depth."
+                  + f" Includes the ×{factor.value:.2f} broad-beam factor measured for this "
+                    f"material and depth; its own 95% range (×{factor.low:.2f}–{factor.high:.2f}) "
+                    f"is carried into the interval."
                   + density_note + below_tested + gb_note))
+
+    def _goal_and_unshielded(self, path: BarrierPath, wall: Wall):
+        """The path's dose limit P/T and its unshielded weekly dose, both in mSv/week."""
+        goal = self.analytical._goal(wall)
+        gT = goal.P_weekly / goal.occupancy_T if goal.occupancy_T > 0 else goal.P_weekly
+        return gT, self.analytical._source(path).total_unshielded()
+
+    def _thickness_candidates(self, path: BarrierPath, wall: Wall):
+        """Standard thicknesses of the wall's first material, thinnest first, each with its
+        model-E row, up to the thickest and deepest barrier the trained domain holds."""
+        domain = self.bundle["domain"]
+        thickest = float(domain.hi[domain.features.index("thickness_mm")])
+        deepest = float(domain.hi[domain.features.index("nmfp_total")])
+        step = sv.thickness_increment(wall.material1)
+        candidates = []
+        for count in range(1, 100_000):
+            thickness = count * step
+            served = simulated_thickness_mm(wall.material1, thickness)
+            built = self._model_e_row(path, wall, thickness)
+            if served is None or served > thickest or built is None or built[2] > deepest:
+                break
+            candidates.append((thickness, built))
+        return candidates
+
+    def _size_wall_model_e(self, path: BarrierPath, wall: Wall, gT: float,
+                           unshielded: float) -> Optional[float]:
+        """Thinnest standard thickness of the wall's first material whose served 95% upper limit
+        meets the goal, or None when no thickness inside the trained domain does.
+
+        A thickness is accepted only if every thicker candidate inside the domain meets the goal
+        too: a tree ensemble is piecewise constant in thickness, and a thin candidate that passes on
+        one step of the model must not be offered ahead of thicker ones that fail.
+        """
+        import numpy as np
+        from . import surrogate_e as se
+        candidates = self._thickness_candidates(path, wall)
+        if not candidates:
+            return None
+        X = np.vstack([row for _, (row, _, _) in candidates])
+        baselines = np.array([baseline for _, (_, baseline, _) in candidates])
+        inside = self.bundle["domain"].in_domain(X)
+        served, lo, hi, _ = se.serve_batch(self.bundle, X, baselines)
+        limit = math.log10(gT / unshielded)
+        materials = self._model_e_materials(path, wall)
+        sized = None
+        for index in reversed(range(len(candidates))):
+            if not inside[index]:
+                continue
+            thickness = candidates[index][0]
+            factor = se.field_convention(self._barrier_mu_x(path, wall, thickness), *materials)
+            upper = se.apply_field_convention(factor, served[index], lo[index], hi[index])[2]
+            if upper > limit:
+                break
+            sized = thickness
+        return sized
+
+    def _design_wall(self, path: BarrierPath, wall: Wall,
+                     analytical: Optional[EngineResult]) -> EngineResult:
+        """Design mode for a solid wall: size it from the surrogate's own 95% upper limit.
+
+        When no thickness inside the trained domain meets the goal, the analytical suggestion is
+        evaluated instead, and the note says so.
+        """
+        gT, unshielded = self._goal_and_unshielded(path, wall)
+        analytical_mm = analytical.suggested_thickness_mm if analytical else None
+        sized = self._size_wall_model_e(path, wall, gT, unshielded) if unshielded > gT else None
+        if sized is None:
+            result = self.evaluate(path, wall, analytical_mm if analytical_mm is not None
+                                   else wall.thickness1_mm, analytical=analytical)
+            if unshielded <= gT:
+                return result
+            return replace(result, note=("The surrogate found no thickness inside its trained "
+                                         "domain whose 95% upper limit meets the goal; the "
+                                         "analytical suggestion is evaluated instead. "
+                                         + result.note))
+        result = self._evaluate_model_e(path, wall, sized, analytical, gT, unshielded)
+        compared = (f" (the analytical method suggests {analytical_mm:g} mm)"
+                    if analytical_mm is not None else "")
+        return replace(result, suggested_thickness_mm=sized,
+                       note=(f"Sized by the surrogate: {sized:g} mm {wall.material1} is the thinnest "
+                             f"standard thickness whose 95% upper limit meets the goal{compared}. "
+                             + result.note))
 
     def evaluate(self, path: BarrierPath, wall: Wall, thickness_mm: float,
                  analytical: Optional[EngineResult] = None) -> Optional[EngineResult]:
@@ -558,11 +642,8 @@ class SurrogateEngine:
         b = self.bundle
         from . import surrogate_e as se
         if se.is_model_e(b):
-            source = self.analytical._source(path)
-            goal = self.analytical._goal(wall)
-            gT = goal.P_weekly / goal.occupancy_T if goal.occupancy_T > 0 else goal.P_weekly
-            return self._evaluate_model_e(path, wall, thickness_mm, analytical, gT,
-                                          source.total_unshielded())
+            gT, unshielded = self._goal_and_unshielded(path, wall)
+            return self._evaluate_model_e(path, wall, thickness_mm, analytical, gT, unshielded)
         X = self._features(path, wall, thickness_mm)
         source = self.analytical._source(path)
         goal = self.analytical._goal(wall)
@@ -692,14 +773,20 @@ class SurrogateEngine:
 
     def evaluate_all(self, mode: str,
                      analytical_results: Optional[List[EngineResult]] = None) -> List[EngineResult]:
-        """Evaluate every path with the surrogate. Thickness per path = the analytical
-        suggestion (design mode) or the declared build (check mode)."""
+        """Evaluate every path with the surrogate. In design mode model E sizes each solid wall
+        from its own upper limit; other paths use the analytical suggestion (design mode) or the
+        declared build (check mode)."""
+        from . import surrogate_e as se
         ar = {r.label: r for r in (analytical_results or [])}
         out: List[EngineResult] = []
         wall_by_id = {w.id: w for w in self.design.walls}
+        sizes_walls = (mode == "design" and self.available() and se.is_model_e(self.bundle))
         for path in all_paths(self.design):
             wall = wall_by_id[path.wall_id]
             a = ar.get(path.label)
+            if sizes_walls and path.kind == "wall":
+                out.append(self._design_wall(path, wall, a))
+                continue
             if path.kind in ("door", "window"):
                 thickness = path.lead_equiv_mm
             elif mode == "design" and a is not None and a.suggested_thickness_mm is not None:

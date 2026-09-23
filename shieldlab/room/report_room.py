@@ -169,7 +169,10 @@ def build_report(
         rows.append({
             "barrier": r.label,
             "material": (prim.material or r.material) or "—",
-            "suggested_mm": _fmt(r.suggested_thickness_mm, 4) if mode == "design" else "—",
+            "suggested_mm": (_fmt(prim.suggested_thickness_mm
+                                  if prim.suggested_thickness_mm is not None
+                                  else r.suggested_thickness_mm, 4)
+                             if mode == "design" else "—"),
             "B_required": _fmt(r.B_required),
             "B_achieved": _fmt(r.B_achieved),
             "B_surrogate": s_b,

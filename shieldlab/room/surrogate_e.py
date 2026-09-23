@@ -23,7 +23,7 @@ them here, so the app and the paper cannot diverge.
 from __future__ import annotations
 
 import math
-from typing import Dict, Optional, Tuple
+from typing import Dict, NamedTuple, Optional, Tuple
 
 import numpy as np
 
@@ -42,11 +42,36 @@ MIN_LOG_OPEN_FRACTION = -6.0
 
 SCHEME = {"taxonomy": "deployed", "score": "absolute", "centre": "union"}
 
-# The finite-field deficit, measured by widening the training 0.5 m beam (research repository,
-# `hpc_campaign/CONVENTION3_SCORE.json`, jobs 332285/332286); see `field_convention_factor`.
-FIELD_CONVENTION_FACTOR = {"lead": 1.20, "steel": 1.571}
+
+class MeasuredFactor(NamedTuple):
+    """A broad-beam factor as Monte Carlo measured it.
+
+    `rel_unc` is the measurement's one-sigma relative uncertainty. `unconverged_step` is the rise
+    over the last widening step of a ladder that had not stopped rising, and zero for one that had:
+    it is carried into the upper edge as an allowance for the rise still to come.
+    """
+    value: float
+    rel_unc: float
+    unconverged_step: float = 0.0
+
+
+class FieldFactor(NamedTuple):
+    """The factor a served transmission is multiplied by, and the edges of its 95% range."""
+    value: float
+    low: float
+    high: float
+
+
+# The finite-field deficit, measured by widening the training 0.5 m beam to 3.5 m (research
+# repository, `hpc_campaign/CONVENTION3_SCORE.json` and `CONVENTION4_SCORE.json`, jobs 332285 and
+# 333856/333857, mapped as `CONVENTION4_PLAN.md` fixed before any row ran); see `field_convention`.
+# Lead converged at 1.109 and is served at 1.20, above the measurement and its uncertainty.
+FIELD_CONVENTION = {"lead": MeasuredFactor(1.20, 0.0), "steel": MeasuredFactor(1.573, 0.0073)}
 # Concrete's factor rises with depth, so it is carried as (mu*x, factor) points.
-CONCRETE_FIELD_CONVENTION = ((4.0, 1.699), (6.0, 1.877), (8.0, 2.068))
+CONCRETE_FIELD_CONVENTION = ((4.0, MeasuredFactor(1.718, 0.0051, unconverged_step=0.011)),
+                             (6.0, MeasuredFactor(1.895, 0.0056)),
+                             (8.0, MeasuredFactor(2.068, 0.0073)))
+Z95 = 1.96
 GROUP_NAMES = ("standard", "beam_shadow", "deep_tail")
 
 _MU_CACHE: Dict[Tuple[float, float], float] = {}
@@ -138,62 +163,95 @@ def group_of(bundle: dict, det_offset_mm: float, logB: float) -> str:
     return "standard"
 
 
-def field_convention_factor(mu_x: Optional[float], *materials: Optional[str]) -> float:
-    """What a served transmission is multiplied by to reach a broad-beam equivalent.
+def field_convention(mu_x: Optional[float], *materials: Optional[str]) -> FieldFactor:
+    """What a served transmission is multiplied by to reach a broad-beam equivalent, with its range.
 
     Every training label was scored under a 0.5 m square beam, which truncates lateral scatter and
     returns a transmission below the broad-beam one the shielding tables assume. That is the
     non-conservative direction, so a design that does not correct for it sizes the barrier too thin.
-    Monte Carlo measured the deficit directly, by widening the beam at fixed barrier and detector:
+    Monte Carlo measured the deficit directly, by widening the beam to 3.5 m at fixed barrier and
+    detector:
 
-      * concrete rises with depth: 1.699 at mu*x 4 and 1.877 at mu*x 6 (511 keV, 2.5 m beam), and
-        2.068 at mu*x 8 (364 keV, converged by 2.5 m and run to 3.5 m; 511 keV read 2.036 at 2.5 m).
-        Between the points it is interpolated; below mu*x 4 it holds the mu*x 4 value, which over-
-        states a factor that rises with depth, and beyond mu*x 8 it holds the mu*x 8 value: an
-        earlier 1.5 m study read 1.90, 1.81 and 2.01 at mu*x 8, 10 and 12, no clear rise;
-      * steel reads 1.571 at mu*x 8 and 511 keV (1.520 at 364 keV), measured at that depth only;
+      * concrete rises with depth: 1.718 at mu*x 4 and 1.895 at mu*x 6 (511 keV), and 2.068 at
+        mu*x 8 (364 keV; 511 keV read 2.060). Every ladder converged except mu*x 4, which rose
+        0.011 over its last step, 2.5 to 3.5 m, and is served as measured with that step added to
+        its upper edge. Between the points it is interpolated; below mu*x 4 it holds the mu*x 4
+        value, which over-states a factor that rises with depth, and beyond mu*x 8 it holds the
+        mu*x 8 value: an earlier 1.5 m study read 1.90, 1.81 and 2.01 at mu*x 8, 10 and 12, no
+        clear rise;
+      * steel converged at 1.573 at mu*x 8 and 511 keV (1.554 at 364 keV), measured at that depth
+        only;
       * lead converged at 1.109 (511 keV) and read 1.06 at 364 keV. It is served at the 1.20 the
-        app carried before, which stays above both.
+        app carried before, which stays above both and their uncertainty.
 
-    The steel value and the concrete values at 511 keV are lower bounds: their last widening step,
-    1.5 to 2.5 m, was still rising. Only 364 and 511 keV were measured; other lines take the same
-    factors. A material other than lead and steel takes the concrete factor, the largest measured at
-    every depth, because nothing here licenses a smaller one. A laminate takes the largest factor
-    among its layers at the barrier's total depth: how two layers combine was not measured, and the
-    larger factor is the safe reading of that silence. An unknown depth takes the deepest value.
+    The range is the measurement's 95% interval: each factor's Monte Carlo uncertainty, plus the
+    unconverged step above. It is carried into the served interval's edges, not its point.
+
+    Only 364 and 511 keV were measured; other lines take the same factors. A material other than
+    lead and steel takes the concrete factor, the largest measured at every depth, because nothing
+    here licenses a smaller one. A laminate takes the largest factor and edges among its layers at
+    the barrier's total depth: how two layers combine was not measured, and the larger factor is the
+    safe reading of that silence. An unknown depth takes the deepest value.
     """
     known = [m for m in materials if m]
-    if not known:
-        return _concrete_factor(mu_x)
-    return max(FIELD_CONVENTION_FACTOR.get(m) or _concrete_factor(mu_x) for m in known)
+    factors = [_factor_range(FIELD_CONVENTION[m]) if m in FIELD_CONVENTION
+               else _concrete_range(mu_x) for m in known] or [_concrete_range(mu_x)]
+    return FieldFactor(*(max(edge) for edge in zip(*factors)))
 
 
-def _concrete_factor(mu_x: Optional[float]) -> float:
-    depths, factors = zip(*CONCRETE_FIELD_CONVENTION)
+def _factor_range(measured: MeasuredFactor) -> FieldFactor:
+    spread = Z95 * measured.rel_unc * measured.value
+    return FieldFactor(measured.value, measured.value - spread,
+                       measured.value + spread + measured.unconverged_step)
+
+
+def _concrete_range(mu_x: Optional[float]) -> FieldFactor:
+    depths = [depth for depth, _ in CONCRETE_FIELD_CONVENTION]
+    ranges = [_factor_range(measured) for _, measured in CONCRETE_FIELD_CONVENTION]
     if mu_x is None:
-        return max(factors)
-    return float(np.interp(mu_x, depths, factors))       # np.interp holds the end values
+        return ranges[-1]
+    # np.interp holds the end values beyond the measured depths
+    return FieldFactor(*(float(np.interp(mu_x, depths, edge)) for edge in zip(*ranges)))
 
 
-def apply_field_convention(factor: float, *log10_b: float) -> Tuple[float, ...]:
-    """Raise transmissions in log10 B by the convention factor, keeping them at or below B = 1."""
-    shift = math.log10(factor)
-    return tuple(min(value + shift, 0.0) for value in log10_b)
+def apply_field_convention(factor: FieldFactor, logB: float, lo: float,
+                           hi: float) -> Tuple[float, float, float]:
+    """Raise a served point and interval in log10 B to their broad-beam equivalent.
+
+    The point takes the factor, and each edge takes the matching edge of the factor's range, so the
+    factor's own uncertainty widens the interval. All three stay at or below B = 1.
+    """
+    return (min(logB + math.log10(factor.value), 0.0),
+            min(lo + math.log10(factor.low), 0.0),
+            min(hi + math.log10(factor.high), 0.0))
 
 
 def serve(bundle: dict, X: np.ndarray, baseline_logB: float) -> Tuple[float, float, float, str]:
     """Point prediction and 95% interval in log10 B, plus the group that set the offset."""
+    served, lo, hi, groups = serve_batch(bundle, X, np.array([baseline_logB]))
+    return float(served[0]), float(lo[0]), float(hi[0]), groups[0]
+
+
+def serve_batch(bundle: dict, X: np.ndarray, baseline_logB: np.ndarray
+                ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, list]:
+    """`serve` for many rows at once: one call per model instead of one per row.
+
+    A tree ensemble costs about the same for one row as for two hundred, so a thickness search
+    that served its candidates one at a time would take seconds per wall.
+    """
     band = bundle["band"]
     for key, expected in SCHEME.items():
         if band.get(key) != expected:
             raise ValueError(f"this module serves only the {SCHEME} scheme; the bundle carries "
                              f"{key}={band.get(key)!r}")
-    point = float(bundle["model"].predict(X)[0])
-    lo = min(float(bundle["q_lo"].predict(X)[0]), point)
-    hi = max(float(bundle["q_hi"].predict(X)[0]), point)
+    point = bundle["model"].predict(X)
+    lo = np.minimum(bundle["q_lo"].predict(X), point)
+    hi = np.maximum(bundle["q_hi"].predict(X), point)
     served_logB = point + baseline_logB
-    group = group_of(bundle, float(X[0, bundle["features"].index("det_offset_mm")]), served_logB)
-    offset = band["offsets"][group]
+    offset_column = X[:, bundle["features"].index("det_offset_mm")]
+    groups = [group_of(bundle, float(offset_mm), float(logB))
+              for offset_mm, logB in zip(offset_column, served_logB)]
+    offset = np.array([band["offsets"][group] for group in groups])
     edge_lo = lo - offset + baseline_logB
-    edge_hi = min(hi + offset + baseline_logB, 0.0)
-    return served_logB, edge_lo, edge_hi, group
+    edge_hi = np.minimum(hi + offset + baseline_logB, 0.0)
+    return served_logB, edge_lo, edge_hi, groups
