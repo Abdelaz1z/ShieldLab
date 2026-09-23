@@ -790,18 +790,21 @@ class SurrogateEngine:
     def evaluate_all(self, mode: str,
                      analytical_results: Optional[List[EngineResult]] = None) -> List[EngineResult]:
         """Evaluate every path with the surrogate. In design mode model E sizes each solid wall
-        from its own upper limit; other paths use the analytical suggestion (design mode) or the
-        declared build (check mode)."""
+        from its own upper limit, and the wall's duct and maze paths are evaluated through the wall
+        as designed; other paths use the analytical suggestion (design mode) or the declared build
+        (check mode)."""
         from . import surrogate_e as se
         ar = {r.label: r for r in (analytical_results or [])}
         out: List[EngineResult] = []
         wall_by_id = {w.id: w for w in self.design.walls}
         sizes_walls = (mode == "design" and self.available() and se.is_model_e(self.bundle))
-        for path in all_paths(self.design):
+        for path in all_paths(self.design):     # each wall's own path comes before its openings
             wall = wall_by_id[path.wall_id]
             a = ar.get(path.label)
             if sizes_walls and path.kind == "wall":
-                out.append(self._design_wall(path, wall, a))
+                result = self._design_wall(path, wall, a)
+                wall_by_id[wall.id] = replace(wall, thickness1_mm=_designed_thickness(result, a, wall))
+                out.append(result)
                 continue
             if path.kind in ("door", "window"):
                 thickness = path.lead_equiv_mm
@@ -811,3 +814,14 @@ class SurrogateEngine:
                 thickness = wall.thickness1_mm
             out.append(self.evaluate(path, wall, thickness, analytical=a))
         return out
+
+
+def _designed_thickness(result: EngineResult, analytical: Optional[EngineResult],
+                        wall: Wall) -> float:
+    """The first-layer thickness a design-mode wall row was evaluated at: the surrogate's own size,
+    else the analytical suggestion, else the declared thickness."""
+    if result.suggested_thickness_mm is not None:
+        return result.suggested_thickness_mm
+    if analytical is not None and analytical.suggested_thickness_mm is not None:
+        return analytical.suggested_thickness_mm
+    return wall.thickness1_mm

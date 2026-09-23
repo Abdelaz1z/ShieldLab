@@ -225,6 +225,28 @@ def test_an_unmodelled_second_layer_is_disclosed():
     assert "(wood) is not among the surrogate's training materials" in served["Wall N"].note
 
 
+def test_design_mode_evaluates_a_duct_through_the_wall_as_designed():
+    """A duct in a surrogate-sized wall is served through the sized wall, not the declared one."""
+    from dataclasses import replace
+    from shieldlab.room import surrogate_e as sur_e
+    from shieldlab.room.geometry import all_paths
+
+    design = _room(iso="F-18", mbq=3700.0, thickness=600.0, material="concrete")
+    design.wall("N").openings.append(Opening(kind="duct", center_along_wall_m=3.5, radius_mm=20.0))
+    engine, _, served = _both(design, mode="design")
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP designed-duct test: model E is not the loaded bundle")
+        return
+    sized = served["Wall N"].suggested_thickness_mm
+    assert sized is not None and sized < 600.0
+    duct = next(p for p in all_paths(design) if p.wall_id == "N" and p.kind == "duct")
+    # The forest sums its trees across threads in no fixed order, so equal means equal to 1e-12.
+    expected = engine.evaluate(duct, replace(design.wall("N"), thickness1_mm=sized), sized)
+    assert abs(served[duct.label].B_achieved / expected.B_achieved - 1.0) < 1e-12
+    declared = engine.evaluate(duct, design.wall("N"), 600.0)
+    assert abs(served[duct.label].B_achieved / declared.B_achieved - 1.0) > 1e-3
+
+
 def test_check_mode_does_not_size():
     """Check mode evaluates the declared build and offers no thickness."""
     _, _, served = _both(_room(iso="F-18", thickness=200.0), mode="check")
