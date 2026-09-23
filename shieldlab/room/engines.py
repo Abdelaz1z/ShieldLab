@@ -638,9 +638,10 @@ class SurrogateEngine:
                 return result
             which = ("the analytical suggestion" if analytical_mm is not None
                      else "the declared thickness")
-            return replace(result, note=(f"The surrogate found no thickness inside its trained "
-                                         f"domain whose 95% upper limit meets the goal; {which} is "
-                                         f"evaluated instead. " + result.note))
+            reason = ("A design goal of zero cannot be met by any finite barrier" if gT <= 0
+                      else "The surrogate found no thickness inside its trained domain whose 95% "
+                           "upper limit meets the goal")
+            return replace(result, note=f"{reason}; {which} is evaluated instead. " + result.note)
         result = self._evaluate_model_e(path, wall, sized, analytical, gT, unshielded)
         compared = (f" (the analytical method suggests {analytical_mm:g} mm)"
                     if analytical_mm is not None else "")
