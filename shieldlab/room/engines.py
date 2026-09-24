@@ -60,7 +60,8 @@ class EngineResult:
 @dataclass(frozen=True)
 class _Served:
     """Model E's broad-beam answer for one barrier, in log10 B: for one line, or summed over the
-    source's lines, in which case `mu_x`, `factor` and `group` are the principal line's."""
+    source's lines, in which case `factor`, `group` and `energy_keV` are those of the line carrying
+    most of the transmitted dose and `mu_x` is the deepest line's (see `_sum_lines`)."""
     energy_keV: float
     logB: float
     lo: float
@@ -633,7 +634,9 @@ class SurrogateEngine:
         listed = ", ".join(f"{energy:g} keV ({weight:.0%})" for energy, weight in lines)
         note = (f" Served over {self.design.source.isotope}'s lines, weighted by unshielded air "
                 f"kerma: {listed}; each line takes the factor for its own depth, and the factor "
-                f"quoted is the principal line's. Lines below 100 keV are left out, which "
+                f"quoted is that of the {served.energy_keV:g} keV line, which carries most of the "
+                f"transmitted dose. The interval sums the lines' 95% edges: exact when their errors "
+                f"move together, wider when they do not. Lines below 100 keV are left out, which "
                 f"over-states the transmission.")
         if served.substituted:
             bounded = ", ".join(f"{energy:g}" for energy in served.substituted)
@@ -895,10 +898,19 @@ class SurrogateEngine:
 def _sum_lines(lines, answers: List[Optional[_Served]]) -> Optional[_Served]:
     """Sum per-line answers (principal first) with their weights; edges are summed edge by edge.
 
+    Summed edges are the 95% edges of the sum when the lines' errors move together, and wider than
+    them when they do not (the errors are near normal in B at these widths), so the sum is not
+    narrower than a 95% interval.
+
     A minor line the model cannot serve at this depth, either unbuilt or outside the domain, is
-    bounded by the nearest harder line that it can serve. Above lead's K edge, and in every material
-    here, a softer line is the more attenuated, so the bound over-states the transmission. With no
-    such line, or with the principal line outside the domain, the barrier is outside the domain.
+    bounded by the nearest harder line that it can serve. For lines of 100 keV and above, every
+    material here attenuates a softer line more (`tests/test_room_surrogate.py` checks the
+    coefficients), so the harder line's true transmission is above the softer one's, and its own
+    upper edge covers it: the bound needs no monotonicity of the model itself. With no such line, or
+    with the principal line outside the domain, the barrier is outside the domain.
+
+    The group, factor and energy reported are those of the line carrying most of the transmitted
+    dose, and `mu_x` is the deepest line's, so the finite-beam flag sees every line.
     """
     import numpy as np
     from . import surrogate_e as se
@@ -918,7 +930,10 @@ def _sum_lines(lines, answers: List[Optional[_Served]]) -> Optional[_Served]:
             substituted.append(energy)
         chosen.append(answer)
     weights = np.array([weight for _, weight in lines])
-    return replace(principal, substituted=tuple(substituted),
+    dose_share = weights * 10.0 ** np.array([answer.logB for answer in chosen])
+    dominant = chosen[int(np.argmax(dose_share))]
+    depths = [answer.mu_x for answer in answers if answer is not None and answer.mu_x is not None]
+    return replace(dominant, substituted=tuple(substituted), mu_x=max(depths, default=None),
                    **{edge: se.combine_lines(weights, np.array([getattr(a, edge) for a in chosen]))
                       for edge in ("logB", "lo", "hi")})
 

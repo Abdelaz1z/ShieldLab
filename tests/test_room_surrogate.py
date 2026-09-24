@@ -258,6 +258,35 @@ def test_kerma_weighted_lines():
     assert sur_e.kerma_weighted_lines("F-18", 100.01, 1077.34) is None
 
 
+def test_softer_lines_are_more_attenuated_in_every_trained_material():
+    """The two conservative steps of spectral serving rest on this, not on the model:
+    * from 100 keV up, mu/rho falls with energy, so a line bounded by a harder one is over-stated;
+    * every line left out below 100 keV (I-131's 80 keV, under lead's 88 keV K edge) is still
+      attenuated more than the softest line kept, so renormalising over the kept lines over-states.
+    """
+    from shieldlab import data_loader as dl
+    from shieldlab.physics import transmission as tx
+    from shieldlab.room import surrogate_e as sur_e
+
+    table = dl.load("materials")
+    grid = table["energy_grid_MeV"]
+    coefficient_sets = []
+    for material, constants in SurrogateEngine(_room()).bundle["material_map"].items():
+        # the coefficient the model's own baseline uses, interpolated in Z_eff between anchors
+        coefficient_sets.append((material, lambda e, z=constants["zeff"]: sur_e.mu_rho(z, e)))
+        tabulated = table["materials"].get(material, {}).get("mu_rho")
+        if tabulated:
+            coefficient_sets.append((f"{material} (tabulated)", lambda e, t=tabulated: float(
+                tx.interp_mu_rho(e / 1000.0, grid, t))))
+    for material, mu in coefficient_sets:
+        above = [mu(e) for e in (100.0, 150.0, 200.0, 300.0, 500.0, 1000.0, 1077.34)]
+        assert all(a > b for a, b in zip(above, above[1:])), (material, above)
+        for nuclide, lines in sur_e.PHOTON_LINES.items():
+            kept = [e for e, _ in lines if e >= 100.01]
+            for dropped in (e for e, _ in lines if e < 100.01):
+                assert mu(dropped) > mu(min(kept)), (material, nuclide, dropped)
+
+
 class _PrincipalLineOnly(SurrogateEngine):
     def _lines(self):
         return [(364.49, 1.0)]
@@ -286,6 +315,21 @@ def test_i131_spectrum_reproduces_the_kfsh_monte_carlo():
         principal = _PrincipalLineOnly(design)._serve_spectrum(path, wall, [wall.thickness1_mm])[0]
         ratio = 10 ** (spectrum.logB - principal.logB)
         assert abs(ratio / monte_carlo - 1.0) < 0.05, (barrier, ratio, monte_carlo)
+
+
+def test_the_finite_beam_flag_sees_the_deepest_line():
+    """10 mm of lead is mu*x 3.2 at 364 keV but 5.2 at I-131's 284 keV line: flagged."""
+    from shieldlab.room import engines as eng
+    from shieldlab.room import surrogate_e as sur_e
+
+    design, path, wall = _i131_wall("lead", 10.0)
+    engine = SurrogateEngine(design)
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP deepest-line flag test: model E is not the loaded bundle")
+        return
+    assert engine._barrier_mu_x(path, wall, 10.0) < eng.GEOMETRY_BIAS_MUX
+    result = engine.evaluate(path, wall, 10.0)
+    assert result.geometry_bias and result.mu_x >= eng.GEOMETRY_BIAS_MUX, result.mu_x
 
 
 def test_a_line_outside_the_domain_is_bounded_by_a_harder_one():
