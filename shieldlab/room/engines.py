@@ -600,7 +600,7 @@ class SurrogateEngine:
         dose = unshielded * B
         margin_hi = gT / (unshielded * B_hi) if unshielded * B_hi > 0 else None
         band_note = {"deep_tail": " (deep tail)", "beam_shadow": " (deep off-axis)"}.get(group, "")
-        interval = "95% CI" if len(self._lines()) < 2 else "interval (summed line edges)"
+        interval, _ = self._interval_names()
         below_tested = (" The prediction is below the deepest transmission tested (about 1e-5), "
                         "where the interval has no measured coverage; confirm with Monte Carlo."
                         if logB < BELOW_TESTED_LOGB else "")
@@ -629,6 +629,13 @@ class SurrogateEngine:
                     f"is carried into the interval."
                   + self._spectrum_note(served) + density_note + below_tested + gb_note))
 
+    def _interval_names(self):
+        """What the served interval and its upper edge are called: a calibrated 95% interval for a
+        one-line source, the summed line edges (not calibrated as a whole) otherwise."""
+        if len(self._lines()) < 2:
+            return "95% CI", "95% upper limit"
+        return "interval (summed line edges)", "upper limit (summed line edges)"
+
     def _spectrum_note(self, served: _Served) -> str:
         """How the source's lines were served, for a nuclide served over more than one line."""
         lines = self._lines()
@@ -646,7 +653,7 @@ class SurrogateEngine:
         if served.substituted:
             bounded = ", ".join(f"{energy:g}" for energy in served.substituted)
             note += (f" The {bounded} keV line is outside the trained domain at this depth and is "
-                     f"bounded by the next harder line, which transmits more.")
+                     f"bounded by the upper edge of the next harder line, which transmits more.")
         return note
 
     def _goal_and_unshielded(self, path: BarrierPath, wall: Wall):
@@ -674,7 +681,7 @@ class SurrogateEngine:
 
     def _size_wall_model_e(self, path: BarrierPath, wall: Wall, gT: float,
                            unshielded: float) -> Optional[float]:
-        """Thinnest standard thickness of the wall's first material whose served 95% upper limit
+        """Thinnest standard thickness of the wall's first material whose served upper limit
         meets the goal, or None when no thickness inside the trained domain does.
 
         A thickness is accepted only if every thicker candidate meets the goal too, served inside
@@ -703,7 +710,7 @@ class SurrogateEngine:
 
     def _design_wall(self, path: BarrierPath, wall: Wall,
                      analytical: Optional[EngineResult]) -> EngineResult:
-        """Design mode for a solid wall: size it from the surrogate's own 95% upper limit.
+        """Design mode for a solid wall: size it from the surrogate's own upper limit.
 
         When no thickness inside the trained domain meets the goal, the analytical suggestion (or,
         without one, the declared thickness) is evaluated instead, and the note says so. A wall the
@@ -722,15 +729,16 @@ class SurrogateEngine:
             which = ("the analytical suggestion" if analytical_mm is not None
                      else "the declared thickness")
             reason = ("A design goal of zero cannot be met by any finite barrier" if gT <= 0
-                      else "The surrogate found no thickness inside its trained domain whose 95% "
-                           "upper limit meets the goal")
+                      else f"The surrogate found no thickness inside its trained domain whose "
+                           f"{self._interval_names()[1]} meets the goal")
             return replace(result, note=f"{reason}; {which} is evaluated instead. " + result.note)
         result = self._evaluate_model_e(path, wall, sized, analytical, gT, unshielded)
         compared = (f" (the analytical method suggests {analytical_mm:g} mm)"
                     if analytical_mm is not None else "")
+        _, upper_limit = self._interval_names()
         return replace(result, suggested_thickness_mm=sized,
                        note=(f"Sized by the surrogate: {sized:g} mm {wall.material1} is the thinnest "
-                             f"standard thickness whose 95% upper limit meets the goal{compared}. "
+                             f"standard thickness whose {upper_limit} meets the goal{compared}. "
                              + result.note))
 
     def evaluate(self, path: BarrierPath, wall: Wall, thickness_mm: float,
@@ -909,7 +917,8 @@ def _sum_lines(lines, answers: List[Optional[_Served]]) -> Optional[_Served]:
     full-spectrum Monte Carlo labels exist to calibrate the sum; the note says so.
 
     A minor line the model cannot serve at this depth, either unbuilt or outside the domain, is
-    bounded by the nearest harder line that it can serve. For lines of 100 keV and above, every
+    bounded by the upper edge of the nearest harder line that it can serve. For lines of 100 keV
+    and above, every
     material here attenuates a softer line more (`tests/test_room_surrogate.py` checks the
     coefficients), so the harder line's true transmission is above the softer one's, and its own
     upper edge covers it: the bound needs no monotonicity of the model itself. With no such line, or
@@ -932,7 +941,11 @@ def _sum_lines(lines, answers: List[Optional[_Served]]) -> Optional[_Served]:
             harder = [candidate for candidate in served if candidate.energy_keV > energy]
             if not harder:
                 return replace(principal, inside=False)
-            answer = min(harder, key=lambda candidate: candidate.energy_keV)
+            bound = min(harder, key=lambda candidate: candidate.energy_keV)
+            # The harder line's upper edge bounds the softer line's transmission; its point
+            # estimate does not, so the substituted line enters the point at that edge, and the
+            # lower sum at zero.
+            answer = replace(bound, logB=bound.hi, lo=float("-inf"))
             substituted.append(energy)
         chosen.append(answer)
     weights = np.array([weight for _, weight in lines])

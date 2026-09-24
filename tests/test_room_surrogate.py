@@ -252,21 +252,29 @@ def test_kerma_weighted_lines():
     from shieldlab.room import surrogate_e as sur_e
 
     lines = dict(sur_e.kerma_weighted_lines("I-131", 100.01, 1077.34))
-    assert set(lines) == {364.49, 636.99, 284.31, 722.91}
+    assert set(lines) == {364.49, 636.989, 284.305, 722.911, 503.004, 325.789, 177.214, 642.719}
     assert abs(sum(lines.values()) - 1.0) < 1e-12
-    assert 0.78 < lines[364.49] < 0.82 and 0.11 < lines[636.99] < 0.14
+    assert 0.77 < lines[364.49] < 0.82 and 0.11 < lines[636.989] < 0.14
     assert sur_e.kerma_weighted_lines("F-18", 100.01, 1077.34) is None
+    # nothing above the trained range, where no harder line could bound it
+    assert all(energy <= 1077.34 for lines in sur_e.PHOTON_LINES.values() for energy, _ in lines)
 
 
 def test_softer_lines_are_more_attenuated_in_every_trained_material():
     """The two conservative steps of spectral serving rest on this, not on the model:
     * from 100 keV up, mu/rho falls with energy, so a line bounded by a harder one is over-stated;
-    * every line left out below 100 keV (I-131's 80 keV, under lead's 88 keV K edge) is still
-      attenuated more than the softest line kept, so renormalising over the kept lines over-states.
+    * renormalising over the kept lines over-states the sum iff each line left out transmits no
+      more than the kept lines' weighted mean. That is checked at every depth to 16 mean free
+      paths of the principal line, with uncollided transmission: buildup is at least 1 and grows
+      with energy, so leaving it out under-states the harder kept lines and makes the check strict.
+      It matters under lead's 88 keV K edge, where Lu-177's 71.6 keV line is less attenuated than
+      its 113 keV line, but not than the 208 keV line that carries most of the kerma.
     """
     from shieldlab import data_loader as dl
     from shieldlab.physics import transmission as tx
     from shieldlab.room import surrogate_e as sur_e
+
+    import numpy as np
 
     table = dl.load("materials")
     grid = table["energy_grid_MeV"]
@@ -282,9 +290,13 @@ def test_softer_lines_are_more_attenuated_in_every_trained_material():
         above = [mu(e) for e in (100.0, 150.0, 200.0, 300.0, 500.0, 1000.0, 1077.34)]
         assert all(a > b for a, b in zip(above, above[1:])), (material, above)
         for nuclide, lines in sur_e.PHOTON_LINES.items():
-            kept = [e for e, _ in lines if e >= 100.01]
+            kept = sur_e.kerma_weighted_lines(nuclide, 100.01, 1077.34)
+            principal = max(kept, key=lambda line: line[1])[0]
+            depth = np.linspace(0.0, 16.0 / mu(principal), 400)       # g/cm2
+            kept_mean = sum(weight * np.exp(-mu(energy) * depth) for energy, weight in kept)
             for dropped in (e for e, _ in lines if e < 100.01):
-                assert mu(dropped) > mu(min(kept)), (material, nuclide, dropped)
+                assert np.all(np.exp(-mu(dropped) * depth) <= kept_mean + 1e-12), (
+                    material, nuclide, dropped)
 
 
 class _PrincipalLineOnly(SurrogateEngine):
@@ -356,10 +368,13 @@ def test_a_line_outside_the_domain_is_bounded_by_a_harder_one():
         print("SKIP bounded-line test: model E is not the loaded bundle")
         return
     served = engine._serve_spectrum(path, wall, [30.0])[0]
-    assert served.inside and served.substituted == (284.31,)
+    assert served.inside and 284.305 in served.substituted
     result = engine.evaluate(path, wall, 30.0)
-    assert "The 284.31 keV line is outside the trained domain" in result.note
+    assert "284.305" in result.note and "outside the trained domain" in result.note
     assert "Served over I-131's lines" in result.note
+    # a substituted line enters the point at its bound's upper edge, so the point cannot fall
+    # below what the same lines give with the bound's point estimate
+    assert served.logB <= served.hi
 
 
 def test_check_mode_does_not_size():

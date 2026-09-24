@@ -74,15 +74,19 @@ CONCRETE_FIELD_CONVENTION = ((4.0, MeasuredFactor(1.718, 0.0051, unconverged_ste
 Z95 = 1.96
 GROUP_NAMES = ("standard", "beam_shadow", "deep_tail")
 
-# Photon lines (keV, photons per decay; NNDC) of the nuclides that emit more than one line that
-# matters for shielding. A nuclide not listed is served at the bundle's single line. Lines below the
-# trained energy range are left out and the rest renormalised, which over-states the transmitted
-# dose: a softer line is always the more attenuated one.
+# Every gamma line of at least 0.1% per decay (keV, photons per decay; NNDC) of the multi-line
+# nuclides the Room Designer offers. A nuclide not listed is served at the bundle's single line.
+# Lines below the trained energy range, and the K x-rays below 100 keV, are left out and the rest
+# renormalised. That over-states the transmitted dose because each line left out transmits no more
+# than the kept lines' weighted mean at any depth, even Lu-177's 71.6 keV line under lead's K edge
+# (tests/test_room_surrogate.py checks it in every trained material). No listed line lies above the
+# trained range, where nothing could bound it.
 PHOTON_LINES = {
-    "I-131": ((364.49, 0.815), (636.99, 0.0716), (284.31, 0.0606), (722.91, 0.0177),
-              (80.19, 0.0262)),
-    "Lu-177": ((208.37, 0.1036), (112.95, 0.0620)),
-    "Ga-68": ((511.0, 1.7828), (1077.34, 0.0322)),
+    "I-131": ((364.490, 0.815), (636.989, 0.0716), (284.305, 0.0612), (80.185, 0.0262),
+              (722.911, 0.0177), (503.004, 0.00359), (325.789, 0.00273), (177.214, 0.00269),
+              (642.719, 0.00217)),
+    "Lu-177": ((208.366, 0.1036), (112.950, 0.0620), (321.316, 0.00216), (249.674, 0.00200),
+               (71.646, 0.00172)),
 }
 # Mass energy-absorption coefficient of dry air (cm2/g; NIST, Hubbell and Seltzer), so that each line
 # is weighted by the air kerma it delivers unshielded.
