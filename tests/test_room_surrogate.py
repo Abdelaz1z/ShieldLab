@@ -287,10 +287,11 @@ def test_softer_lines_are_more_attenuated_in_every_trained_material():
             coefficient_sets.append((f"{material} (tabulated)", lambda e, t=tabulated: float(
                 tx.interp_mu_rho(e / 1000.0, grid, t))))
     for material, mu in coefficient_sets:
-        above = [mu(e) for e in (100.0, 150.0, 200.0, 300.0, 500.0, 1000.0, 1077.34)]
-        assert all(a > b for a, b in zip(above, above[1:])), (material, above)
         for nuclide, lines in sur_e.PHOTON_LINES.items():
             kept = sur_e.kerma_weighted_lines(nuclide, 100.01, 1077.34)
+            # every pair of served lines, the exact energies a substitution can pair
+            served = [mu(energy) for energy, _ in sorted(kept)]
+            assert all(a > b for a, b in zip(served, served[1:])), (material, nuclide, served)
             principal = max(kept, key=lambda line: line[1])[0]
             depth = np.linspace(0.0, 16.0 / mu(principal), 400)       # g/cm2
             kept_mean = sum(weight * np.exp(-mu(energy) * depth) for energy, weight in kept)

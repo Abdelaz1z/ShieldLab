@@ -600,7 +600,7 @@ class SurrogateEngine:
         dose = unshielded * B
         margin_hi = gT / (unshielded * B_hi) if unshielded * B_hi > 0 else None
         band_note = {"deep_tail": " (deep tail)", "beam_shadow": " (deep off-axis)"}.get(group, "")
-        interval, _ = self._interval_names()
+        interval, upper_limit = self._interval_names()
         below_tested = (" The prediction is below the deepest transmission tested (about 1e-5), "
                         "where the interval has no measured coverage; confirm with Monte Carlo."
                         if logB < BELOW_TESTED_LOGB else "")
@@ -621,7 +621,7 @@ class SurrogateEngine:
             material=wall.material1, ci_low=B_lo, ci_high=B_hi,
             geometry_bias=finite_beam_bias, mu_x=mu_x,
             note=((f"MC surrogate B={B:.2e}, {interval} [{B_lo:.1e}, {B_hi:.1e}]{band_note}; "
-                   f"conservative (upper-bound) margin ×{margin_hi:.2f}."
+                   f"margin at the {upper_limit} ×{margin_hi:.2f}."
                    if margin_hi is not None else
                    f"MC surrogate B={B:.2e}, {interval} [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
                   + f" Includes the ×{factor.value:.2f} broad-beam factor measured for this "
