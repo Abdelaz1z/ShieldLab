@@ -74,6 +74,45 @@ CONCRETE_FIELD_CONVENTION = ((4.0, MeasuredFactor(1.718, 0.0051, unconverged_ste
 Z95 = 1.96
 GROUP_NAMES = ("standard", "beam_shadow", "deep_tail")
 
+# Photon lines (keV, photons per decay; NNDC) of the nuclides that emit more than one line that
+# matters for shielding. A nuclide not listed is served at the bundle's single line. Lines below the
+# trained energy range are left out and the rest renormalised, which over-states the transmitted
+# dose: a softer line is always the more attenuated one.
+PHOTON_LINES = {
+    "I-131": ((364.49, 0.815), (636.99, 0.0716), (284.31, 0.0606), (722.91, 0.0177),
+              (80.19, 0.0262)),
+    "Lu-177": ((208.37, 0.1036), (112.95, 0.0620)),
+    "Ga-68": ((511.0, 1.7828), (1077.34, 0.0322)),
+}
+# Mass energy-absorption coefficient of dry air (cm2/g; NIST, Hubbell and Seltzer), so that each line
+# is weighted by the air kerma it delivers unshielded.
+AIR_MU_EN_RHO = ((80.0, 0.02407), (100.0, 0.02325), (150.0, 0.02496), (200.0, 0.02672),
+                 (300.0, 0.02872), (400.0, 0.02949), (500.0, 0.02966), (600.0, 0.02953),
+                 (800.0, 0.02882), (1000.0, 0.02789), (1250.0, 0.02666))
+
+
+def kerma_weighted_lines(nuclide: str, low_keV: float, high_keV: float
+                         ) -> Optional[Tuple[Tuple[float, float], ...]]:
+    """(energy keV, weight) for each of the nuclide's lines inside [low, high], weights summing to 1.
+
+    The weight is the share of unshielded air kerma: photons per decay x energy x mu_en/rho of air.
+    None for a nuclide with no line table, which is then served at its one line.
+    """
+    lines = PHOTON_LINES.get(nuclide)
+    if lines is None:
+        return None
+    energies, mu_en = zip(*AIR_MU_EN_RHO)
+    kept = [(energy, per_decay * energy * math.exp(np.interp(math.log(energy), np.log(energies),
+                                                             np.log(mu_en))))
+            for energy, per_decay in lines if low_keV <= energy <= high_keV]
+    total = sum(kerma for _, kerma in kept)
+    return tuple((energy, kerma / total) for energy, kerma in kept)
+
+
+def combine_lines(weights: np.ndarray, log10_b: np.ndarray) -> float:
+    """log10 of the kerma-weighted sum of the lines' transmissions, kept at or below B = 1."""
+    return min(float(np.log10(np.sum(weights * 10.0 ** log10_b))), 0.0)
+
 _MU_CACHE: Dict[Tuple[float, float], float] = {}
 
 

@@ -247,6 +247,63 @@ def test_design_mode_evaluates_a_duct_through_the_wall_as_designed():
     assert abs(served[duct.label].B_achieved / declared.B_achieved - 1.0) > 1e-3
 
 
+def test_kerma_weighted_lines():
+    """I-131's lines inside the trained range, weighted by air kerma; the 80 keV line is left out."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    lines = dict(sur_e.kerma_weighted_lines("I-131", 100.01, 1077.34))
+    assert set(lines) == {364.49, 636.99, 284.31, 722.91}
+    assert abs(sum(lines.values()) - 1.0) < 1e-12
+    assert 0.78 < lines[364.49] < 0.82 and 0.11 < lines[636.99] < 0.14
+    assert sur_e.kerma_weighted_lines("F-18", 100.01, 1077.34) is None
+
+
+class _PrincipalLineOnly(SurrogateEngine):
+    def _lines(self):
+        return [(364.49, 1.0)]
+
+
+def _i131_wall(first, thickness, second=None, second_mm=0.0):
+    design = _room(iso="I-131")
+    wall = design.wall("N")
+    wall.material1, wall.thickness1_mm, wall.material2, wall.thickness2_mm = (
+        first, thickness, second, second_mm)
+    return design, _path(design, "Wall N"), wall
+
+
+def test_i131_spectrum_reproduces_the_kfsh_monte_carlo():
+    """Serving I-131 over its lines rather than at 364 keV raises the transmission by what the KFSH
+    Monte Carlo measured with the full spectrum: 1.28x (4 mm Pb + 100 mm concrete), 1.15x
+    (200 mm concrete)."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    if not sur_e.is_model_e(SurrogateEngine(_room()).bundle):
+        print("SKIP I-131 spectrum test: model E is not the loaded bundle")
+        return
+    for barrier, monte_carlo in ((("lead", 4.0, "concrete", 100.0), 1.28), (("concrete", 200.0), 1.15)):
+        design, path, wall = _i131_wall(*barrier)
+        spectrum = SurrogateEngine(design)._serve_spectrum(path, wall, [wall.thickness1_mm])[0]
+        principal = _PrincipalLineOnly(design)._serve_spectrum(path, wall, [wall.thickness1_mm])[0]
+        ratio = 10 ** (spectrum.logB - principal.logB)
+        assert abs(ratio / monte_carlo - 1.0) < 0.05, (barrier, ratio, monte_carlo)
+
+
+def test_a_line_outside_the_domain_is_bounded_by_a_harder_one():
+    """Behind 30 mm of lead the 284 keV line is past the trained depth; it is bounded, and said so."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    design, path, wall = _i131_wall("lead", 30.0)
+    engine = SurrogateEngine(design)
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP bounded-line test: model E is not the loaded bundle")
+        return
+    served = engine._serve_spectrum(path, wall, [30.0])[0]
+    assert served.inside and served.substituted == (284.31,)
+    result = engine.evaluate(path, wall, 30.0)
+    assert "The 284.31 keV line is outside the trained domain" in result.note
+    assert "Served over I-131's lines" in result.note
+
+
 def test_check_mode_does_not_size():
     """Check mode evaluates the declared build and offers no thickness."""
     _, _, served = _both(_room(iso="F-18", thickness=200.0), mode="check")

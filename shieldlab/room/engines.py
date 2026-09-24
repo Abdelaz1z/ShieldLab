@@ -57,6 +57,21 @@ class EngineResult:
     note: str = ""
 
 
+@dataclass(frozen=True)
+class _Served:
+    """Model E's broad-beam answer for one barrier, in log10 B: for one line, or summed over the
+    source's lines, in which case `mu_x`, `factor` and `group` are the principal line's."""
+    energy_keV: float
+    logB: float
+    lo: float
+    hi: float
+    group: str
+    inside: bool
+    mu_x: Optional[float]
+    factor: tuple                      # surrogate_e.FieldFactor
+    substituted: tuple = ()            # lines bounded by a harder line (see `_sum_lines`)
+
+
 def usable_wall_materials(isotope: str) -> List[str]:
     """Materials that actually have a transmission path for this isotope's gamma."""
     beam = bm.Beam(kind=bm.KIND_RADIONUCLIDE, nuclide=isotope)
@@ -380,12 +395,13 @@ class SurrogateEngine:
         return np.array([[e, served, path.duct_radius_mm, path.offset_m * 1000.0,
                           z, rho, l2t, l2z]], dtype=float)
 
-    def _barrier_mu_x(self, path: BarrierPath, wall: Wall,
-                      thickness_mm: float) -> Optional[float]:
-        """Optical depth of the barrier this prediction is about. Layer list mirrors
-        `_features` exactly, so the mu*x reported is the mu*x of the thing the model was
-        asked about (the suggested wall in design mode, the declared one in check mode)."""
-        e = (self.bundle or {}).get("isotope_energy_keV", {}).get(self.design.source.isotope)
+    def _barrier_mu_x(self, path: BarrierPath, wall: Wall, thickness_mm: float,
+                      energy_keV: Optional[float] = None) -> Optional[float]:
+        """Optical depth of the barrier this prediction is about, at `energy_keV` or the source's
+        principal line. Layer list mirrors `_features` exactly, so the mu*x reported is the mu*x of
+        the thing the model was asked about (the suggested wall in design mode, the declared one in
+        check mode)."""
+        e = energy_keV if energy_keV is not None else self._principal_energy()
         if e is None:
             return None
         if path.kind in ("door", "window"):
@@ -462,11 +478,32 @@ class SurrogateEngine:
                   and wall.thickness2_mm > 0 else None)
         return first, second
 
-    def _model_e_row(self, path: BarrierPath, wall: Wall, thickness_mm: float):
-        """Feature row and baseline for model E, or None when a material or line is unknown."""
+    def _lines(self):
+        """(energy keV, air-kerma weight) of each line model E serves for the source, the principal
+        line first. A nuclide with no line table is served at the bundle's one line."""
+        from . import surrogate_e as se
+        isotope = self.design.source.isotope
+        domain = self.bundle["domain"]
+        column = domain.features.index("primary_energy_keV")
+        lines = se.kerma_weighted_lines(isotope, float(domain.lo[column]), float(domain.hi[column]))
+        if lines is None:
+            energy = self.bundle["isotope_energy_keV"].get(isotope)
+            return [] if energy is None else [(energy, 1.0)]
+        return sorted(lines, key=lambda line: -line[1])
+
+    def _principal_energy(self) -> Optional[float]:
+        if not self.bundle:
+            return None
+        lines = self._lines()
+        return lines[0][0] if lines else None
+
+    def _model_e_row(self, path: BarrierPath, wall: Wall, thickness_mm: float,
+                     energy_keV: Optional[float] = None):
+        """Feature row and baseline for model E at `energy_keV` or the source's principal line, or
+        None when a material or line is unknown."""
         from . import surrogate_e as se
         b = self.bundle
-        energy = b["isotope_energy_keV"].get(self.design.source.isotope)
+        energy = energy_keV if energy_keV is not None else self._principal_energy()
         materials = b["material_map"]
         first, second = self._model_e_materials(path, wall)
         if energy is None or first not in materials:
@@ -487,19 +524,52 @@ class SurrogateEngine:
         except ValueError:
             return None            # e.g. a duct wider than the geometry the model was trained on
 
+    def _serve_spectrum(self, path: BarrierPath, wall: Wall,
+                        thicknesses: List[float]) -> List[Optional[_Served]]:
+        """Model E's broad-beam answer at each thickness, summed over the source's lines.
+
+        Every (thickness, line) row is served in one batch. Each line is raised by the broad-beam
+        factor for its own depth, then the lines are summed with their air-kerma weights. None where
+        the principal line cannot be built at all.
+        """
+        import numpy as np
+        from . import surrogate_e as se
+        lines = self._lines()
+        rows, where = [], {}
+        for i, thickness in enumerate(thicknesses):
+            for j, (energy, _) in enumerate(lines):
+                built = self._model_e_row(path, wall, thickness, energy)
+                if built is not None:
+                    where[i, j] = len(rows)
+                    rows.append(built)
+        if not rows:
+            return [None] * len(thicknesses)
+        X = np.vstack([row for row, _, _ in rows])
+        inside = self.bundle["domain"].in_domain(X)
+        point, lo, hi, groups = se.serve_batch(self.bundle, X,
+                                               np.array([baseline for _, baseline, _ in rows]))
+        materials = self._model_e_materials(path, wall)
+        answers = {}
+        for (i, j), k in where.items():
+            energy = lines[j][0]
+            mu_x = self._barrier_mu_x(path, wall, thicknesses[i], energy)
+            factor = se.field_convention(mu_x, *materials)
+            broad = se.apply_field_convention(factor, point[k], lo[k], hi[k])
+            answers[i, j] = _Served(energy, *broad, groups[k], bool(inside[k]), mu_x, factor)
+        return [_sum_lines(lines, [answers.get((i, j)) for j in range(len(lines))])
+                for i in range(len(thicknesses))]
+
     def _evaluate_model_e(self, path: BarrierPath, wall: Wall, thickness_mm: float,
                           analytical: Optional[EngineResult], gT: float,
                           unshielded: float) -> EngineResult:
         """Serve model E: point estimate, 95% interval, guard, and the standing beam caveat."""
-        from . import surrogate_e as se
         b = self.bundle
-        built = self._model_e_row(path, wall, thickness_mm)
-        if built is None:
+        served = self._serve_spectrum(path, wall, [thickness_mm])[0]
+        if served is None:
             return EngineResult(barrier_id=path.label, label=path.label, engine=self.name,
                                 B_required=None, B_achieved=None, dose_mSv_wk=None, goal_over_T=gT,
                                 passes=None, margin=None, note="No surrogate features for this path.")
-        X, baseline, _ = built
-        if not b["domain"].in_domain(X)[0]:
+        if not served.inside:
             aB = analytical.B_achieved if analytical else None
             aDose = analytical.dose_mSv_wk if analytical else None
             if aB is not None:
@@ -516,13 +586,11 @@ class SurrogateEngine:
                 passes=(analytical.passes if analytical else None),
                 margin=(gT / aDose if aDose else None), material=wall.material1, ood=True, note=note)
 
-        logB, lo, hi, group = se.serve(b, X, baseline)
-        # The model is trained in a 0.5 m beam and the standards tabulate a broad one, so the served
-        # transmission is raised to its broad-beam equivalent before it is compared with a design
-        # goal. `serve` is left untouched, so it still reproduces the paper's sealed predictions.
-        mu_x = self._barrier_mu_x(path, wall, thickness_mm)
-        factor = se.field_convention(mu_x, *self._model_e_materials(path, wall))
-        logB, lo, hi = se.apply_field_convention(factor, logB, lo, hi)
+        # The model is trained in a 0.5 m beam and the standards tabulate a broad one, so each line
+        # was raised to its broad-beam equivalent before the lines were summed. `serve` is left
+        # untouched, so it still reproduces the paper's sealed predictions.
+        logB, lo, hi, group = served.logB, served.lo, served.hi, served.group
+        mu_x, factor = served.mu_x, served.factor
         finite_beam_bias = mu_x is not None and mu_x >= GEOMETRY_BIAS_MUX
         gb_note = f"  ⚠ μx≈{mu_x:.1f}. {GEOMETRY_BIAS_WARNING}" if finite_beam_bias else ""
         B, B_lo, B_hi = 10.0 ** logB, 10.0 ** lo, min(10.0 ** hi, 1.0)
@@ -555,7 +623,23 @@ class SurrogateEngine:
                   + f" Includes the ×{factor.value:.2f} broad-beam factor measured for this "
                     f"material and depth; its own 95% range (×{factor.low:.2f}–{factor.high:.2f}) "
                     f"is carried into the interval."
-                  + density_note + below_tested + gb_note))
+                  + self._spectrum_note(served) + density_note + below_tested + gb_note))
+
+    def _spectrum_note(self, served: _Served) -> str:
+        """How the source's lines were served, for a nuclide served over more than one line."""
+        lines = self._lines()
+        if len(lines) < 2:
+            return ""
+        listed = ", ".join(f"{energy:g} keV ({weight:.0%})" for energy, weight in lines)
+        note = (f" Served over {self.design.source.isotope}'s lines, weighted by unshielded air "
+                f"kerma: {listed}; each line takes the factor for its own depth, and the factor "
+                f"quoted is the principal line's. Lines below 100 keV are left out, which "
+                f"over-states the transmission.")
+        if served.substituted:
+            bounded = ", ".join(f"{energy:g}" for energy in served.substituted)
+            note += (f" The {bounded} keV line is outside the trained domain at this depth and is "
+                     f"bounded by the next harder line, which transmits more.")
+        return note
 
     def _goal_and_unshielded(self, path: BarrierPath, wall: Wall):
         """The path's dose limit P/T and its unshielded weekly dose, both in mSv/week."""
@@ -563,9 +647,9 @@ class SurrogateEngine:
         gT = goal.P_weekly / goal.occupancy_T if goal.occupancy_T > 0 else goal.P_weekly
         return gT, self.analytical._source(path).total_unshielded()
 
-    def _thickness_candidates(self, path: BarrierPath, wall: Wall):
-        """Standard thicknesses of the wall's first material, thinnest first, each with its
-        model-E row, up to the thickest and deepest barrier the trained domain holds."""
+    def _thickness_candidates(self, path: BarrierPath, wall: Wall) -> List[float]:
+        """Standard thicknesses of the wall's first material, thinnest first, up to the thickest
+        and, at the principal line, the deepest barrier the trained domain holds."""
         domain = self.bundle["domain"]
         thickest = float(domain.hi[domain.features.index("thickness_mm")])
         deepest = float(domain.hi[domain.features.index("nmfp_total")])
@@ -577,7 +661,7 @@ class SurrogateEngine:
             built = self._model_e_row(path, wall, thickness)
             if served is None or served > thickest or built is None or built[2] > deepest:
                 break
-            candidates.append((thickness, built))
+            candidates.append(thickness)
         return candidates
 
     def _size_wall_model_e(self, path: BarrierPath, wall: Wall, gT: float,
@@ -591,29 +675,20 @@ class SurrogateEngine:
         that the model cannot vouch for. Only candidates beyond the thick end of the domain are
         passed over.
         """
-        import numpy as np
-        from . import surrogate_e as se
         candidates = self._thickness_candidates(path, wall)
         if not candidates or gT <= 0:
             return None
-        X = np.vstack([row for _, (row, _, _) in candidates])
-        baselines = np.array([baseline for _, (_, baseline, _) in candidates])
-        inside = self.bundle["domain"].in_domain(X)
-        served, lo, hi, _ = se.serve_batch(self.bundle, X, baselines)
         limit = math.log10(gT / unshielded)
-        materials = self._model_e_materials(path, wall)
         sized = None
         reached_domain = False
-        for index in reversed(range(len(candidates))):
-            if not inside[index]:
+        for thickness, served in reversed(list(zip(candidates,
+                                                   self._serve_spectrum(path, wall, candidates)))):
+            if served is None or not served.inside:
                 if reached_domain:
                     break
                 continue
             reached_domain = True
-            thickness = candidates[index][0]
-            factor = se.field_convention(self._barrier_mu_x(path, wall, thickness), *materials)
-            upper = se.apply_field_convention(factor, served[index], lo[index], hi[index])[2]
-            if upper > limit:
+            if served.hi > limit:
                 break
             sized = thickness
         return sized
@@ -815,6 +890,37 @@ class SurrogateEngine:
                 thickness = wall.thickness1_mm
             out.append(self.evaluate(path, wall, thickness, analytical=a))
         return out
+
+
+def _sum_lines(lines, answers: List[Optional[_Served]]) -> Optional[_Served]:
+    """Sum per-line answers (principal first) with their weights; edges are summed edge by edge.
+
+    A minor line the model cannot serve at this depth, either unbuilt or outside the domain, is
+    bounded by the nearest harder line that it can serve. Above lead's K edge, and in every material
+    here, a softer line is the more attenuated, so the bound over-states the transmission. With no
+    such line, or with the principal line outside the domain, the barrier is outside the domain.
+    """
+    import numpy as np
+    from . import surrogate_e as se
+    principal = answers[0]
+    if principal is None:
+        return None
+    if not principal.inside:
+        return principal
+    served = [answer for answer in answers if answer is not None and answer.inside]
+    chosen, substituted = [], []
+    for (energy, _), answer in zip(lines, answers):
+        if answer is None or not answer.inside:
+            harder = [candidate for candidate in served if candidate.energy_keV > energy]
+            if not harder:
+                return replace(principal, inside=False)
+            answer = min(harder, key=lambda candidate: candidate.energy_keV)
+            substituted.append(energy)
+        chosen.append(answer)
+    weights = np.array([weight for _, weight in lines])
+    return replace(principal, substituted=tuple(substituted),
+                   **{edge: se.combine_lines(weights, np.array([getattr(a, edge) for a in chosen]))
+                      for edge in ("logB", "lo", "hi")})
 
 
 def _designed_thickness(result: EngineResult, analytical: Optional[EngineResult],
