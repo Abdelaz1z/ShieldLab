@@ -554,6 +554,8 @@ class SurrogateEngine:
         for (i, j), k in where.items():
             energy = lines[j][0]
             mu_x = self._barrier_mu_x(path, wall, thicknesses[i], energy)
+            if mu_x is None:                   # barite concrete has no mu/rho table in the app;
+                mu_x = float(rows[k][2])       # the model's own depth stands in
             factor = se.field_convention(mu_x, *materials)
             broad = se.apply_field_convention(factor, point[k], lo[k], hi[k])
             answers[i, j] = _Served(energy, *broad, groups[k], bool(inside[k]), mu_x, factor)
@@ -598,6 +600,7 @@ class SurrogateEngine:
         dose = unshielded * B
         margin_hi = gT / (unshielded * B_hi) if unshielded * B_hi > 0 else None
         band_note = {"deep_tail": " (deep tail)", "beam_shadow": " (deep off-axis)"}.get(group, "")
+        interval = "95% CI" if len(self._lines()) < 2 else "interval (summed line edges)"
         below_tested = (" The prediction is below the deepest transmission tested (about 1e-5), "
                         "where the interval has no measured coverage; confirm with Monte Carlo."
                         if logB < BELOW_TESTED_LOGB else "")
@@ -617,10 +620,10 @@ class SurrogateEngine:
             passes=(dose <= gT), margin=(gT / dose if dose > 0 else None),
             material=wall.material1, ci_low=B_lo, ci_high=B_hi,
             geometry_bias=finite_beam_bias, mu_x=mu_x,
-            note=((f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}; "
+            note=((f"MC surrogate B={B:.2e}, {interval} [{B_lo:.1e}, {B_hi:.1e}]{band_note}; "
                    f"conservative (upper-bound) margin ×{margin_hi:.2f}."
                    if margin_hi is not None else
-                   f"MC surrogate B={B:.2e}, 95% CI [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
+                   f"MC surrogate B={B:.2e}, {interval} [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
                   + f" Includes the ×{factor.value:.2f} broad-beam factor measured for this "
                     f"material and depth; its own 95% range (×{factor.low:.2f}–{factor.high:.2f}) "
                     f"is carried into the interval."
@@ -634,10 +637,12 @@ class SurrogateEngine:
         listed = ", ".join(f"{energy:g} keV ({weight:.0%})" for energy, weight in lines)
         note = (f" Served over {self.design.source.isotope}'s lines, weighted by unshielded air "
                 f"kerma: {listed}; each line takes the factor for its own depth, and the factor "
-                f"quoted is that of the {served.energy_keV:g} keV line, which carries most of the "
-                f"transmitted dose. The interval sums the lines' 95% edges: exact when their errors "
-                f"move together, wider when they do not. Lines below 100 keV are left out, which "
-                f"over-states the transmission.")
+                f"quoted is that of the {served.energy_keV:g} keV line, the directly served line "
+                f"carrying most of the transmitted dose. The interval sums each line's calibrated "
+                f"95% edges. That is a 95% interval if the lines' errors move together and wider if "
+                f"they are near normal, but it has not been calibrated against full-spectrum Monte "
+                f"Carlo; its distribution-free floor is {1 - 0.05 * len(lines):.0%}. Lines below "
+                f"100 keV are left out, which over-states the transmission.")
         if served.substituted:
             bounded = ", ".join(f"{energy:g}" for energy in served.substituted)
             note += (f" The {bounded} keV line is outside the trained domain at this depth and is "
@@ -898,9 +903,10 @@ class SurrogateEngine:
 def _sum_lines(lines, answers: List[Optional[_Served]]) -> Optional[_Served]:
     """Sum per-line answers (principal first) with their weights; edges are summed edge by edge.
 
-    Summed edges are the 95% edges of the sum when the lines' errors move together, and wider than
-    them when they do not (the errors are near normal in B at these widths), so the sum is not
-    narrower than a 95% interval.
+    Each line's edges are a calibrated 95% interval; their sums are not. They are the 95% edges of
+    the sum when the lines' errors move together, and wider when the errors are near normal, but
+    the only distribution-free floor is 1 - 5% x (lines served), 80% for I-131's four. No
+    full-spectrum Monte Carlo labels exist to calibrate the sum; the note says so.
 
     A minor line the model cannot serve at this depth, either unbuilt or outside the domain, is
     bounded by the nearest harder line that it can serve. For lines of 100 keV and above, every
@@ -909,8 +915,8 @@ def _sum_lines(lines, answers: List[Optional[_Served]]) -> Optional[_Served]:
     upper edge covers it: the bound needs no monotonicity of the model itself. With no such line, or
     with the principal line outside the domain, the barrier is outside the domain.
 
-    The group, factor and energy reported are those of the line carrying most of the transmitted
-    dose, and `mu_x` is the deepest line's, so the finite-beam flag sees every line.
+    The group, factor and energy reported are those of the directly served line carrying most of
+    the transmitted dose, and `mu_x` is the deepest line's, so the finite-beam flag sees every line.
     """
     import numpy as np
     from . import surrogate_e as se
@@ -930,8 +936,10 @@ def _sum_lines(lines, answers: List[Optional[_Served]]) -> Optional[_Served]:
             substituted.append(energy)
         chosen.append(answer)
     weights = np.array([weight for _, weight in lines])
-    dose_share = weights * 10.0 ** np.array([answer.logB for answer in chosen])
-    dominant = chosen[int(np.argmax(dose_share))]
+    direct = [(weight * 10.0 ** answer.logB, index)
+              for index, ((energy, weight), answer) in enumerate(zip(lines, chosen))
+              if energy not in substituted]
+    dominant = chosen[max(direct)[1]]
     depths = [answer.mu_x for answer in answers if answer is not None and answer.mu_x is not None]
     return replace(dominant, substituted=tuple(substituted), mu_x=max(depths, default=None),
                    **{edge: se.combine_lines(weights, np.array([getattr(a, edge) for a in chosen]))

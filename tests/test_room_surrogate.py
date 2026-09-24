@@ -332,6 +332,20 @@ def test_the_finite_beam_flag_sees_the_deepest_line():
     assert result.geometry_bias and result.mu_x >= eng.GEOMETRY_BIAS_MUX, result.mu_x
 
 
+def test_a_material_without_tabulated_coefficients_still_gets_a_depth():
+    """Barite concrete has no mu/rho table in the app; its depth comes from the model's own row,
+    so a deep wall is still flagged."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    design, path, wall = _i131_wall("barite_concrete", 250.0)
+    engine = SurrogateEngine(design)
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP barite depth test: model E is not the loaded bundle")
+        return
+    result = engine.evaluate(path, wall, 250.0)
+    assert result.mu_x is not None and result.geometry_bias, (result.mu_x, result.note[:200])
+
+
 def test_a_line_outside_the_domain_is_bounded_by_a_harder_one():
     """Behind 30 mm of lead the 284 keV line is past the trained depth; it is bounded, and said so."""
     from shieldlab.room import surrogate_e as sur_e
