@@ -63,14 +63,28 @@ class FieldFactor(NamedTuple):
 
 
 # The finite-field deficit, measured by widening the training 0.5 m beam to 3.5 m (research
-# repository, `hpc_campaign/CONVENTION3_SCORE.json` and `CONVENTION4_SCORE.json`, jobs 332285 and
-# 333856/333857, mapped as `CONVENTION4_PLAN.md` fixed before any row ran); see `field_convention`.
-# Lead converged at 1.109 and is served at 1.20, above the measurement and its uncertainty.
-FIELD_CONVENTION = {"lead": MeasuredFactor(1.20, 0.0), "steel": MeasuredFactor(1.573, 0.0073)}
-# Concrete's factor rises with depth, so it is carried as (mu*x, factor) points.
-CONCRETE_FIELD_CONVENTION = ((4.0, MeasuredFactor(1.718, 0.0051, unconverged_step=0.011)),
-                             (6.0, MeasuredFactor(1.895, 0.0056)),
-                             (8.0, MeasuredFactor(2.068, 0.0073)))
+# repository, `hpc_campaign/CONVENTION3/4/5_SCORE.json`, jobs 332285, 333856/333857 and
+# 336013/336014, mapped as `CONVENTION4_PLAN.md` and `CONVENTION5_PLAN.md` fixed before any row
+# ran); see `field_convention`. Each table is keyed by the measured line in keV.
+# Lead measured 1.008-1.143 at every line and is served at 1.20, above each measurement and its
+# uncertainty (Convention-5's plan keeps 1.20 as lead's floor).
+LEAD_FIELD_CONVENTION = MeasuredFactor(1.20, 0.0)
+STEEL_FIELD_CONVENTION = {140.5: MeasuredFactor(1.328, 0.0074), 364.0: MeasuredFactor(1.554, 0.0073),
+                          511.0: MeasuredFactor(1.573, 0.0073), 1077.0: MeasuredFactor(1.485, 0.0074)}
+# Concrete's factor rises with depth, so each line carries (mu*x, factor) points. At 364 and 511 keV
+# it is Convention-4's table (mu*x 4 and 6 measured at 511 keV, mu*x 8 the larger of the two lines);
+# 1077 keV was measured at mu*x 8 only and serves that value at every depth. The unconverged step
+# is the rise over the last widening, 2.5 to 3.5 m, of a ladder still rising there.
+_CONCRETE_364_511 = ((4.0, MeasuredFactor(1.718, 0.0051, unconverged_step=0.011)),
+                     (6.0, MeasuredFactor(1.895, 0.0056)),
+                     (8.0, MeasuredFactor(2.068, 0.0073)))
+CONCRETE_FIELD_CONVENTION = {
+    140.5: ((4.0, MeasuredFactor(1.792, 0.0072)),
+            (8.0, MeasuredFactor(1.988, 0.0074, unconverged_step=0.044))),
+    364.0: _CONCRETE_364_511,
+    511.0: _CONCRETE_364_511,
+    1077.0: ((8.0, MeasuredFactor(1.869, 0.0073, unconverged_step=0.029)),),
+}
 Z95 = 1.96
 GROUP_NAMES = ("standard", "beam_shadow", "deep_tail")
 
@@ -206,39 +220,39 @@ def group_of(bundle: dict, det_offset_mm: float, logB: float) -> str:
     return "standard"
 
 
-def field_convention(mu_x: Optional[float], *materials: Optional[str]) -> FieldFactor:
+def field_convention(mu_x: Optional[float], energy_keV: float,
+                     *materials: Optional[str]) -> FieldFactor:
     """What a served transmission is multiplied by to reach a broad-beam equivalent, with its range.
 
     Every training label was scored under a 0.5 m square beam, which truncates lateral scatter and
     returns a transmission below the broad-beam one the shielding tables assume. That is the
     non-conservative direction, so a design that does not correct for it sizes the barrier too thin.
     Monte Carlo measured the deficit directly, by widening the beam to 3.5 m at fixed barrier and
-    detector:
+    detector, at 140.5, 364, 511 and 1077 keV:
 
-      * concrete rises with depth: 1.718 at mu*x 4 and 1.895 at mu*x 6 (511 keV), and 2.068 at
-        mu*x 8 (364 keV; 511 keV read 2.060). Every ladder converged except mu*x 4, which rose
-        0.011 over its last step, 2.5 to 3.5 m, and is served as measured with that step added to
-        its upper edge. Between the points it is interpolated; below mu*x 4 it holds the mu*x 4
-        value, which over-states a factor that rises with depth, and beyond mu*x 8 it holds the
-        mu*x 8 value: an earlier 1.5 m study read 1.90, 1.81 and 2.01 at mu*x 8, 10 and 12, no
-        clear rise;
-      * steel converged at 1.573 at mu*x 8 and 511 keV (1.554 at 364 keV), measured at that depth
-        only;
-      * lead converged at 1.109 (511 keV) and read 1.06 at 364 keV. It is served at the 1.20 the
-        app carried before, which stays above both and their uncertainty.
+      * concrete rises with depth. At 511 keV: 1.718 at mu*x 4 (still rising 0.011 over its last
+        step, so a lower bound), 1.895 at mu*x 6, 2.068 at mu*x 8 (the larger of 364 and 511 keV).
+        At 140.5 keV: 1.792 at mu*x 4, and 1.988 at mu*x 8, a lower bound (+0.044 over its last
+        step). At 1077 keV: 1.869 at mu*x 8, a lower bound (+0.029), served at every depth, which
+        over-corrects shallower walls if the factor rises with depth there too. Between depths it
+        is interpolated and outside them held; beyond mu*x 8 no depth was measured to 3.5 m;
+      * steel, at mu*x 8: 1.328, 1.554, 1.573 and 1.485 at the four lines;
+      * lead read 1.008 to 1.143 and is served at 1.20, above every measurement.
 
-    The range is the measurement's 95% interval: each factor's Monte Carlo uncertainty, plus the
-    unconverged step above. It is carried into the served interval's edges, not its point.
+    Between lines each edge is interpolated linearly in log(E). Below 140.5 keV the 140.5 keV value
+    is held; nothing was measured there. The range is the measurement's 95% interval: each factor's
+    Monte Carlo uncertainty, plus the unconverged step of a lower bound on the upper edge. It is
+    carried into the served interval's edges, not its point.
 
-    Only 364 and 511 keV were measured; other lines take the same factors. A material other than
-    lead and steel takes the concrete factor, the largest measured at every depth, because nothing
-    here licenses a smaller one. A laminate takes the largest factor and edges among its layers at
-    the barrier's total depth: how two layers combine was not measured, and the larger factor is the
-    safe reading of that silence. An unknown depth takes the deepest value.
+    A material other than lead and steel takes the concrete factor, the largest measured at every
+    line and depth, because nothing here licenses a smaller one. A laminate takes the largest factor
+    and edges among its layers at the barrier's total depth: how two layers combine was not
+    measured, and the larger factor is the safe reading of that silence. An unknown depth takes the
+    deepest value.
     """
     known = [m for m in materials if m]
-    factors = [_factor_range(FIELD_CONVENTION[m]) if m in FIELD_CONVENTION
-               else _concrete_range(mu_x) for m in known] or [_concrete_range(mu_x)]
+    factors = [_material_range(m, mu_x, energy_keV) for m in known] or \
+              [_material_range("concrete", mu_x, energy_keV)]
     return FieldFactor(*(max(edge) for edge in zip(*factors)))
 
 
@@ -248,9 +262,25 @@ def _factor_range(measured: MeasuredFactor) -> FieldFactor:
                        measured.value + spread + measured.unconverged_step)
 
 
-def _concrete_range(mu_x: Optional[float]) -> FieldFactor:
-    depths = [depth for depth, _ in CONCRETE_FIELD_CONVENTION]
-    ranges = [_factor_range(measured) for _, measured in CONCRETE_FIELD_CONVENTION]
+def _material_range(material: str, mu_x: Optional[float], energy_keV: float) -> FieldFactor:
+    """One material's factor range at this depth and line."""
+    if material == "lead":
+        return _factor_range(LEAD_FIELD_CONVENTION)
+    if material == "steel":
+        by_line = {line: _factor_range(m) for line, m in STEEL_FIELD_CONVENTION.items()}
+    else:
+        by_line = {line: _depth_range(points, mu_x)
+                   for line, points in CONCRETE_FIELD_CONVENTION.items()}
+    lines = sorted(by_line)
+    # np.interp holds the end lines' values outside [140.5, 1077] keV
+    return FieldFactor(*(float(np.interp(math.log(energy_keV), np.log(lines),
+                                         [getattr(by_line[line], edge) for line in lines]))
+                         for edge in FieldFactor._fields))
+
+
+def _depth_range(points, mu_x: Optional[float]) -> FieldFactor:
+    depths = [depth for depth, _ in points]
+    ranges = [_factor_range(measured) for _, measured in points]
     if mu_x is None:
         return ranges[-1]
     # np.interp holds the end values beyond the measured depths

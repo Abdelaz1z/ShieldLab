@@ -232,14 +232,15 @@ BELOW_TESTED_LOGB = -5.0
 # GEOMETRY-BIAS THRESHOLD (corrected by measured factors; the residual is disclosed)
 #
 # Every training label used a finite 0.5 m square beam, which truncates lateral scatter. Model E's
-# served transmission is raised by the broad-beam factor Conventions 3 and 4 measured for its
-# material and depth with the beam widened to 3.5 m (`surrogate_e.field_convention`): concrete
-# 1.72-2.07x, rising with depth; steel 1.57x; lead 1.11x, served as 1.20x. A fixed 0.5 m beam
-# changed only 0.47% when the slab widened from 2 to 3 m, so this is beam truncation, not slab
-# truncation.
+# served transmission is raised by the broad-beam factor Conventions 3-5 measured for its
+# material, depth and line with the beam widened to 3.5 m (`surrogate_e.field_convention`):
+# concrete 1.72-2.07x, rising with depth; steel 1.33-1.57x; lead 1.01-1.14x, served as 1.20x;
+# measured at 140.5, 364, 511 and 1077 keV and interpolated between. A fixed 0.5 m beam changed
+# only 0.47% when the slab widened from 2 to 3 m, so this is beam truncation, not slab truncation.
 #
-# The flag stays because of what is still uncertain. Concrete at mu*x 4 is a lower bound: its last
-# step, 2.5 -> 3.5 m, still rose 0.7%. Only 364 and 511 keV were measured, and materials other
+# The flag stays because of what is still uncertain. Three concrete factors are lower bounds, still
+# rising over their last step 2.5 -> 3.5 m: mu*x 4 at 511 keV (+0.7%), and mu*x 8 at 140.5 keV
+# (+2.3%) and 1077 keV (+1.6%). Beyond mu*x 8 no depth was measured to 3.5 m, and materials other
 # than lead and steel borrow the concrete factor. The deficit was already 1.72x at mu*x 4, the
 # shallowest depth measured, so the mu*x>=4 flag is a priority rule, not an onset claim.
 #
@@ -254,11 +255,12 @@ GEOMETRY_BIAS_MUX = 4.0
 GEOMETRY_BIAS_WARNING = (
     "Caution: finite-beam correction (μx≥4). The Monte-Carlo surrogate was trained in a 0.5 m "
     "beam, which under-states scatter, so its transmission has been raised by the broad-beam "
-    "factor measured for this material and depth with the beam widened to 3.5 m: concrete "
-    "1.72× at μx 4 rising to 2.07× at μx 8, steel 1.57×, lead 1.11× (served as 1.20×). "
-    "Concrete at μx 4 is a lower bound, because its widest step was still rising by 0.7%; "
-    "that step is added to the upper limit. Only 364 and 511 keV were measured, and other "
-    "materials take the concrete factor. The "
+    "factor measured for this material, depth and energy with the beam widened to 3.5 m: "
+    "concrete 1.72× at μx 4 rising to 2.07× at μx 8, steel 1.33–1.57×, lead up to 1.14× "
+    "(served as 1.20×), measured at 140.5, 364, 511 and 1077 keV and interpolated between. "
+    "Three concrete factors are lower bounds, their widest step still rising (μx 4 at 511 keV, "
+    "μx 8 at 140.5 and 1077 keV); that step is added to the upper limit. Beyond μx 8 no depth "
+    "was measured, and other materials take the concrete factor. The "
     "deficit was already 1.72× at the shallowest depth measured, so the μx≥4 flag marks "
     "priority, not the onset. An independent Monte-Carlo check with reviewed irradiation "
     "geometry is required for final design sign-off."
@@ -556,7 +558,7 @@ class SurrogateEngine:
             mu_x = self._barrier_mu_x(path, wall, thicknesses[i], energy)
             if mu_x is None:                   # barite concrete has no mu/rho table in the app;
                 mu_x = float(rows[k][2])       # the model's own depth stands in
-            factor = se.field_convention(mu_x, *materials)
+            factor = se.field_convention(mu_x, energy, *materials)
             broad = se.apply_field_convention(factor, point[k], lo[k], hi[k])
             answers[i, j] = _Served(energy, *broad, groups[k], bool(inside[k]), mu_x, factor)
         return [_sum_lines(lines, [answers.get((i, j)) for j in range(len(lines))])
