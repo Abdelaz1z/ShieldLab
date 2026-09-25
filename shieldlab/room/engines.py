@@ -239,7 +239,7 @@ BELOW_TESTED_LOGB = -5.0
 # only 0.47% when the slab widened from 2 to 3 m, so this is beam truncation, not slab truncation.
 #
 # The flag stays because of what is still uncertain. Three concrete factors are lower bounds, still
-# rising over their last step 2.5 -> 3.5 m: mu*x 4 at 511 keV (+0.7%), and mu*x 8 at 140.5 keV
+# rising over their last step 2.5 -> 3.5 m: mu*x 4 at 511 keV (+1.1%), and mu*x 8 at 140.5 keV
 # (+2.3%) and 1077 keV (+1.6%). Beyond mu*x 8 no depth was measured to 3.5 m, and materials other
 # than lead and steel borrow the concrete factor. The deficit was already 1.72x at mu*x 4, the
 # shallowest depth measured, so the mu*x>=4 flag is a priority rule, not an onset claim.
@@ -257,7 +257,8 @@ GEOMETRY_BIAS_WARNING = (
     "beam, which under-states scatter, so its transmission has been raised by the broad-beam "
     "factor measured for this material, depth and energy with the beam widened to 3.5 m: "
     "concrete 1.72× at μx 4 rising to 2.07× at μx 8, steel 1.33–1.57×, lead up to 1.14× "
-    "(served as 1.20×), measured at 140.5, 364, 511 and 1077 keV and interpolated between. "
+    "(served as 1.20×), measured at 140.5, 364, 511 and 1077 keV and interpolated between "
+    "(below 140.5 keV the 140.5 keV factor is held, unmeasured). "
     "Three concrete factors are lower bounds, their widest step still rising (μx 4 at 511 keV, "
     "μx 8 at 140.5 and 1077 keV); that step is added to the upper limit. Beyond μx 8 no depth "
     "was measured, and other materials take the concrete factor. The "

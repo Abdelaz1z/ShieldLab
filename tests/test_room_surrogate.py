@@ -102,36 +102,36 @@ def test_field_convention_factor_follows_the_measurement():
 
     # Lead is served above its measured 1.109; steel is flat at its one measured depth.
     assert factor(2.0, "lead") == factor(12.0, "lead") == 1.20
-    assert factor(2.0, "steel") == factor(12.0, "steel") == 1.573
+    assert factor(2.0, "steel") == factor(12.0, "steel") == 1.5732
     # Concrete rises with depth through the measured points and holds its end values outside them.
-    assert factor(4.0, "concrete") == 1.718
-    assert factor(6.0, "concrete") == 1.895
-    assert factor(8.0, "concrete") == 2.068
-    assert abs(factor(5.0, "concrete") - (1.718 + 1.895) / 2) < 1e-12
-    assert factor(1.0, "concrete") == 1.718
-    assert factor(14.0, "concrete") == 2.068
+    assert factor(4.0, "concrete") == 1.7181
+    assert factor(6.0, "concrete") == 1.8953
+    assert factor(8.0, "concrete") == 2.0679
+    assert abs(factor(5.0, "concrete") - (1.7181 + 1.8953) / 2) < 1e-12
+    assert factor(1.0, "concrete") == 1.7181
+    assert factor(14.0, "concrete") == 2.0679
     # An unmeasured material, or an unknown one, takes the concrete factor: the largest at any depth.
     assert factor(5.0, "barite_concrete") == factor(5.0, "concrete")
     assert factor(5.0, None) == factor(5.0, "concrete")
     # An unknown depth takes the deepest value.
-    assert factor(None, "concrete") == 2.068
+    assert factor(None, "concrete") == 2.0679
     # A laminate takes the larger of its layers at the barrier's total depth.
-    assert factor(8.0, "lead", "concrete") == 2.068
-    assert factor(3.0, "lead", "steel") == 1.573
+    assert factor(8.0, "lead", "concrete") == 2.0679
+    assert factor(3.0, "lead", "steel") == 1.5732
     assert factor(3.0, "lead", None) == 1.20
 
 
 def test_field_convention_range_carries_the_measurement_uncertainty():
-    """Each factor's 95% range is its Monte-Carlo uncertainty, plus the last step of the one ladder
-    still rising at 3.5 m (concrete at mu*x 4, +0.011)."""
+    """Each factor's 95% range is its Monte-Carlo uncertainty, plus the last step of a ladder still
+    rising at 3.5 m (at 511 keV, concrete at mu*x 4: +0.0193 in the factor, B having risen 1.1%)."""
     from shieldlab.room import surrogate_e as sur_e
 
     steel = sur_e.field_convention(8.0, 511.0, "steel")
-    assert abs(steel.high - 1.573 * (1 + 1.96 * 0.0073)) < 1e-12
-    assert abs(steel.low - 1.573 * (1 - 1.96 * 0.0073)) < 1e-12
+    assert abs(steel.high - 1.5732 * (1 + 1.96 * 0.0073)) < 1e-12
+    assert abs(steel.low - 1.5732 * (1 - 1.96 * 0.0073)) < 1e-12
     shallow = sur_e.field_convention(4.0, 511.0, "concrete")
-    assert abs(shallow.high - (1.718 * (1 + 1.96 * 0.0051) + 0.011)) < 1e-12
-    assert abs(shallow.low - 1.718 * (1 - 1.96 * 0.0051)) < 1e-12
+    assert abs(shallow.high - (1.7181 * (1 + 1.96 * 0.0052) + 0.0193)) < 1e-12
+    assert abs(shallow.low - 1.7181 * (1 - 1.96 * 0.0052)) < 1e-12
     # Lead is served above its measurement and its uncertainty, so it carries no range.
     assert sur_e.field_convention(6.0, 140.5, "lead") == sur_e.FieldFactor(1.20, 1.20, 1.20)
     for energy in (100.0, 140.5, 208.0, 364.0, 511.0, 700.0, 1077.0):
@@ -151,11 +151,11 @@ def test_field_convention_follows_convention5_across_energy():
         return sur_e.field_convention(mu_x, energy, material)
 
     assert factor(8.0, 140.5, "steel").value == 1.328
-    assert factor(8.0, 364.0, "steel").value == 1.554
-    assert factor(8.0, 1077.0, "steel").value == 1.485
-    assert factor(4.0, 140.5, "concrete").value == 1.792
-    assert factor(8.0, 140.5, "concrete").value == 1.988
-    assert factor(2.0, 1077.0, "concrete").value == factor(12.0, 1077.0, "concrete").value == 1.869
+    assert factor(8.0, 364.0, "steel").value == 1.5541
+    assert factor(8.0, 1077.0, "steel").value == 1.4852
+    assert factor(4.0, 140.5, "concrete").value == 1.7919
+    assert factor(8.0, 140.5, "concrete").value == 1.9885
+    assert factor(2.0, 1077.0, "concrete").value == factor(12.0, 1077.0, "concrete").value == 1.8691
     # Measured below 1.20 at every line, lead stays at its floor.
     for energy in (100.0, 140.5, 364.0, 511.0, 1077.0):
         assert factor(8.0, energy, "lead").value == 1.20
@@ -164,13 +164,13 @@ def test_field_convention_follows_convention5_across_energy():
     assert factor(8.0, 113.0, "steel") == factor(8.0, 140.5, "steel")
     # Linear in log(E) between lines.
     t = math.log(700.0 / 511.0) / math.log(1077.0 / 511.0)
-    assert abs(factor(8.0, 700.0, "steel").value - (1.573 + t * (1.485 - 1.573))) < 1e-12
+    assert abs(factor(8.0, 700.0, "steel").value - (1.5732 + t * (1.4852 - 1.5732))) < 1e-12
     # Lower bounds carry their unconverged step on the upper edge only.
     deep_low = factor(8.0, 140.5, "concrete")
-    assert abs(deep_low.high - (1.988 * (1 + 1.96 * 0.0074) + 0.044)) < 1e-12
-    assert abs(deep_low.low - 1.988 * (1 - 1.96 * 0.0074)) < 1e-12
+    assert abs(deep_low.high - (1.9885 * (1 + 1.96 * 0.0074) + 0.0444)) < 1e-12
+    assert abs(deep_low.low - 1.9885 * (1 - 1.96 * 0.0074)) < 1e-12
     high_line = factor(8.0, 1077.0, "concrete")
-    assert abs(high_line.high - (1.869 * (1 + 1.96 * 0.0073) + 0.029)) < 1e-12
+    assert abs(high_line.high - (1.8691 * (1 + 1.96 * 0.0074) + 0.0289)) < 1e-12
     # Concrete stays the largest factor at every line and depth, so borrowing it is the safe side.
     for energy in (100.0, 140.5, 250.0, 364.0, 511.0, 800.0, 1077.0):
         for mu_x in (1.0, 4.0, 6.0, 8.0, 12.0):
@@ -464,7 +464,7 @@ def test_served_transmission_carries_the_field_convention():
     raw_logB, raw_lo, raw_hi, _ = sur_e.serve(engine.bundle, X, baseline)
     factor = sur_e.field_convention(result.mu_x, engine.bundle["isotope_energy_keV"]["F-18"],
                                     "concrete")
-    assert 1.718 <= factor.value <= 2.068
+    assert 1.7181 <= factor.value <= 2.0679
 
     assert abs(result.B_achieved - 10.0 ** raw_logB * factor.value) < 1e-9 * result.B_achieved
     assert abs(result.ci_low - 10.0 ** raw_lo * factor.low) < 1e-9 * result.ci_low
@@ -581,7 +581,7 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     assert "Finite-beam caution" in document
     assert "Wall N" in document.split("Finite-beam caution")[1][:200]
     assert "lower bound" in document
-    assert "511&nbsp;keV (0.7%)" in document
+    assert "511&nbsp;keV (1.1%)" in document
 
     design.wall("N").thickness1_mm = 100.0
     analytical = AnalyticalEngine(design).evaluate_all("check")

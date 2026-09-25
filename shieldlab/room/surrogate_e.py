@@ -68,22 +68,25 @@ class FieldFactor(NamedTuple):
 # ran); see `field_convention`. Each table is keyed by the measured line in keV.
 # Lead measured 1.008-1.143 at every line and is served at 1.20, above each measurement and its
 # uncertainty (Convention-5's plan keeps 1.20 as lead's floor).
+# Every value is the score file's, rounded UP to four decimals, so no rounding serves less than
+# was measured.
 LEAD_FIELD_CONVENTION = MeasuredFactor(1.20, 0.0)
-STEEL_FIELD_CONVENTION = {140.5: MeasuredFactor(1.328, 0.0074), 364.0: MeasuredFactor(1.554, 0.0073),
-                          511.0: MeasuredFactor(1.573, 0.0073), 1077.0: MeasuredFactor(1.485, 0.0074)}
+STEEL_FIELD_CONVENTION = {140.5: MeasuredFactor(1.3280, 0.0074), 364.0: MeasuredFactor(1.5541, 0.0074),
+                          511.0: MeasuredFactor(1.5732, 0.0073), 1077.0: MeasuredFactor(1.4852, 0.0074)}
 # Concrete's factor rises with depth, so each line carries (mu*x, factor) points. At 364 and 511 keV
-# it is Convention-4's table (mu*x 4 and 6 measured at 511 keV, mu*x 8 the larger of the two lines);
-# 1077 keV was measured at mu*x 8 only and serves that value at every depth. The unconverged step
-# is the rise over the last widening, 2.5 to 3.5 m, of a ladder still rising there.
-_CONCRETE_364_511 = ((4.0, MeasuredFactor(1.718, 0.0051, unconverged_step=0.011)),
-                     (6.0, MeasuredFactor(1.895, 0.0056)),
-                     (8.0, MeasuredFactor(2.068, 0.0073)))
+# it is Convention-4's table (mu*x 4 and 6 measured at 511 keV, mu*x 8 the larger of the two lines,
+# 364 keV's); 1077 keV was measured at mu*x 8 only and serves that value at every depth. The
+# unconverged step is the absolute rise of the factor over the last widening, 2.5 to 3.5 m, of a
+# ladder still rising there: factor x delta / (1 + delta), delta being B's relative rise.
+_CONCRETE_364_511 = ((4.0, MeasuredFactor(1.7181, 0.0052, unconverged_step=0.0193)),
+                     (6.0, MeasuredFactor(1.8953, 0.0057)),
+                     (8.0, MeasuredFactor(2.0679, 0.0074)))
 CONCRETE_FIELD_CONVENTION = {
-    140.5: ((4.0, MeasuredFactor(1.792, 0.0072)),
-            (8.0, MeasuredFactor(1.988, 0.0074, unconverged_step=0.044))),
+    140.5: ((4.0, MeasuredFactor(1.7919, 0.0072)),
+            (8.0, MeasuredFactor(1.9885, 0.0074, unconverged_step=0.0444))),
     364.0: _CONCRETE_364_511,
     511.0: _CONCRETE_364_511,
-    1077.0: ((8.0, MeasuredFactor(1.869, 0.0073, unconverged_step=0.029)),),
+    1077.0: ((8.0, MeasuredFactor(1.8691, 0.0074, unconverged_step=0.0289)),),
 }
 Z95 = 1.96
 GROUP_NAMES = ("standard", "beam_shadow", "deep_tail")
@@ -230,12 +233,13 @@ def field_convention(mu_x: Optional[float], energy_keV: float,
     Monte Carlo measured the deficit directly, by widening the beam to 3.5 m at fixed barrier and
     detector, at 140.5, 364, 511 and 1077 keV:
 
-      * concrete rises with depth. At 511 keV: 1.718 at mu*x 4 (still rising 0.011 over its last
-        step, so a lower bound), 1.895 at mu*x 6, 2.068 at mu*x 8 (the larger of 364 and 511 keV).
-        At 140.5 keV: 1.792 at mu*x 4, and 1.988 at mu*x 8, a lower bound (+0.044 over its last
-        step). At 1077 keV: 1.869 at mu*x 8, a lower bound (+0.029), served at every depth, which
-        over-corrects shallower walls if the factor rises with depth there too. Between depths it
-        is interpolated and outside them held; beyond mu*x 8 no depth was measured to 3.5 m;
+      * concrete rises with depth. At 511 keV: 1.718 at mu*x 4 (still rising: +1.1% in B, +0.019
+        in the factor, over its last step, so a lower bound), 1.895 at mu*x 6, 2.068 at mu*x 8
+        (the larger of 364 and 511 keV). At 140.5 keV: 1.792 at mu*x 4, and 1.988 at mu*x 8, a
+        lower bound (+0.044). At 1077 keV: 1.869 at mu*x 8, a lower bound (+0.029), served at every
+        depth, which over-corrects shallower walls if the factor rises with depth there too.
+        Between depths it is interpolated and outside them held; beyond mu*x 8 no depth was
+        measured to 3.5 m;
       * steel, at mu*x 8: 1.328, 1.554, 1.573 and 1.485 at the four lines;
       * lead read 1.008 to 1.143 and is served at 1.20, above every measurement.
 

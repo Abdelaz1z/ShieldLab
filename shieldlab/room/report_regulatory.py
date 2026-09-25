@@ -129,7 +129,7 @@ def build_submission_html(report: Dict, meta: Dict,
             f"widened the beam from 0.5&nbsp;m to 3.5&nbsp;m at fixed barrier and detector. "
             f"Lead converged by 1.5&ndash;2.5&nbsp;m, and steel and concrete by "
             f"2.5&ndash;3.5&nbsp;m, except three concrete factors still rising over their last "
-            f"metre: &mu;x&nbsp;4 at 511&nbsp;keV (0.7%), and &mu;x&nbsp;8 at 140.5 (2.3%) and "
+            f"metre: &mu;x&nbsp;4 at 511&nbsp;keV (1.1%), and &mu;x&nbsp;8 at 140.5 (2.3%) and "
             f"1077&nbsp;keV (1.6%). Their true factors may be larger, so that step is added to the "
             f"upper limit. Beyond &mu;x&nbsp;8 no depth was measured, so these results may still "
             f"read <b>low</b>, the non-conservative direction. The out-of-domain guard "
