@@ -12,7 +12,7 @@ was validated against GATE in a second, pre-registered room (Room-2, 2026-09-28)
 What the room is, since ShieldLab's design has no input for it (stated in every result):
   * the walls stand on a 200 mm concrete floor slab under a 200 mm concrete ceiling slab;
   * layer 1 of a wall is its inner (source-side) layer;
-  * a door fills 0-2.1 m of the wall's height and a window 1.0-2.0 m, as a lead sheet of the
+  * a door fills 0-2.1 m of the wall's height and a window 0.8-2.0 m, as a lead sheet of the
     opening's lead equivalent at the wall's inner face (air elsewhere in the opening);
   * the source is a bare point at 1.0 m above the floor; no patient body;
   * each point of protection is 0.3 m beyond the wall's OUTER face, at source height;
