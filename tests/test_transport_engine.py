@@ -86,15 +86,15 @@ needs_numba = pytest.mark.skipif(not te.available(), reason="numba or transport 
 
 @needs_numba
 def test_transport_is_deterministic_and_sane(monkeypatch):
-    monkeypatch.setattr(te, "MAX_HISTORIES", 20_000)
-    monkeypatch.setattr(te, "CHUNK", 10_000)
+    monkeypatch.setattr(te, "MAX_HISTORIES", 2 * 64 * 160)
+    monkeypatch.setattr(te, "CHUNK", 64 * 160)
     d = _design()
     first, kerma = te.TransportEngine(d).evaluate_all()
     second, _ = te.TransportEngine(d).evaluate_all()
     assert [r.dose_mSv_wk for r in first] == [r.dose_mSv_wk for r in second]
     by = {r.label: r for r in first}
     assert by["Wall W · duct"].dose_mSv_wk is None
-    assert kerma.histories == 20_000
+    assert kerma.histories == 2 * 64 * 160
     # 4 mm lead on N transmits less than the bare 200 mm concrete on S at a similar distance
     assert by["Wall N"].B_achieved < by["Wall S"].B_achieved
     for r in first:

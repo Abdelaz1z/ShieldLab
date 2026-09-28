@@ -48,9 +48,11 @@ ENGINE_NAME = "transport (Monte Carlo)"
 
 # run control: chunks of CHUNK histories until every point is at TARGET_REL or MAX_HISTORIES is reached.
 # No time cap, so the answer does not depend on the machine: a design and a seed give one result.
-CHUNK = 50_000
+# A chunk is a whole number of the kernel's 64 batches, so the histories counted are the ones run.
+N_BATCHES = 64
+CHUNK = N_BATCHES * 800
 TARGET_REL = 0.05
-MAX_HISTORIES = 1_000_000
+MAX_HISTORIES = 20 * CHUNK
 
 
 @dataclass(frozen=True)
@@ -209,7 +211,7 @@ def transport(room: TransportRoom, nuclide: str, seed: int = 1) -> KermaResult:
     unc = mc.uncollided(room.source, lines, pts, radii)
     means, variances, n = [], [], 0
     while True:
-        m, se = mc.scattered(room.source, lines, pts, radii, CHUNK, seed=seed + len(means))
+        m, se = mc.scattered(room.source, lines, pts, radii, CHUNK, seed=seed + len(means), n_batches=N_BATCHES)
         means.append(m)
         variances.append(se ** 2)
         n += CHUNK
