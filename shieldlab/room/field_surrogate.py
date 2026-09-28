@@ -213,9 +213,15 @@ def _occupied_shell(labels: np.ndarray, iters: int = 10) -> np.ndarray:
 #  * Inside the room the field is set by what the walls send back, which follows Z, not by what
 #    they let through. For walls outside the trained range the in-room air comes from a run with
 #    the nearest-Z trained material (`proxy_material`).
+#  * ShieldLab has no floor or ceiling input; they are taken as the mean of the four walls, and
+#    corrected the same way from a third run with only the slabs one voxel thicker or thinner.
+#    Uncorrected, they stood at the nearest whole 100 mm: the MC (FieldLead-1, 2026-09-28) read
+#    the field above and below a 2 mm lead room 2.1x higher than the map.
 
 SLANTS = np.array([1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0])   # 1/cos along a ray; held beyond
-FACE_WALL = {(0, 1): "E", (0, -1): "W", (1, 1): "N", (1, -1): "S"}
+FACE_WALL = {(0, 1): "E", (0, -1): "W", (1, 1): "N", (1, -1): "S",
+             (2, 1): "ceiling", (2, -1): "floor"}
+SIDE_WALLS = ("N", "E", "S", "W")
 SLOPE_STEP_MM = 100.0
 
 
@@ -392,8 +398,13 @@ def _design_to_box(design) -> BoxMapping:
         ts = [equivalent[i][0] for i in ids if i in equivalent]
         return _voxels(float(np.mean(ts))) if ts else SLOPE_STEP_MM
 
-    built = (axis_mm(("E", "W")), axis_mm(("N", "S")), axis_mm(("N", "E", "S", "W")))
+    built = (axis_mm(("E", "W")), axis_mm(("N", "S")), axis_mm(SIDE_WALLS))
     labels, bb = _build_labels(room_m, built, reference)          # may raise ValueError
+    sides = [equivalent[i] for i in SIDE_WALLS if i in equivalent]
+    if sides:
+        slab = tuple(float(v) for v in np.mean(np.array(sides), axis=0))
+        for slab_id in ("floor", "ceiling"):
+            equivalent[slab_id], tiers[slab_id] = slab, "mean of the walls"
 
     if dominant != reference:
         inroom_note = (f", and the air inside the room is taken from a run with {inroom} walls "
@@ -463,35 +474,66 @@ def _slope_steps(box: BoxMapping):
     return [preferred, (SLOPE_STEP_MM, SLOPE_STEP_MM), (-SLOPE_STEP_MM, -SLOPE_STEP_MM)]
 
 
-def _thickness_slope(box: BoxMapping, run, d0) -> Optional[np.ndarray]:
-    """d log10(dose) / d(side-wall thickness, mm) per voxel, from a second U-Net run with the
-    side walls one voxel thicker or thinner (`_slope_steps`). Voxels that are wall in the second
-    box take the median of their side and slant bin. None if no second box fits the domain."""
-    for steps in _slope_steps(box):
-        other = (box.wall_mm[0] + steps[0], box.wall_mm[1] + steps[1], box.wall_mm[2])
-        if min(other[:2]) < VOXEL_MM:
+def _slab_steps(box: BoxMapping):
+    """Candidate floor/ceiling steps for the slab slope run, preferred first (toward the slabs'
+    equivalent, as `_slope_steps` does for the side walls)."""
+    eq = box.equivalent_mm.get("ceiling")
+    inward = eq is not None and eq[0] < box.wall_mm[2] and box.wall_mm[2] - SLOPE_STEP_MM >= VOXEL_MM
+    return [-SLOPE_STEP_MM, SLOPE_STEP_MM] if inward else [SLOPE_STEP_MM, -SLOPE_STEP_MM]
+
+
+def _second_run(box: BoxMapping, run, d0, steps, first_axis: int):
+    """(slope per mm, voxels air in both boxes) from the first box in `steps` that fits the domain,
+    each step a (dx, dy, dz) wall change; the slope is taken along axis `first_axis` for dz-only
+    steps and along the voxel's exit axis otherwise. None if none fits."""
+    for step in steps:
+        other = tuple(w + d for w, d in zip(box.wall_mm, step))
+        if min(t for t, d in zip(other, step) if d) < VOXEL_MM:
             continue
         try:
             labels2, _ = _build_labels(box.room_m, other, box.material)
         except ValueError:
             continue
-        axis, sign, s = _exit_faces(box.bb, box.source_mm)
-        step = np.where(axis == 0, steps[0], steps[1])
-        slope = (run(labels2, box.material) - d0) / step
-        both = _outside(box.labels, box.bb) & (labels2 == 0)
-        s = np.clip(s, SLANTS[0], SLANTS[-1])
-        out = np.full(slope.shape, np.nan)
-        out[both] = slope[both]
-        edges = np.concatenate([SLANTS, [np.inf]])
-        for (ax, direction) in FACE_WALL:
-            face = _outside(box.labels, box.bb) & (axis == ax) & (sign == direction)
-            for lo, hi in zip(edges[:-1], edges[1:]):
-                cell = face & (s >= lo) & (s < hi)
-                known = cell & both
-                if cell.any() and known.any():
-                    out[cell & ~both] = np.median(slope[known])
-        return out
+        axis, _, _ = _exit_faces(box.bb, box.source_mm)
+        per_voxel = step[first_axis] if first_axis == 2 else np.where(axis == 0, step[0], step[1])
+        slope = (run(labels2, box.material) - d0) / per_voxel
+        return slope, _outside(box.labels, box.bb) & (labels2 == 0)
     return None
+
+
+def _thickness_slope(box: BoxMapping, run, d0) -> Optional[np.ndarray]:
+    """d log10(dose) / d(wall thickness, mm) per voxel beyond the walls. Side walls: a second U-Net
+    run with the side walls one voxel thicker or thinner (`_slope_steps`); floor and ceiling: a
+    third run with only the slabs changed (`_slab_steps`). Voxels that are wall in the changed box
+    take the median of their face and slant bin. None if no side-wall run fits the domain; the slabs
+    are then left uncorrected too."""
+    sides = _second_run(box, run, d0, [(dx, dy, 0.0) for dx, dy in _slope_steps(box)], 0)
+    if sides is None:
+        return None
+    slabs = _second_run(box, run, d0, [(0.0, 0.0, dz) for dz in _slab_steps(box)], 2)
+    axis, sign, s = _exit_faces(box.bb, box.source_mm)
+    slope, both = sides
+    if slabs is not None:
+        on_slab = axis == 2
+        slope = np.where(on_slab, slabs[0], slope)
+        both = np.where(on_slab, slabs[1], both)
+    else:
+        both = both & (axis != 2)
+    s = np.clip(s, SLANTS[0], SLANTS[-1])
+    out = np.full(slope.shape, np.nan)
+    out[both] = slope[both]
+    edges = np.concatenate([SLANTS, [np.inf]])
+    outside = _outside(box.labels, box.bb)
+    for (ax, direction) in FACE_WALL:
+        if ax == 2 and slabs is None:
+            continue
+        face = outside & (axis == ax) & (sign == direction)
+        for lo, hi in zip(edges[:-1], edges[1:]):
+            cell = face & (s >= lo) & (s < hi)
+            known = cell & both
+            if cell.any() and known.any():
+                out[cell & ~both] = np.median(slope[known])
+    return out
 
 
 def _correct_beyond_walls(log_dose, box: BoxMapping, slope):

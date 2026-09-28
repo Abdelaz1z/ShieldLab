@@ -123,10 +123,25 @@ def test_field_beyond_a_wall_follows_its_own_thickness():
     assert thin.log_dose[iz, iy, ix + k] - thick.log_dose[iz, iy, ix + k] > 0.15
 
 
+def test_field_above_the_ceiling_follows_the_walls():
+    """2 and 4 mm lead rooms are both built as a 100 mm box; above the ceiling they read the same
+    until the slabs were corrected too (FieldLead-1 MC: the map read 2.1x low over 2 mm lead)."""
+    fm = fs.FieldModel()
+    if not fm.available():
+        print("field model absent -> slab check skipped")
+        return
+    thin, thick = (fm.predict(_box("lead", t, "F-18")) for t in (2, 4))
+    assert thin.wall_mm == thick.wall_mm
+    iz, iy, ix = thin.source_vox
+    above = iz + 15 + 5                                       # 0.5 m over a 3 m room's ceiling
+    assert thin.log_dose[above, iy, ix] - thick.log_dose[above, iy, ix] > 0.05
+
+
 if __name__ == "__main__":
     test_graceful_and_predict()
     test_in_room_field_follows_inverse_square()
     test_reference_material_is_its_own_equivalent()
     test_lead_equivalents_are_ordered_and_physical()
     test_field_beyond_a_wall_follows_its_own_thickness()
+    test_field_above_the_ceiling_follows_the_walls()
     print("OK")
