@@ -501,15 +501,15 @@ def _second_run(box: BoxMapping, run, d0, steps, first_axis: int):
     return None
 
 
-def _thickness_slope(box: BoxMapping, run, d0) -> Optional[np.ndarray]:
-    """d log10(dose) / d(wall thickness, mm) per voxel beyond the walls. Side walls: a second U-Net
-    run with the side walls one voxel thicker or thinner (`_slope_steps`); floor and ceiling: a
-    third run with only the slabs changed (`_slab_steps`). Voxels that are wall in the changed box
-    take the median of their face and slant bin. None if no side-wall run fits the domain; the slabs
-    are then left uncorrected too."""
+def _thickness_slope(box: BoxMapping, run, d0):
+    """(d log10(dose) / d(wall thickness, mm) per voxel beyond the walls, whether the floor and
+    ceiling got one). Side walls: a second U-Net run with the side walls one voxel thicker or thinner
+    (`_slope_steps`); floor and ceiling: a third run with only the slabs changed (`_slab_steps`).
+    Voxels that are wall in the changed box take the median of their face and slant bin. (None,
+    False) if no side-wall run fits the domain; the slabs are then left uncorrected too."""
     sides = _second_run(box, run, d0, [(dx, dy, 0.0) for dx, dy in _slope_steps(box)], 0)
     if sides is None:
-        return None
+        return None, False
     slabs = _second_run(box, run, d0, [(0.0, 0.0, dz) for dz in _slab_steps(box)], 2)
     axis, sign, s = _exit_faces(box.bb, box.source_mm)
     slope, both = sides
@@ -533,7 +533,7 @@ def _thickness_slope(box: BoxMapping, run, d0) -> Optional[np.ndarray]:
             known = cell & both
             if cell.any() and known.any():
                 out[cell & ~both] = np.median(slope[known])
-    return out
+    return out, slabs is not None
 
 
 def _correct_beyond_walls(log_dose, box: BoxMapping, slope):
@@ -734,13 +734,17 @@ class FieldModel:
                                   box.energy_keV, source_mm)
 
         base = run(labels, box.material)
-        slope = _thickness_slope(box, run, base)
+        slope, slabs_corrected = _thickness_slope(box, run, base)
         if slope is None:
             log_dose = base
             warns.append("the room fills the model's domain, so walls are drawn at whole "
                          f"{VOXEL_MM:g} mm steps without the finer correction.")
         else:
             log_dose = _correct_beyond_walls(base, box, slope)
+            if not slabs_corrected:
+                warns.append("the room fills the model's domain in height, so the floor and "
+                             f"ceiling are drawn at a whole {VOXEL_MM:g} mm step without the finer "
+                             "correction; the field above and below the room is approximate.")
         if box.inroom_material != box.material:
             x0, x1, y0, y1, z0, z1 = bb["room"]
             inroom = run(labels, box.inroom_material)

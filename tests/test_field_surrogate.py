@@ -137,6 +137,29 @@ def test_field_above_the_ceiling_follows_the_walls():
     assert thin.log_dose[above, iy, ix] - thick.log_dose[above, iy, ix] > 0.05
 
 
+def test_slab_steps_point_toward_the_equivalent():
+    thin = fs._design_to_box(_box("concrete", 150, "F-18"))       # built 200, equivalent ~150
+    assert thin.wall_mm[2] == 200 and fs._slab_steps(thin)[0] == -fs.SLOPE_STEP_MM
+    lead = fs._design_to_box(_box("lead", 2, "F-18"))             # built 100, cannot step inward
+    assert lead.wall_mm[2] == 100 and fs._slab_steps(lead)[0] == fs.SLOPE_STEP_MM
+
+
+def test_tall_room_says_its_slabs_are_uncorrected():
+    """4.6 m inside + 2 x 100 mm fills the 4.8 m domain: neither slab step fits, and the map must
+    say so rather than present the slabs as corrected."""
+    fm = fs.FieldModel()
+    if not fm.available():
+        print("field model absent -> tall-room check skipped")
+        return
+    from shieldlab.room.model import Room
+    design = _box("lead", 2, "F-18")
+    design.room = Room(6.0, 5.0, 4.6)
+    pred = fm.predict(design)
+    assert any("floor and ceiling are drawn at a whole" in w for w in pred.warnings), pred.warnings
+    assert not any("floor and ceiling are drawn at a whole" in w
+                   for w in fm.predict(_box("lead", 2, "F-18")).warnings)
+
+
 if __name__ == "__main__":
     test_graceful_and_predict()
     test_in_room_field_follows_inverse_square()
@@ -144,4 +167,6 @@ if __name__ == "__main__":
     test_lead_equivalents_are_ordered_and_physical()
     test_field_beyond_a_wall_follows_its_own_thickness()
     test_field_above_the_ceiling_follows_the_walls()
+    test_slab_steps_point_toward_the_equivalent()
+    test_tall_room_says_its_slabs_are_uncorrected()
     print("OK")
