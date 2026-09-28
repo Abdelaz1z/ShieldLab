@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from html import escape
 
@@ -9,6 +10,7 @@ import streamlit as st
 
 from shieldlab.room import cost as room_cost
 from shieldlab.room import diagram, engines, field_surrogate, report_regulatory, report_room
+from shieldlab.room import transport_engine
 from shieldlab.room.decision_support import (
     explain_failures,
     shap_failure_explanations,
@@ -628,6 +630,79 @@ def _render_field_map(room_design: RoomDesign) -> None:
         with st.spinner(i18n.t("computing_field")):
             _render_field_prediction(room_design, design_json)
 
+def _designed_layers(assessment: RoomAssessment) -> dict | None:
+    """In Design mode, each wall as the decision tier sized it; in Check mode, the declared walls."""
+    if assessment.mode != "design":
+        return None
+    return {
+        result.label.split()[1]: [(result.material, result.suggested_thickness_mm)]
+        for result in assessment.decision_results
+        if result.label.startswith("Wall ") and "·" not in result.label
+        and result.suggested_thickness_mm and result.material
+    }
+
+
+@st.cache_data(show_spinner=False)
+def _transport_results(design_json: str, layers_json: str):
+    layers = {wall: [tuple(layer) for layer in wall_layers]
+              for wall, wall_layers in json.loads(layers_json).items()} if layers_json != "null" else None
+    return transport_engine.TransportEngine(RoomDesign.from_json(design_json)).evaluate_all(layers)
+
+
+def _transport_rows(transport_results: list, assessment: RoomAssessment) -> list[dict]:
+    decisions = {result.label: result for result in assessment.decision_results}
+    rows = []
+    for result in transport_results:
+        if result.dose_mSv_wk is None:
+            continue
+        decision = decisions.get(result.label)
+        decision_dose = decision.dose_mSv_wk if decision else None
+        rows.append({
+            i18n.t("mc_col_path"): _display_path_label(result.label),
+            i18n.t("mc_col_dose"): f"{result.dose_mSv_wk:.3g}",
+            i18n.t("mc_col_goal"): f"{result.goal_over_T:.3g}",
+            i18n.t("mc_col_status"): i18n.t("pass") if result.passes else i18n.t("fail"),
+            i18n.t("mc_col_decision"): f"{decision_dose:.3g}" if decision_dose else "—",
+            i18n.t("mc_col_ratio"): f"×{result.dose_mSv_wk / decision_dose:.2f}" if decision_dose else "—",
+            i18n.t("mc_col_note"): result.note,
+        })
+    return rows
+
+
+def _missed_by_decision(transport_results: list, assessment: RoomAssessment) -> list[str]:
+    """Paths the Monte Carlo check fails that the decision tier passes."""
+    decisions = {result.label: result for result in assessment.decision_results}
+    return [
+        _display_path_label(result.label)
+        for result in transport_results
+        if result.passes is False and decisions.get(result.label) is not None
+        and decisions[result.label].passes is True
+    ]
+
+
+def _render_transport_check(assessment: RoomAssessment) -> None:
+    with st.expander(i18n.t("mc_view"), expanded=False):
+        if not transport_engine.available():
+            st.info(i18n.t("mc_unavailable"))
+            return
+        design_json = assessment.design.to_json()
+        layers_json = json.dumps(_designed_layers(assessment))
+        signature = design_json + layers_json
+        if st.button(i18n.t("compute_mc"), key="transport_btn", help=i18n.t("compute_mc_help")):
+            st.session_state._transport_sig = signature
+        if st.session_state.get("_transport_sig") != signature:
+            st.caption(i18n.t("mc_ready_note"))
+            return
+        with st.spinner(i18n.t("computing_mc")):
+            transport_results, kerma = _transport_results(design_json, layers_json)
+        missed = _missed_by_decision(transport_results, assessment)
+        if missed:
+            st.error(i18n.t("mc_missed_warning", count=len(missed), paths=", ".join(missed)))
+        st.dataframe(_transport_rows(transport_results, assessment), hide_index=True, width="stretch")
+        st.caption(i18n.t("mc_caption", histories=kerma.histories, seconds=kerma.seconds))
+        st.caption(i18n.t("mc_validation"))
+
+
 def _plan_status_by_label(assessment: RoomAssessment) -> dict[str, str]:
     return {
         barrier_result.label: row_status_for(barrier_result)[0]
@@ -651,6 +726,7 @@ def render_preview(assessment: RoomAssessment) -> None:
     else:
         st.caption(i18n.t("analytical_caption"))
     _render_field_map(assessment.design)
+    _render_transport_check(assessment)
 
 
 def render_wall_summary(assessment: RoomAssessment) -> None:
