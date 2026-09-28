@@ -51,11 +51,11 @@ def test_walls_close_the_room():
     t = {"N": 0.204, "E": 0.2, "S": 0.2, "W": 0.2}
     walls = ((r.width_m + t["E"] + t["W"]) * (t["N"] + t["S"]) + r.length_m * (t["E"] + t["W"])) * r.height_m
     door = 1.0 * 2.1 * 0.2
-    window = 1.2 * 1.0 * 0.2
+    window = 1.2 * 1.2 * 0.2
     lead_in_n = (r.width_m + t["E"] + t["W"]) * 0.004 * r.height_m
     slabs = 2 * (r.width_m + t["E"] + t["W"]) * (r.length_m + t["N"] + t["S"]) * te.SLAB_M
     assert volume["concrete"] == pytest.approx(walls - lead_in_n - door - window + slabs, rel=1e-9)
-    assert volume["lead"] == pytest.approx(lead_in_n + 1.0 * 2.1 * 0.002 + 1.2 * 1.0 * 0.003, rel=1e-9)
+    assert volume["lead"] == pytest.approx(lead_in_n + 1.0 * 2.1 * 0.002 + 1.2 * 1.2 * 0.003, rel=1e-9)
 
 
 def test_points_beyond_the_outer_face_at_source_height():
