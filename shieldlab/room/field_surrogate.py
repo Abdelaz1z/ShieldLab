@@ -14,9 +14,10 @@ SINGLE wall material with symmetric per-axis wall thicknesses (the campaign geom
 So in the Room Designer it answers "what does the dose field look like across this
 room?" as a **screening / visualisation tier** — it is deliberately NOT wired into the
 per-barrier PASS/FAIL verdict. That verdict stays with the validated analytical tier
-and the scalar MC surrogate. A real ShieldLab room with four different wall materials is
-mapped onto the U-Net's single-material box by picking the dominant wall material and the
-per-axis wall thicknesses; the field is therefore an approximation and is labelled as one.
+and the scalar MC surrogate. A real ShieldLab room (four walls, each its own build-up, any
+of the app's materials) is mapped onto the U-Net's box through equal-transmission
+equivalents of one trained material; see "design -> box mapping" below for how, and for
+what that was measured against. The field is an approximation and is labelled as one.
 
 Graceful degradation: everything here is import-guarded. The tier runs on ONNX Runtime when
 `models/field_unet/field_unet.onnx` is present (the deployable path — no torch needed), and
@@ -35,8 +36,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import NamedTuple, Optional, Tuple
 
 import numpy as np
 
@@ -70,10 +72,50 @@ MU_RHO = {
 DENSITY = {"air": 0.0012, "concrete": 2.30, "barite_concrete": 3.35, "brick": 1.80,
            "gypsum": 2.32, "steel": 7.87, "lead": 11.35, "lead_glass": 4.80}
 
+# The only wall materials in the 600-room training set
+# (thesis_mc/hpc_campaign/build_fieldmap_campaign.py::MATERIALS). The label table above names
+# more, but the network never saw them.
+TRAINED_MATERIALS = ("concrete", "barite_concrete", "brick")
+
 
 def mu_per_mm(material: str, energy_keV: float) -> float:
     mr = float(np.exp(np.interp(np.log(energy_keV), np.log(_E), np.log(MU_RHO[material]))))
     return mr * DENSITY[material] * 0.1        # cm^2/g * g/cm^3 -> 1/cm; *0.1 -> 1/mm
+
+
+def trained_mu_range(energy_keV: float) -> Tuple[float, float]:
+    """(min, max) wall mu [1/mm] the U-Net was trained on at this energy.
+
+    The wall enters the network only through this mu channel, so a wall whose mu lies inside
+    the range is inside the training distribution whatever its name (gypsum sits on concrete).
+    Outside it the in-room field is wrong, not merely approximate: measured 2026-09-26 on a
+    6x5x3 m box at 364 keV, the same 100 mm walls read 1.0x the inverse-square primary at
+    concrete's mu (0.023/mm), 0.6x at 0.10/mm and 0.05-0.25x at lead's 0.29/mm. Ratios below
+    1 in air next to a bare source are physically impossible.
+    """
+    mus = [mu_per_mm(m, energy_keV) for m in TRAINED_MATERIALS]
+    return min(mus), max(mus)
+
+
+# Effective Z of each wall material, as model E's bundle records it (material_map "zeff").
+ZEFF = {"concrete": 13.0, "brick": 12.0, "barite_concrete": 41.9, "gypsum": 13.6,
+        "steel": 26.0, "lead": 82.0, "lead_glass": 73.1}
+
+
+def proxy_material(material: str, energy_keV: float) -> str:
+    """The material the U-Net is run with for a wall of `material`.
+
+    Inside the trained mu range, the material itself. Outside it, the trained material with the
+    nearest effective Z: what a wall sends back into the room is set by its albedo, which follows
+    Z; the field beyond the walls comes from the reference box instead (see the mapping notes
+    below). Checked against the MC pilot rooms (in-room air, median log10
+    error): lead at 364 keV -0.66 dex run as lead, +0.04 as barite concrete; lead glass at
+    140.5 keV -0.28 as itself, +0.03 as barite concrete (fieldmap_pilot rows 18 and 14).
+    """
+    lo, hi = trained_mu_range(energy_keV)
+    if lo <= mu_per_mm(material, energy_keV) <= hi:
+        return material
+    return min(TRAINED_MATERIALS, key=lambda m: abs(ZEFF[m] - ZEFF[material]))
 
 
 def _coord_axes():
@@ -152,6 +194,45 @@ def _occupied_shell(labels: np.ndarray, iters: int = 10) -> np.ndarray:
 
 
 # ----------------------------------------------------------------- design -> box mapping
+# How a ShieldLab room reaches the U-Net, and why it is done this way (measured 2026-09-26/28
+# against the pilot and oblique MC rooms, thesis_mc/hpc_campaign/fieldmap_{pilot,oblique}):
+#
+#  * The box is one REFERENCE material R the network was trained on: the room's dominant wall
+#    material if it is one of TRAINED_MATERIALS, else concrete.
+#  * Every real wall is replaced by the thickness of R that transmits the same, from the
+#    per-barrier tier (model E, else the analytical tables, else narrow-beam). Comparing two
+#    walls at EQUAL transmission is where that tier is strong. Using it for the CHANGE of the
+#    field with thickness is not: model E's attenuation per 100 mm of concrete is ~20% shallower
+#    than the room field's (MC and U-Net agree), which biased a direct B-ratio by 0.12-0.19 dex.
+#  * The box is built at the nearest whole voxel to that equivalent, and the rest (at most
+#    +/-50 mm) is corrected with the slope the U-Net itself gives in this room: a second run with
+#    the side walls one voxel thicker or thinner, toward the equivalent (`_slope_steps`).
+#    Checked on MC rooms with the box forced 100 mm off the real wall: the corrected field
+#    matches the MC as closely as the U-Net run on the true geometry (median within 0.01 dex).
+#    Through a concrete reference, brick walls land at -0.04 dex and barite at +0.09 to +0.18.
+#  * Inside the room the field is set by what the walls send back, which follows Z, not by what
+#    they let through. For walls outside the trained range the in-room air comes from a run with
+#    the nearest-Z trained material (`proxy_material`).
+
+SLANTS = np.array([1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0])   # 1/cos along a ray; held beyond
+FACE_WALL = {(0, 1): "E", (0, -1): "W", (1, 1): "N", (1, -1): "S"}
+SLOPE_STEP_MM = 100.0
+
+
+class BoxMapping(NamedTuple):
+    labels: np.ndarray            # the reference-material box the U-Net is run on
+    bb: dict
+    energy_keV: float
+    source_mm: tuple
+    material: str                 # reference material R
+    wall_mm: Tuple[float, float, float]      # box thicknesses as built
+    equivalent_mm: dict           # wall id -> R-equivalent normal thickness at each of SLANTS
+    tiers: dict                   # wall id -> tier that gave the equivalent
+    inroom_material: str          # material of the run that serves the in-room air
+    room_m: tuple
+    warnings: list
+
+
 def _dominant_material(design) -> str:
     from collections import Counter
     mats = [w.material1 for w in design.walls if w.material1 in MATERIAL_LABEL]
@@ -160,55 +241,272 @@ def _dominant_material(design) -> str:
     return Counter(mats).most_common(1)[0][0]
 
 
-def _axis_thickness(design, wall_ids) -> float:
-    """Representative solid thickness (mm) for a pair of walls; >=100 mm (grid floor)."""
-    ts = []
-    for wid in wall_ids:
-        try:
-            w = design.wall(wid)
-        except KeyError:
-            continue
-        t = (w.thickness1_mm or 0.0) + (w.thickness2_mm or 0.0 if w.material2 else 0.0)
-        if t > 0:
-            ts.append(t)
-    return max(100.0, float(np.mean(ts))) if ts else 150.0
+def _wall_layers(wall):
+    layers = [(wall.material1, wall.thickness1_mm)]
+    if wall.material2 and wall.thickness2_mm > 0:
+        layers.append((wall.material2, wall.thickness2_mm))
+    return tuple((m, float(t)) for m, t in layers if t > 0)
 
 
-def _design_to_box(design):
+def _app_layers(material: str, simulated_mm: float):
+    """A thickness of the simulated (Geant4) material, as the product thickness the per-barrier
+    tier expects; it maps it back at equal mass per area (transport_materials)."""
+    from .transport_materials import SIMULATED, product_density_gcm3
+    product = product_density_gcm3(material) or SIMULATED[material][1]
+    return ((material, simulated_mm * SIMULATED[material][1] / product),)
+
+
+def _normal_path(layers):
+    """A (BarrierPath, Wall) pair for a wall of `layers` met head-on, as the barrier table
+    builds them."""
+    from .geometry import BarrierPath
+    from .model import Wall
+    (m1, t1), (m2, t2) = layers[0], (layers[1] if len(layers) > 1 else (None, 0.0))
+    wall = Wall(id="field", material1=m1, thickness1_mm=t1, material2=m2, thickness2_mm=t2)
+    path = BarrierPath(wall_id="field", kind="wall", label="field", d_pop_m=1.0, perp_m=1.0,
+                       offset_m=0.0, pop_xy=(0.0, 0.0))
+    return path, wall
+
+
+def _log_b(tier: str, isotope: str, layers) -> Optional[float]:
+    """log10 B of a wall at normal incidence from one tier, or None where it has no answer.
+
+    model E       : the MC-trained per-barrier model, only inside its trusted domain;
+    analytical    : the NCRP/TG-108 broad-beam tables the barrier table falls back to;
+    narrow-beam   : exp(-mu x) from this module's mu/rho table at the product's density, for
+                    walls neither serves (a 30 mm board is below model E's trained thickness).
+    """
+    if not layers:
+        return 0.0
+    if tier == "narrow-beam":
+        from .transport_materials import product_density_gcm3
+        energy, total = ISOTOPE_ENERGY_KEV[isotope], 0.0
+        for material, t_mm in layers:
+            if material not in MU_RHO:
+                return None
+            rho = product_density_gcm3(material) or DENSITY[material]
+            total += mu_per_mm(material, energy) / DENSITY[material] * rho * t_mm
+        return -total / np.log(10.0)
+    from .engines import AnalyticalEngine, SurrogateEngine
+    from .model import RoomDesign, Source
+    design = RoomDesign.default()
+    design.source = Source(isotope=isotope)
+    path, wall = _normal_path(layers)
+    if tier == "model E":
+        engine = SurrogateEngine(design)
+        if not engine.available():
+            return None
+        served = engine.evaluate(path, wall, wall.thickness1_mm)
+        b = None if (served is None or served.ood) else served.B_achieved
+    else:
+        b = AnalyticalEngine(design).evaluate(path, wall, "check").B_achieved
+    return float(np.log10(b)) if b else None
+
+
+TIERS = ("model E", "analytical", "narrow-beam")
+_REFERENCE_MM = np.geomspace(5.0, 3000.0, 48)       # simulated thickness grid of R
+
+
+@lru_cache(maxsize=64)
+def _reference_curve(isotope: str, reference: str, tier: str):
+    """(thickness mm, log10 B) of the reference material over _REFERENCE_MM, where the tier
+    answers; None if it answers at fewer than two thicknesses."""
+    pts = [(t, _log_b(tier, isotope, _app_layers(reference, t))) for t in _REFERENCE_MM]
+    # Model E caps B at 1, so its thinnest walls read flat; only the falling part inverts.
+    pts = [(t, b) for t, b in pts if b is not None and b < -1e-4]
+    pts = [p for i, p in enumerate(pts) if all(p[1] < q[1] for q in pts[:i])]
+    if len(pts) < 2:
+        return None
+    t, b = map(np.array, zip(*pts))
+    return t, b
+
+
+def _thickness_for(curve, log_b: float) -> Optional[float]:
+    """Reference thickness with this log10 B, or None if it lies beyond the curve's deep end.
+    Between the curve's first point and B = 1 it falls to zero linearly."""
+    t, b = curve
+    if log_b >= 0.0:
+        return 0.0
+    if log_b > b[0]:
+        return float(t[0] * log_b / b[0])
+    if log_b < b[-1]:
+        return None
+    return float(np.interp(-log_b, -b, t))
+
+
+@lru_cache(maxsize=256)
+def _equivalent(isotope: str, reference: str, layers):
+    """(R-equivalent NORMAL thickness at each of SLANTS, tier at normal incidence).
+
+    At a path factor s the wall is (layers x s); its equivalent is the R thickness with the same
+    transmission, divided by s. At each s the wall and R come from the same tier: the first of
+    TIERS that serves both (a steep ray can take a wall outside model E's domain).
+    """
+    out, tiers = [], []
+    for s in SLANTS:
+        wall = tuple((m, t * s) for m, t in layers)
+        for tier in TIERS:
+            curve = _reference_curve(isotope, reference, tier)
+            log_b = None if curve is None else _log_b(tier, isotope, wall)
+            t_eq = None if log_b is None else _thickness_for(curve, log_b)
+            if t_eq is not None:
+                out.append(t_eq / s)
+                tiers.append(tier)
+                break
+        else:
+            return None, "none"
+    return tuple(out), tiers[0]
+
+
+def _voxels(t_mm: float) -> float:
+    return max(1, int(round(t_mm / VOXEL_MM))) * VOXEL_MM
+
+
+def _design_to_box(design) -> BoxMapping:
     """Map a ShieldLab RoomDesign onto the U-Net's single-material box.
 
-    Returns (labels, bb, energy_keV, source_mm_snapped, material, wall_mm, warnings).
-    N/S walls barrier the y-axis; E/W walls barrier the x-axis; floor/ceiling (no ShieldLab
-    wall) takes the room-mean thickness. The source is placed at mid-height.
+    N/S walls barrier the y-axis, E/W walls the x-axis. Floor and ceiling are not ShieldLab
+    walls; they take the mean equivalent of the four. The source is placed at mid-height.
     """
     warnings = []
-    r = design.room
+    r, s = design.room, design.source
     room_m = (r.width_m, r.length_m, r.height_m)
-    material = _dominant_material(design)
-    distinct = {w.material1 for w in design.walls if w.material1}
-    if len(distinct) > 1:
-        warnings.append(f"walls use {len(distinct)} materials "
-                        f"({', '.join(sorted(distinct))}); the field model is a single-material "
-                        f"box, mapped to the dominant material '{material}'.")
-
-    tx = _axis_thickness(design, ("E", "W"))
-    ty = _axis_thickness(design, ("N", "S"))
-    tz = _axis_thickness(design, ("N", "E", "S", "W"))     # floor/ceiling proxy
-    wall_mm = (tx, ty, tz)
-
-    labels, bb = _build_labels(room_m, wall_mm, material)   # may raise ValueError
-
-    energy = ISOTOPE_ENERGY_KEV.get(design.source.isotope)
+    energy = ISOTOPE_ENERGY_KEV.get(s.isotope)
     if energy is None:
-        raise ValueError(f"no field-model energy for isotope '{design.source.isotope}'")
+        raise ValueError(f"no field-model energy for isotope '{s.isotope}'")
+    dominant = _dominant_material(design)
+    reference = dominant if dominant in TRAINED_MATERIALS else "concrete"
+    inroom = proxy_material(dominant, energy)
 
-    # source: room coords (SW origin) -> domain-centred mm, mid-height, snapped to a voxel centre
-    s = design.source
-    off_mm = ((s.x_m - r.width_m / 2.0) * 1000.0,
-              (s.y_m - r.length_m / 2.0) * 1000.0,
-              0.0)
-    source_mm = _snap_to_voxel_center(off_mm)
-    return labels, bb, energy, source_mm, material, wall_mm, warnings
+    equivalent, tiers = {}, {}
+    for wall in design.walls:
+        eq, tier = _equivalent(s.isotope, reference, _wall_layers(wall))
+        if eq is not None:
+            equivalent[wall.id], tiers[wall.id] = eq, tier
+    missing = sorted(w.id for w in design.walls if w.id not in equivalent)
+    if missing:
+        warnings.append(f"no transmission data for wall(s) {', '.join(missing)}; the field "
+                        f"beyond them is the {reference} box's, uncorrected.")
+
+    def axis_mm(ids):
+        ts = [equivalent[i][0] for i in ids if i in equivalent]
+        return _voxels(float(np.mean(ts))) if ts else SLOPE_STEP_MM
+
+    built = (axis_mm(("E", "W")), axis_mm(("N", "S")), axis_mm(("N", "E", "S", "W")))
+    labels, bb = _build_labels(room_m, built, reference)          # may raise ValueError
+
+    if dominant != reference:
+        inroom_note = (f", and the air inside the room is taken from a run with {inroom} walls "
+                       f"(nearest in effective Z to {dominant})" if inroom != reference else "")
+        warnings.append(f"the field model was trained on {', '.join(TRAINED_MATERIALS)} walls "
+                        f"only. Each wall is drawn as the {reference} that transmits the "
+                        f"same{inroom_note}.")
+    far = sorted(wid for (ax, _), wid in FACE_WALL.items() if wid in equivalent
+                 and abs(equivalent[wid][0] - built[ax]) > SLOPE_STEP_MM)
+    if far:
+        warnings.append(f"wall(s) {', '.join(far)} differ from the box by more than "
+                        f"{SLOPE_STEP_MM:g} mm of {reference} (the box is symmetric, at least "
+                        f"{VOXEL_MM:g} mm), so the field beyond them is extrapolated from the "
+                        f"model's own thickness slope.")
+    narrow = sorted(i for i, t in tiers.items() if t == "narrow-beam")
+    if narrow:
+        warnings.append(f"wall(s) {', '.join(narrow)} are served by neither model E nor the "
+                        f"analytical tables; their {reference} equivalent uses narrow-beam "
+                        f"attenuation (no buildup).")
+
+    off_mm = ((s.x_m - r.width_m / 2.0) * 1000.0, (s.y_m - r.length_m / 2.0) * 1000.0, 0.0)
+    return BoxMapping(labels, bb, energy, tuple(_snap_to_voxel_center(off_mm)), reference, built,
+                      equivalent, tiers, inroom, room_m, warnings)
+
+
+def _exit_faces(bb, source_mm):
+    """For every voxel: the side of the room box its straight ray from the source leaves by, as
+    (axis, direction), and the ray's path-length factor 1/cos through that side."""
+    nx, ny, nz = GRID
+    xc, yc, zc = _coord_axes()
+    x0, x1, y0, y1, z0, z1 = bb["room"]
+    lo = [(i - n / 2.0) * VOXEL_MM for i, n in ((x0, nx), (y0, ny), (z0, nz))]
+    hi = [(i - n / 2.0) * VOXEL_MM for i, n in ((x1, nx), (y1, ny), (z1, nz))]
+    d = [xc[None, None, :] - source_mm[0], yc[None, :, None] - source_mm[1],
+         zc[:, None, None] - source_mm[2]]
+    d = [np.broadcast_to(a, (nz, ny, nx)) for a in d]
+    t = []
+    for k in range(3):
+        with np.errstate(divide="ignore", invalid="ignore"):
+            t.append(np.where(d[k] > 0, (hi[k] - source_mm[k]) / d[k],
+                              np.where(d[k] < 0, (lo[k] - source_mm[k]) / d[k], np.inf)))
+    axis = np.argmin(np.stack(t), axis=0)
+    comp = np.choose(axis, d)
+    norm = np.sqrt(d[0] ** 2 + d[1] ** 2 + d[2] ** 2)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        slant = np.where(comp != 0, norm / np.abs(comp), np.inf)
+    return axis, np.sign(comp).astype(int), slant
+
+
+def _outside(labels, bb):
+    x0, x1, y0, y1, z0, z1 = bb["room"]
+    out = labels == 0
+    out[z0:z1, y0:y1, x0:x1] = False
+    return out
+
+
+def _slope_steps(box: BoxMapping):
+    """Candidate (x, y) side-wall steps for the slope run, preferred first: each axis steps
+    TOWARD its walls' equivalent, so the correction interpolates between two runs rather than
+    extrapolating. (Stepping outward from 300 to 400 mm under-read the 200-300 mm slope by half:
+    beyond 400 mm the training labels are MC-noisy and the network flattens.)"""
+    def toward(ax, ids):
+        deltas = [box.equivalent_mm[i][0] - box.wall_mm[ax] for i in ids if i in box.equivalent_mm]
+        inward = deltas and np.mean(deltas) < 0 and box.wall_mm[ax] - SLOPE_STEP_MM >= VOXEL_MM
+        return -SLOPE_STEP_MM if inward else SLOPE_STEP_MM
+    preferred = (toward(0, ("E", "W")), toward(1, ("N", "S")))
+    return [preferred, (SLOPE_STEP_MM, SLOPE_STEP_MM), (-SLOPE_STEP_MM, -SLOPE_STEP_MM)]
+
+
+def _thickness_slope(box: BoxMapping, run, d0) -> Optional[np.ndarray]:
+    """d log10(dose) / d(side-wall thickness, mm) per voxel, from a second U-Net run with the
+    side walls one voxel thicker or thinner (`_slope_steps`). Voxels that are wall in the second
+    box take the median of their side and slant bin. None if no second box fits the domain."""
+    for steps in _slope_steps(box):
+        other = (box.wall_mm[0] + steps[0], box.wall_mm[1] + steps[1], box.wall_mm[2])
+        if min(other[:2]) < VOXEL_MM:
+            continue
+        try:
+            labels2, _ = _build_labels(box.room_m, other, box.material)
+        except ValueError:
+            continue
+        axis, sign, s = _exit_faces(box.bb, box.source_mm)
+        step = np.where(axis == 0, steps[0], steps[1])
+        slope = (run(labels2, box.material) - d0) / step
+        both = _outside(box.labels, box.bb) & (labels2 == 0)
+        s = np.clip(s, SLANTS[0], SLANTS[-1])
+        out = np.full(slope.shape, np.nan)
+        out[both] = slope[both]
+        edges = np.concatenate([SLANTS, [np.inf]])
+        for (ax, direction) in FACE_WALL:
+            face = _outside(box.labels, box.bb) & (axis == ax) & (sign == direction)
+            for lo, hi in zip(edges[:-1], edges[1:]):
+                cell = face & (s >= lo) & (s < hi)
+                known = cell & both
+                if cell.any() and known.any():
+                    out[cell & ~both] = np.median(slope[known])
+        return out
+    return None
+
+
+def _correct_beyond_walls(log_dose, box: BoxMapping, slope):
+    """Move the field beyond each side wall from the built box to the wall's equivalent."""
+    out = log_dose.copy()
+    outside = _outside(box.labels, box.bb)
+    axis, sign, s = _exit_faces(box.bb, box.source_mm)
+    s = np.clip(s, SLANTS[0], SLANTS[-1])
+    for (ax, direction), wid in FACE_WALL.items():
+        if wid not in box.equivalent_mm:
+            continue
+        sel = outside & (axis == ax) & (sign == direction) & np.isfinite(slope)
+        delta = np.interp(np.log(s[sel]), np.log(SLANTS), box.equivalent_mm[wid]) - box.wall_mm[ax]
+        out[sel] = log_dose[sel] + slope[sel] * delta
+    return out
 
 
 # ----------------------------------------------------------------- torch model (lazy)
@@ -264,7 +562,7 @@ class FieldPrediction:
     source_vox: Tuple[int, int, int]   # (iz, iy, ix) snapped source voxel
     z_index: int                  # z slice at source mid-height (for the plan view)
     material: str                 # the single box material used
-    wall_mm: Tuple[float, float, float]
+    wall_mm: Tuple[float, float, float]   # as built on the 100 mm grid
     shell_p95_log: Optional[float]     # 95th-pct log10 dose over the occupied shell
     warnings: list
 
@@ -363,20 +661,13 @@ class FieldModel:
         """'onnx', 'torch' or None — for the UI to show which runtime served the map."""
         return FieldModel._BACKEND
 
-    def predict(self, design) -> Optional[FieldPrediction]:
-        """Predict the room's log10 dose field. Returns None if unavailable; raises
-        ValueError (caught by the caller) if the design can't be mapped onto the box."""
-        if not self.available():
-            return None
-
-        labels, bb, energy, source_mm, material, wall_mm, warns = _design_to_box(design)
-        X = _make_input(labels, energy, source_mm)
+    def _log_dose(self, labels: np.ndarray, energy_keV: float, source_mm) -> np.ndarray:
+        """One network pass: log10 air kerma per 2e7 photons over the whole domain."""
+        X = _make_input(labels, energy_keV, source_mm)
         nm = FieldModel._NORM
         ch_mean = np.asarray(nm["ch_mean"], np.float32)[:, None, None, None]
         ch_std = np.asarray(nm["ch_std"], np.float32)[:, None, None, None]
-        Xn = ((X - ch_mean) / ch_std).astype(np.float32)
-        Xb = np.ascontiguousarray(Xn)[None]                            # (1,3,nz,ny,nx)
-
+        Xb = np.ascontiguousarray(((X - ch_mean) / ch_std).astype(np.float32))[None]
         # Same graph, same channels, same de-normalisation either way — only the runtime
         # differs. Input/output names match the export in export_unet_onnx.py.
         if FieldModel._BACKEND == "onnx":
@@ -385,7 +676,34 @@ class FieldModel:
             import torch
             with torch.no_grad():
                 yn = FieldModel._MODEL(torch.from_numpy(Xb)).numpy()[0, 0]
-        log_dose = yn * float(nm["y_std"]) + float(nm["y_mean"])       # un-normalise -> log10 dose
+        return yn * float(nm["y_std"]) + float(nm["y_mean"])
+
+    def predict(self, design) -> Optional[FieldPrediction]:
+        """Predict the room's log10 dose field. Returns None if unavailable; raises
+        ValueError (caught by the caller) if the design can't be mapped onto the box."""
+        if not self.available():
+            return None
+
+        box = _design_to_box(design)
+        labels, bb, source_mm, warns = box.labels, box.bb, box.source_mm, list(box.warnings)
+
+        def run(run_labels, material):
+            return self._log_dose(np.where(run_labels > 0, MATERIAL_LABEL[material], 0),
+                                  box.energy_keV, source_mm)
+
+        base = run(labels, box.material)
+        slope = _thickness_slope(box, run, base)
+        if slope is None:
+            log_dose = base
+            warns.append("the room fills the model's domain, so walls are drawn at whole "
+                         f"{VOXEL_MM:g} mm steps without the finer correction.")
+        else:
+            log_dose = _correct_beyond_walls(base, box, slope)
+        if box.inroom_material != box.material:
+            x0, x1, y0, y1, z0, z1 = bb["room"]
+            inroom = run(labels, box.inroom_material)
+            log_dose[z0:z1, y0:y1, x0:x1] = inroom[z0:z1, y0:y1, x0:x1]
+        material, wall_mm = box.material, box.wall_mm
         air = labels == 0
         log_dose = np.where(air, log_dose, np.nan)
 
@@ -442,8 +760,9 @@ def render_field_slice(pred: FieldPrediction, design) -> bytes:
     cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cb.set_label("log₁₀ air-kerma (relative field)")
     ax.set_title(f"3D dose-field U-Net — slice at source height\n"
-                 f"single-material box: {pred.material}, walls "
-                 f"{pred.wall_mm[0]:.0f}/{pred.wall_mm[1]:.0f}/{pred.wall_mm[2]:.0f} mm",
+                 f"walls drawn as their {pred.material} equivalent "
+                 f"(box {pred.wall_mm[0]:.0f}/{pred.wall_mm[1]:.0f}/{pred.wall_mm[2]:.0f} mm, "
+                 f"corrected to each wall)",
                  fontsize=10)
     ax.set_xlabel("x (× 100 mm, W→E)"); ax.set_ylabel("y (× 100 mm, S→N)")
     ax.legend(loc="upper right", fontsize=8, framealpha=0.85)

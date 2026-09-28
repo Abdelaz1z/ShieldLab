@@ -27,11 +27,11 @@ def test_graceful_and_predict():
     if not fm.available():
         print("torch/weights absent -> tier correctly reports available() == False (graceful).")
         # the design->box mapping must still work without torch:
-        labels, bb, e, smm, mat, wall_mm, warns = fs._design_to_box(design)
-        assert labels.shape == (fs.GRID[2], fs.GRID[1], fs.GRID[0]), labels.shape
-        assert mat in fs.MATERIAL_LABEL
-        print(f"design->box OK: material={mat}, walls={tuple(round(t) for t in wall_mm)} mm, "
-              f"E={e} keV, labels{labels.shape}")
+        box = fs._design_to_box(design)
+        assert box.labels.shape == (fs.GRID[2], fs.GRID[1], fs.GRID[0]), box.labels.shape
+        assert box.material in fs.TRAINED_MATERIALS
+        print(f"design->box OK: material={box.material}, "
+              f"walls={tuple(round(t) for t in box.wall_mm)} mm, E={box.energy_keV} keV")
         return
 
     pred = fm.predict(design)
@@ -56,6 +56,77 @@ def test_graceful_and_predict():
           f"PNG {len(png)} bytes")
 
 
+def _box(material, thickness_mm, isotope):
+    """The 2026-09-26 check room: 6 x 5 x 3 m, one material, source at the centre."""
+    from shieldlab.room.model import Room, Source
+    design = RoomDesign.default()
+    design.room = Room(6.0, 5.0, 3.0)
+    design.source = Source(isotope=isotope, x_m=3.0, y_m=2.5)
+    for wall in design.walls:
+        wall.material1, wall.thickness1_mm, wall.material2 = material, thickness_mm, None
+    return design
+
+
+def _in_room_over_primary(fm, design, energy):
+    """Predicted kerma over the bare inverse-square primary at 0.3, 0.5, 1 and 2 m east."""
+    muen_air = {364.0: 0.02931, 511.0: 0.02966}             # cm^2/g, NIST XCOM
+    pred = fm.predict(design)
+    iz, iy, ix = pred.source_vox
+    out = []
+    for r_m in (0.3, 0.5, 1.0, 2.0):
+        primary = (energy * 1e-3 * 1.602e-13 * muen_air[energy] * 1e3
+                   / (4 * np.pi * (r_m * 100) ** 2))          # Gy per photon
+        out.append(10 ** pred.log_dose[iz, iy, ix + int(round(r_m * 10))] / 2e7 / primary)
+    return out
+
+
+def test_in_room_field_follows_inverse_square():
+    """Next to a bare source the in-room kerma cannot fall below the primary alone. Lead read
+    0.05-0.3x here before its walls were mapped onto a trained material (2026-09-26)."""
+    fm = fs.FieldModel()
+    if not fm.available():
+        print("field model absent -> inverse-square check skipped")
+        return
+    for material, thickness in (("concrete", 200), ("gypsum", 30), ("lead", 4), ("lead", 14),
+                                ("steel", 10), ("lead_glass", 20)):
+        for isotope, energy in (("I-131", 364.0), ("F-18", 511.0)):
+            ratios = _in_room_over_primary(fm, _box(material, thickness, isotope), energy)
+            assert all(0.8 < r < 1.5 for r in ratios), (material, thickness, isotope, ratios)
+
+
+def test_reference_material_is_its_own_equivalent():
+    for isotope in ("I-131", "F-18"):
+        eq, _ = fs._equivalent(isotope, "concrete", fs._app_layers("concrete", 200.0))
+        assert abs(eq[0] - 200.0) < 10.0, (isotope, eq)
+
+
+def test_lead_equivalents_are_ordered_and_physical():
+    # 4 mm of lead is a few centimetres of concrete at 364 keV, 14 mm about 15-25 cm.
+    thin, _ = fs._equivalent("I-131", "concrete", (("lead", 4.0),))
+    thick, _ = fs._equivalent("I-131", "concrete", (("lead", 14.0),))
+    assert 20.0 < thin[0] < 100.0, thin
+    assert 120.0 < thick[0] < 300.0, thick
+    assert all(a < b for a, b in zip(thin, thick))
+
+
+def test_field_beyond_a_wall_follows_its_own_thickness():
+    """150 and 200 mm concrete are both built as a 200 mm box; the field beyond them used to be
+    identical. It must now be higher behind the thinner wall."""
+    fm = fs.FieldModel()
+    if not fm.available():
+        print("field model absent -> beyond-wall check skipped")
+        return
+    thin, thick = (fm.predict(_box("concrete", t, "F-18")) for t in (150, 200))
+    assert thin.wall_mm == thick.wall_mm
+    iz, iy, ix = thin.source_vox
+    k = 30 + int(thin.wall_mm[0] / 100) + 5                   # 0.5 m beyond the east wall
+    assert thin.log_dose[iz, iy, ix + k] - thick.log_dose[iz, iy, ix + k] > 0.15
+
+
 if __name__ == "__main__":
     test_graceful_and_predict()
+    test_in_room_field_follows_inverse_square()
+    test_reference_material_is_its_own_equivalent()
+    test_lead_equivalents_are_ordered_and_physical()
+    test_field_beyond_a_wall_follows_its_own_thickness()
     print("OK")
