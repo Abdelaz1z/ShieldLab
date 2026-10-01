@@ -76,8 +76,7 @@ def _served_wall(thickness_mm):
 def test_a_wallboard_wall_transmits_like_the_lighter_wall_it_is():
     # 300 mm of 0.80 g/cm3 board is served as 103 mm of solid gypsum. Before the fix it was served
     # as 300 mm of solid gypsum, which is what an 870 mm board is served as now. Both thicknesses
-    # sit inside model E's I-131 gypsum range (17.5-591 mm), so the model answers both; realistic
-    # 16-32 mm board falls below that range and is refused by the guard either way.
+    # sit inside model E's I-131 gypsum range, so the model answers both.
     board = _served_wall(300.0)
     old_serving = _served_wall(300.0 * 2.32 / 0.80)
     for wall in (board, old_serving):

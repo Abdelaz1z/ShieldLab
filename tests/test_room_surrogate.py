@@ -42,10 +42,11 @@ def test_bundle_loads():
     from shieldlab.room import surrogate_e as sur_e
     meta = se.bundle["meta"]
     if sur_e.is_model_e(se.bundle):
-        # Model E: the training set only ever grows, and the deployed copy must be the sealed
-        # model whose test-set numbers the paper reports.
-        assert meta["n_rows"] >= 15417
-        assert meta["test_set"]["n"] == 2386
+        # Model E': the training set only ever grows, and the deployed copy must be the frozen
+        # model whose 800 test configurations passed E-Domain-1's four hypotheses.
+        assert meta["n_rows"] >= 20017
+        assert meta["all_pass"] is True
+        assert meta["test_set"]["n"] == 800
         assert meta["test_set"]["rmse"] < 0.03
         assert 0.93 <= meta["test_set"]["coverage"] <= 0.99
         assert len(se.bundle["features"]) == 12
@@ -56,15 +57,16 @@ def test_bundle_loads():
         assert meta["cqr95_coverage_holdout"] >= 0.95
 
 
-# Three configurations from the sealed test set (hpc_campaign/e_predictions_LOCKED.csv), with the
-# predictions recorded before those configurations were simulated. The app must reproduce them from
-# its own feature builder, or it is not serving the model the paper tested.
+# Three configurations from E-Domain-1's test set (research hpc_campaign/manifest_edomain1.csv),
+# one per new class: lead behind concrete, thin gypsum, thin gypsum with lead behind it. E' was
+# frozen before they were simulated; the values are what the frozen E' serves, reproduced by the
+# research's build_app_bundle_e_prime.py. The app must match them from its own feature builder.
 SEALED_PREDICTIONS = [
     # (energy keV, thickness mm, duct radius mm, offset mm, material, layer2, layer2 mm,
     #  point, lower, upper)
-    (140.5, 129.88, 0.0, 0.0, "concrete", None, 0.0, -1.403838257759, -1.461351705021, -1.339197382552),
-    (140.5, 0.43, 0.0, 0.0, "lead", "concrete", 42.26, -0.913701012432, -0.961900964824, -0.877250948889),
-    (140.5, 233.28, 31.32, 65.1, "concrete", None, 0.0, -1.077336706658, -1.097211350492, -0.952021803018),
+    (140.5, 62.45, 0.0, 0.0, "concrete", "lead", 1.02, -1.908588152437, -1.928310436241, -1.736115630452),
+    (140.5, 7.72, 0.0, 0.0, "gypsum", None, 0.0, -0.086304604539, -0.092349171191, -0.078173812170),
+    (140.5, 3.29, 0.0, 0.0, "gypsum", "lead", 2.73, -3.083389148626, -3.143260104076, -2.698353372371),
 ]
 
 

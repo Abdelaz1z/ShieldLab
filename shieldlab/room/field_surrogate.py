@@ -280,7 +280,7 @@ def _log_b(tier: str, isotope: str, layers) -> Optional[float]:
     model E       : the MC-trained per-barrier model, only inside its trusted domain;
     analytical    : the NCRP/TG-108 broad-beam tables the barrier table falls back to;
     narrow-beam   : exp(-mu x) from this module's mu/rho table at the product's density, for
-                    walls neither serves (a 30 mm board is below model E's trained thickness).
+                    walls neither serves (e.g. a material or depth outside model E's domain).
     """
     if not layers:
         return 0.0
