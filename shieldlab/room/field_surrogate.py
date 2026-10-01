@@ -42,6 +42,8 @@ from typing import NamedTuple, Optional, Tuple
 
 import numpy as np
 
+from . import oblique_correction as oblique
+
 # ----------------------------------------------------------------- fixed U-Net domain
 # (copied from thesis_mc/src/room_field.py — the trained domain; do not change here)
 GRID = (96, 80, 48)          # (nx, ny, nz)  -> 9.6 x 8.0 x 4.8 m
@@ -204,6 +206,12 @@ def _occupied_shell(labels: np.ndarray, iters: int = 10) -> np.ndarray:
 #    walls at EQUAL transmission is where that tier is strong. Using it for the CHANGE of the
 #    field with thickness is not: model E's attenuation per 100 mm of concrete is ~20% shallower
 #    than the room field's (MC and U-Net agree), which biased a direct B-ratio by 0.12-0.19 dex.
+#  * A ray crossing a wall at an angle is matched at the slant thickness. In model E's tier both
+#    the wall and R are first raised by the oblique correction (`oblique_correction`, fitted on 400
+#    oblique MC rows, 2026-10-01), so walls of different materials are matched at their
+#    transmission at the angle: a lead or steel wall in a concrete box is worth up to ~15% more
+#    concrete at 60 degrees than at the plain slant reading. The analytical and narrow-beam tiers
+#    are not corrected.
 #  * The box is built at the nearest whole voxel to that equivalent, and the rest (at most
 #    +/-50 mm) is corrected with the slope the U-Net itself gives in this room: a second run with
 #    the side walls one voxel thicker or thinner, toward the equivalent (`_slope_steps`).
@@ -340,6 +348,40 @@ def _thickness_for(curve, log_b: float) -> Optional[float]:
     return float(np.interp(-log_b, -b, t))
 
 
+def _simulated_layers(layers):
+    """(zeff, density, simulated mm) of each layer model E serves, as `engines._model_e_row` builds
+    them; a layer outside its material map is left out, as model E leaves it out."""
+    from .engines import load_bundle
+    from .transport_materials import simulated_thickness_mm
+    materials = load_bundle()["material_map"]
+    out = []
+    for material, t_mm in layers:
+        served = simulated_thickness_mm(material, t_mm) if material in materials else None
+        if served is not None:
+            out.append((materials[material]["zeff"], materials[material]["density_gcm3"], served))
+    return tuple(out)
+
+
+@lru_cache(maxsize=64)
+def _oblique_reference_curve(isotope: str, reference: str, slant: float):
+    """Model E's reference curve with each point raised by the oblique correction at `slant`: the
+    transmission of R crossed at that angle, as a function of R's slant thickness."""
+    curve = _reference_curve(isotope, reference, "model E")
+    if curve is None:
+        return None
+    from .engines import load_bundle
+    entry = load_bundle()["material_map"][reference]
+    energy = ISOTOPE_ENERGY_KEV[isotope]
+    t, b = curve
+    raised = [(ti, bi + oblique.log10_factor(((entry["zeff"], entry["density_gcm3"], ti / slant),),
+                                             energy, slant))
+              for ti, bi in zip(t, b)]
+    raised = [p for i, p in enumerate(raised) if all(p[1] < q[1] for q in raised[:i])]
+    if len(raised) < 2:
+        return None
+    return tuple(map(np.array, zip(*raised)))
+
+
 @lru_cache(maxsize=256)
 def _equivalent(isotope: str, reference: str, layers):
     """(R-equivalent NORMAL thickness at each of SLANTS, tier at normal incidence).
@@ -347,13 +389,24 @@ def _equivalent(isotope: str, reference: str, layers):
     At a path factor s the wall is (layers x s); its equivalent is the R thickness with the same
     transmission, divided by s. At each s the wall and R come from the same tier: the first of
     TIERS that serves both (a steep ray can take a wall outside model E's domain).
+
+    Model E was trained at normal incidence and reads a slanted wall low, by an amount that grows
+    with the wall's Compton share, the angle and the depth (`oblique_correction`). In model E's tier
+    both the wall and R are raised by it, so the two are matched at their transmission at the
+    angle; for a wall of R's own material the two corrections cancel.
     """
     out, tiers = [], []
+    energy = ISOTOPE_ENERGY_KEV[isotope]
     for s in SLANTS:
         wall = tuple((m, t * s) for m, t in layers)
         for tier in TIERS:
-            curve = _reference_curve(isotope, reference, tier)
+            if tier == "model E" and s > 1.0:
+                curve = _oblique_reference_curve(isotope, reference, float(s))
+            else:
+                curve = _reference_curve(isotope, reference, tier)
             log_b = None if curve is None else _log_b(tier, isotope, wall)
+            if log_b is not None and tier == "model E":
+                log_b += oblique.log10_factor(_simulated_layers(layers), energy, float(s))
             t_eq = None if log_b is None else _thickness_for(curve, log_b)
             if t_eq is not None:
                 out.append(t_eq / s)
