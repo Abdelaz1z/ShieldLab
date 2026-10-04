@@ -286,6 +286,22 @@ def test_every_app_material_is_served_by_the_surrogate():
         assert served["Wall N"].engine == "surrogate", (material, served["Wall N"].note)
 
 
+def test_the_layer_menu_offers_every_material_the_surrogate_serves():
+    """Gypsum, the glasses, wood and water have no radionuclide broad-beam data, so only model E
+    serves them; the maze's return wall keeps the analytical list."""
+    from shieldlab.room import surrogate_e as sur_e
+    from shieldlab.room.engines import load_bundle, usable_wall_materials, wall_layer_materials
+
+    if not sur_e.is_model_e(load_bundle()):
+        print("SKIP layer-menu test: model E is not the loaded bundle")
+        return
+    for isotope in ("Tc-99m", "F-18", "I-131", "Lu-177"):
+        offered = wall_layer_materials(isotope)
+        assert offered[:len(usable_wall_materials(isotope))] == usable_wall_materials(isotope)
+        assert {"gypsum", "lead_glass", "plate_glass", "wood", "water"} <= set(offered)
+        assert len(offered) == len(set(offered))
+
+
 def test_design_mode_evaluates_a_duct_through_the_wall_as_designed():
     """A duct in a surrogate-sized wall is served through the sized wall, not the declared one."""
     from dataclasses import replace

@@ -7,7 +7,7 @@ from math import isclose, isfinite
 
 import streamlit as st
 
-from shieldlab.room.engines import usable_wall_materials
+from shieldlab.room.engines import usable_wall_materials, wall_layer_materials
 from shieldlab.room.model import (
     ISOTOPES,
     OCCUPANCY_MENU,
@@ -111,7 +111,11 @@ def _opening_load_errors(
     return errors
 
 
-def _wall_load_errors(wall: Wall, available_materials: set[str]) -> list[str]:
+def _wall_load_errors(
+    wall: Wall,
+    available_materials: set[str],
+    return_materials: set[str],
+) -> list[str]:
     wall_label = str(wall.id)
     errors = []
     if wall.material1 not in available_materials:
@@ -136,7 +140,7 @@ def _wall_load_errors(wall: Wall, available_materials: set[str]) -> list[str]:
     if custom_goal is not None and not _number_in_range(custom_goal, 0.0001, 10.0):
         errors.append(f"Wall {wall_label} custom design goal is outside the editor range.")
     for opening in wall.openings:
-        errors.extend(_opening_load_errors(opening, wall_label, available_materials))
+        errors.extend(_opening_load_errors(opening, wall_label, return_materials))
     return errors
 
 
@@ -151,13 +155,15 @@ def _design_load_errors(room_design: RoomDesign) -> list[str]:
     if room_design.source.isotope not in ISOTOPES:
         errors.append("The radionuclide is not supported.")
 
+    known_isotope = room_design.source.isotope in ISOTOPES
     available_materials = set(
-        usable_wall_materials(room_design.source.isotope)
-        if room_design.source.isotope in ISOTOPES
-        else []
+        wall_layer_materials(room_design.source.isotope) if known_isotope else []
+    )
+    return_materials = set(
+        usable_wall_materials(room_design.source.isotope) if known_isotope else []
     )
     for wall in room_design.walls:
-        errors.extend(_wall_load_errors(wall, available_materials))
+        errors.extend(_wall_load_errors(wall, available_materials, return_materials))
     try:
         errors.extend(room_design.validate())
     except (AttributeError, TypeError):
@@ -824,7 +830,9 @@ def wall_editor(
         )
         _adjacent_area_editor(room_design, selected_wall)
         _barrier_layers_editor(selected_wall, assessment_mode, materials)
-        _openings_editor(room_design, selected_wall, materials)
+        # the corner surrogate behind a maze was trained on fewer materials than model E
+        return_materials = usable_wall_materials(room_design.source.isotope) or ["concrete"]
+        _openings_editor(room_design, selected_wall, return_materials)
 
 
 

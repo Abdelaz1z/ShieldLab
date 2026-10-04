@@ -34,6 +34,9 @@ from .transport_materials import model_material, served_as_note, simulated_thick
 
 # candidate wall materials, in the order to offer them; probed for real data below
 _CANDIDATE_WALL_MATERIALS = ("concrete", "lead", "steel", "barite_concrete", "brick", "gypsum")
+# materials model E5 was trained on beyond those: the broad-beam tables hold no radionuclide data
+# for most of them, so they are offered for a wall's layers only while model E is loaded
+_SURROGATE_WALL_MATERIALS = ("gypsum", "lead_glass", "plate_glass", "wood", "water")
 
 
 @dataclass
@@ -119,6 +122,20 @@ def usable_wall_materials(isotope: str) -> List[str]:
         except Exception:
             continue
     return ok
+
+
+def wall_layer_materials(isotope: str) -> List[str]:
+    """Materials offered for a wall's layers: those with analytical data for this isotope, then
+    those the loaded model E serves. Outside model E's domain the latter have no analytical
+    fallback, and the result says a Monte-Carlo run is needed."""
+    from . import surrogate_e as se
+    offered = usable_wall_materials(isotope)
+    bundle = load_bundle()
+    if bundle is None or not se.is_model_e(bundle):
+        return offered
+    served = bundle["material_map"]
+    return offered + [m for m in _SURROGATE_WALL_MATERIALS
+                      if m not in offered and model_material(m) in served]
 
 
 class AnalyticalEngine:
