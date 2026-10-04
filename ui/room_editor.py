@@ -122,6 +122,12 @@ def _wall_load_errors(wall: Wall, available_materials: set[str]) -> list[str]:
         errors.append(f"Wall {wall_label} primary thickness must be between 0 and 3,000 mm.")
     if not _number_in_range(wall.thickness2_mm, 0.0, 3000.0):
         errors.append(f"Wall {wall_label} second thickness must be between 0 and 3,000 mm.")
+    if wall.material3 is not None and wall.material3 not in available_materials:
+        errors.append(f"Wall {wall_label} uses an unsupported third material.")
+    if wall.material3 and wall.thickness3_mm > 0 and not (wall.material2 and wall.thickness2_mm > 0):
+        errors.append(f"Wall {wall_label} has a third layer but no second layer in front of it.")
+    if not _number_in_range(wall.thickness3_mm, 0.0, 3000.0):
+        errors.append(f"Wall {wall_label} third thickness must be between 0 and 3,000 mm.")
     if wall.adjacent.kind not in ("public", "controlled"):
         errors.append(f"Wall {wall_label} has an unsupported area classification.")
     if not _number_in_range(wall.adjacent.occupancy_T, 0.0001, 1.0):
@@ -539,6 +545,7 @@ def _second_layer_editor(wall, materials: list[str]) -> None:
     )
     if not laminate_enabled:
         wall.material2, wall.thickness2_mm = None, 0.0
+        wall.material3, wall.thickness3_mm = None, 0.0
         return
     material_col, thickness_col = st.columns(2)
     wall.material2 = material_col.selectbox(
@@ -558,10 +565,42 @@ def _second_layer_editor(wall, materials: list[str]) -> None:
     )
 
 
+def _third_layer_editor(wall, materials: list[str]) -> None:
+    if not wall.material2:
+        return
+    material_labels = _term_labels(materials)
+    third_enabled = st.checkbox(
+        i18n.t("add_third_layer"),
+        key=f"l3ck_{wall.id}",
+        value=bool(wall.material3),
+        help=i18n.t("third_layer_help"),
+    )
+    if not third_enabled:
+        wall.material3, wall.thickness3_mm = None, 0.0
+        return
+    material_col, thickness_col = st.columns(2)
+    wall.material3 = material_col.selectbox(
+        i18n.t("third_material"),
+        materials,
+        index=materials.index(wall.material3) if wall.material3 in materials else 0,
+        format_func=material_labels.__getitem__,
+        key=f"m3_{wall.id}",
+    )
+    wall.thickness3_mm = thickness_col.number_input(
+        i18n.t("third_thickness"),
+        0.0,
+        3000.0,
+        wall.thickness3_mm or 0.0,
+        5.0,
+        key=f"t3_{wall.id}",
+    )
+
+
 def _barrier_layers_editor(wall, assessment_mode: str, materials: list[str]) -> None:
     st.markdown(f"### {i18n.t('barrier_build_up')}")
     _primary_layer_editor(wall, assessment_mode, materials)
     _second_layer_editor(wall, materials)
+    _third_layer_editor(wall, materials)
 
 
 def _append_opening(wall, span_m: float, opening_kind: str) -> None:

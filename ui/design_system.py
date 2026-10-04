@@ -1542,6 +1542,22 @@ button[kind="primary"]:hover, .stDownloadButton > button[kind="primary"]:hover {
 .sl-status-card { gap: 13px; margin: 10px 0 16px; padding: 18px 20px; border-inline-start-width: 5px; border-radius: 13px; box-shadow: none; }
 .sl-status-symbol { width: 34px; height: 34px; font-size: 16px; }
 
+/* Step headers: Streamlit renders the h2 with its own padding and an anchor link, and the detail
+   rule above reached the heading's inner span, so titles showed small, grey and pushed down. */
+.sl-step-copy h2 { padding: 0 !important; margin: 0 !important; color: #102a43; font-size: 17px; font-weight: 700; line-height: 29px; }
+.sl-step-copy h2 span { display: inline; margin: 0; color: inherit; font-size: inherit; line-height: inherit; }
+.sl-step-copy [data-testid="stHeaderActionElements"] { display: none; }
+.sl-step-copy > span { margin-block-start: 2px; }
+
+/* Legibility floor: labels and captions no smaller than 10.5-11px. */
+[data-testid="stWidgetLabel"] p { font-size: 11px; }
+.sl-context-item span, [data-testid="stMetricLabel"] p { font-size: 10.5px; }
+.sl-badge, .sl-eyebrow { font-size: 10px; }
+[data-testid="stCaptionContainer"] { font-size: 12.5px; line-height: 1.55; }
+
+/* A button keeps its label on one line. */
+.stButton > button p { white-space: nowrap; }
+
 @media (max-width: 1080px) { .sl-context-strip { grid-template-columns: repeat(3,minmax(0,1fr)); } .sl-context-item:nth-child(3n) { border-inline-end: 0; } }
 @media (max-width: 720px) { [data-testid="stMainBlockContainer"], .block-container { padding-inline: 1rem; } .sl-page-header { padding: 20px 18px; } .sl-page-header h1 { font-size: 29px; } .sl-context-strip { grid-template-columns: repeat(2,minmax(0,1fr)); } .sl-context-item { min-height: 64px; padding: 10px; } .sl-context-item:nth-child(2n) { border-inline-end: 0; } }
 </style>

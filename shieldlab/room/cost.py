@@ -69,9 +69,7 @@ def _declared_build(wall) -> Optional[MaterialOption]:
     thickness. Returns None only if the wall names no known material."""
     mats = dl.materials()["materials"]
     costs = dl.materials_cost()["materials"]
-    raw = [(wall.material1, wall.thickness1_mm)]
-    if wall.material2:
-        raw.append((wall.material2, wall.thickness2_mm))
+    raw = [(wall.material1, wall.thickness1_mm)] + wall.back_layers()
     layers = [(m, max(float(t), 0.0)) for m, t in raw if m and m in mats]
     if not layers:
         return None

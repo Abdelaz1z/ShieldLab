@@ -42,11 +42,12 @@ def test_bundle_loads():
     from shieldlab.room import surrogate_e as sur_e
     meta = se.bundle["meta"]
     if sur_e.is_model_e(se.bundle):
-        # Model E': the training set only ever grows, and the deployed copy must be the frozen
-        # model whose 800 test configurations passed E-Domain-1's four hypotheses.
-        assert meta["n_rows"] >= 20017
+        # Model E5: the training set only ever grows, and the deployed copy must be the frozen
+        # model whose 85 test configurations passed E-Domain-6's four hypotheses.
+        assert meta["n_rows"] >= 21936
         assert meta["all_pass"] is True
-        assert meta["test_set"]["n"] == 800
+        assert meta["model_name"] == "E5"
+        assert meta["test_set"]["n"] == 85
         assert meta["test_set"]["rmse"] < 0.03
         assert 0.93 <= meta["test_set"]["coverage"] <= 0.99
         assert len(se.bundle["features"]) == 12
@@ -57,16 +58,16 @@ def test_bundle_loads():
         assert meta["cqr95_coverage_holdout"] >= 0.95
 
 
-# Three configurations from E-Domain-1's test set (research hpc_campaign/manifest_edomain1.csv),
-# one per new class: lead behind concrete, thin gypsum, thin gypsum with lead behind it. E' was
-# frozen before they were simulated; the values are what the frozen E' serves, reproduced by the
-# research's build_app_bundle_e_prime.py. The app must match them from its own feature builder.
+# Three configurations from E-Domain-6's test set (research hpc_campaign/manifest_edomain6.csv,
+# rows 763300, 763341 and 763345): a 12.1 mfp concrete wall, thin lead, and Geant4 lead glass. E5
+# was frozen before they were simulated; the values are what the frozen E5 serves, reproduced by
+# the research's build_app_bundle_e_fifth.py. The app must match them from its own feature builder.
 SEALED_PREDICTIONS = [
     # (energy keV, thickness mm, duct radius mm, offset mm, material, layer2, layer2 mm,
     #  point, lower, upper)
-    (140.5, 62.45, 0.0, 0.0, "concrete", "lead", 1.02, -1.908588152437, -1.928310436241, -1.736115630452),
-    (140.5, 7.72, 0.0, 0.0, "gypsum", None, 0.0, -0.086304604539, -0.092349171191, -0.078173812170),
-    (140.5, 3.29, 0.0, 0.0, "gypsum", "lead", 2.73, -3.083389148626, -3.143260104076, -2.698353372371),
+    (140.5, 356.52, 0.0, 0.0, "concrete", None, 0.0, -4.162014226493, -4.520667734760, -3.911771176322),
+    (208.0, 0.64, 0.0, 0.0, "lead", None, 0.0, -0.267856797411, -0.280508264920, -0.224243467910),
+    (208.0, 7.0, 0.0, 0.0, "lead_glass", None, 0.0, -1.258222997801, -1.273126094863, -1.141878577935),
 ]
 
 
@@ -244,10 +245,20 @@ def test_sizing_does_not_step_over_an_out_of_domain_thickness():
     assert holed["Wall N"].suggested_thickness_mm > hole, holed["Wall N"].note
 
 
+def _without_wood(design, mode):
+    """`_both` with wood taken out of the surrogate's material map. Every material the app offers is
+    in model E5's, so an untrained material is simulated by removing one."""
+    analytical = AnalyticalEngine(design).evaluate_all(mode)
+    engine = SurrogateEngine(design)
+    materials = {k: v for k, v in engine.bundle["material_map"].items() if k != "wood"}
+    engine.bundle = dict(engine.bundle, material_map=materials)
+    return engine, {r.label: r for r in engine.evaluate_all(mode, analytical)}
+
+
 def test_design_mode_leaves_an_unmodelled_material_to_the_analytical_tier():
     """A wall of a material the surrogate never trained on is neither sized nor mislabelled."""
     design = _room(iso="F-18", mbq=3700.0, material="wood")
-    _, _, served = _both(design, mode="design")
+    _, served = _without_wood(design, "design")
     result = served["Wall N"]
     assert result.suggested_thickness_mm is None
     assert "found no thickness" not in result.note
@@ -260,11 +271,19 @@ def test_an_unmodelled_second_layer_is_disclosed():
 
     design = _room(iso="F-18", thickness=200.0, material="concrete")
     design.wall("N").material2, design.wall("N").thickness2_mm = "wood", 50.0
-    engine, _, served = _both(design, mode="check")
+    engine, served = _without_wood(design, "check")
     if not sur_e.is_model_e(engine.bundle):
         print("SKIP omitted-layer test: model E is not the loaded bundle")
         return
     assert "(wood) is not among the surrogate's training materials" in served["Wall N"].note
+
+
+def test_every_app_material_is_served_by_the_surrogate():
+    """E5 trained on every material the Room Designer offers, so none falls back for want of data."""
+    for material, thickness in (("wood", 300.0), ("plate_glass", 100.0), ("water", 300.0),
+                                ("lead_glass", 5.0)):
+        _, _, served = _both(_room(iso="Tc-99m", thickness=thickness, material=material))
+        assert served["Wall N"].engine == "surrogate", (material, served["Wall N"].note)
 
 
 def test_design_mode_evaluates_a_duct_through_the_wall_as_designed():

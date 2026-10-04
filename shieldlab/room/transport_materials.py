@@ -17,22 +17,36 @@ from typing import Optional
 
 from .. import data_loader
 
-# Geant4 material and density (g/cm3) behind each name the models were trained on.
+# Geant4 material and density (g/cm3) behind each name model E serves. The app's lead glass, a
+# 5.2 g/cm3 viewing-window glass, is served as SCHOTT RS 520 (5.18 g/cm3, 71 wt% PbO), which
+# E-Domain-4 simulated for it; Geant4's own G4_GLASS_LEAD (6.22 g/cm3) is a heavier glass and is not
+# what the app sells. Wood is simulated as cellulose (E-Domain-2).
 SIMULATED = {
     "lead": ("G4_Pb", 11.35),
     "concrete": ("G4_CONCRETE", 2.30),
     "steel": ("G4_STAINLESS-STEEL", 8.00),
     "gypsum": ("G4_GYPSUM, solid", 2.32),
-    "lead_glass": ("G4_GLASS_LEAD", 6.22),
+    "lead_glass": ("RS 520 lead glass (SCHOTT, 71% PbO)", 5.18),
     "barite_concrete": ("PNNL-15870 barite concrete BA", 3.35),
     "brick": ("PNNL-15870 common silica brick", 1.80),
+    "wood": ("G4_CELLULOSE_CELLOPHANE", 1.42),
+    "plate_glass": ("G4_GLASS_PLATE", 2.40),
+    "water": ("G4_WATER", 1.00),
 }
+
+# The name in model E's material map where it differs from the app's.
+MODEL_MATERIAL = {"lead_glass": "lead_glass_rs520"}
 
 # Lead glass gets lighter by carrying less lead, so its mass attenuation falls with its density
 # and equal mass per area is not equal attenuation. It is served only at the simulated density.
 COMPOSITION_TRACKS_DENSITY = frozenset({"lead_glass"})
 SAME_DENSITY_TOLERANCE = 0.005
 NOTE_THRESHOLD = 0.005
+
+
+def model_material(material: str) -> str:
+    """The name model E's material map carries for an app material."""
+    return MODEL_MATERIAL.get(material, material)
 
 
 def product_density_gcm3(material: str) -> Optional[float]:

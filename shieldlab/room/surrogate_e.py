@@ -3,9 +3,11 @@ surrogate_e.py
 ==============
 Features and 95% prediction interval for the model-E surrogate, the MC-trained model the paper
 reports (15,417 training configurations, tested on 2,400 recorded before simulation). The bundle
-served now is E', the same recipe refitted on 20,017 configurations that add lead behind another
-layer and thin gypsum (research `EDOMAIN1_PLAN.md`; all four pre-registered tests passed on 800
-configurations simulated after it was frozen). Its features and interval are E's.
+served now is E5, the same recipe refitted on 21,936 configurations: E-Domain-1 to -6 added lead
+behind another layer, thin gypsum, two-layer non-lead walls, barite, RS 520 lead glass, wood, plate
+glass, water and walls 11-12.5 mean free paths deep, each study passing its pre-registered tests on
+configurations simulated after its model was frozen (research `EDOMAIN1_PLAN.md` to
+`EDOMAIN6_PLAN.md`). Its features and interval are E's.
 
 Model E differs from the earlier eight-feature bundle in two ways this module has to reproduce
 exactly, or the app would serve numbers the paper did not test:
@@ -18,8 +20,9 @@ exactly, or the app would serve numbers the paper did not test:
 
 The arithmetic mirrors the research repository (`src/model_e.py`, `src/duct_streaming.py`,
 `src/paper_a_error_budget.py`, `src/mondrian_band.py`). The research repository's
-`src/build_app_bundle_e_prime.py` replays E' through this module on its 800 test configurations and
-the 2,400 of E's test set, and refuses to package the bundle if anything drifts;
+`src/build_app_bundle_e_fifth.py` replays E5 through this module on E-Domain-6's 85 and E-Domain-1's
+800 test configurations and the 2,400 of E's test set, and refuses to package the bundle if anything
+drifts;
 `tests/test_room_surrogate.py` pins three of them here, so the app and the research cannot diverge.
 """
 

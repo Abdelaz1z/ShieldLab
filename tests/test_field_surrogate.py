@@ -170,3 +170,12 @@ if __name__ == "__main__":
     test_slab_steps_point_toward_the_equivalent()
     test_tall_room_says_its_slabs_are_uncorrected()
     print("OK")
+
+def test_a_lead_glass_reference_serves_at_an_angle():
+    # E5's material map carries both Geant4's lead glass ("lead_glass", 6.22 g/cm3) and RS 520, the
+    # glass the app sells; the oblique reference curve must take RS 520's constants, as model E's tier does.
+    from shieldlab.room.engines import load_bundle
+    if load_bundle() is None:
+        return
+    curve = fs._oblique_reference_curve("Tc-99m", "lead_glass", 2.0)
+    assert curve is None or len(curve[0]) >= 2

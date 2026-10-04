@@ -256,10 +256,7 @@ def _dominant_material(design) -> str:
 
 
 def _wall_layers(wall):
-    layers = [(wall.material1, wall.thickness1_mm)]
-    if wall.material2 and wall.thickness2_mm > 0:
-        layers.append((wall.material2, wall.thickness2_mm))
-    return tuple((m, float(t)) for m, t in layers if t > 0)
+    return tuple(wall.layers())
 
 
 def _app_layers(material: str, simulated_mm: float):
@@ -275,8 +272,9 @@ def _normal_path(layers):
     builds them."""
     from .geometry import BarrierPath
     from .model import Wall
-    (m1, t1), (m2, t2) = layers[0], (layers[1] if len(layers) > 1 else (None, 0.0))
-    wall = Wall(id="field", material1=m1, thickness1_mm=t1, material2=m2, thickness2_mm=t2)
+    (m1, t1), (m2, t2), (m3, t3) = (list(layers) + [(None, 0.0)] * 2)[:3]
+    wall = Wall(id="field", material1=m1, thickness1_mm=t1, material2=m2, thickness2_mm=t2,
+                material3=m3, thickness3_mm=t3)
     path = BarrierPath(wall_id="field", kind="wall", label="field", d_pop_m=1.0, perp_m=1.0,
                        offset_m=0.0, pop_xy=(0.0, 0.0))
     return path, wall
@@ -352,13 +350,14 @@ def _simulated_layers(layers):
     """(zeff, density, simulated mm) of each layer model E serves, as `engines._model_e_row` builds
     them; a layer outside its material map is left out, as model E leaves it out."""
     from .engines import load_bundle
-    from .transport_materials import simulated_thickness_mm
+    from .transport_materials import model_material, simulated_thickness_mm
     materials = load_bundle()["material_map"]
     out = []
     for material, t_mm in layers:
-        served = simulated_thickness_mm(material, t_mm) if material in materials else None
+        name = model_material(material)
+        served = simulated_thickness_mm(material, t_mm) if name in materials else None
         if served is not None:
-            out.append((materials[material]["zeff"], materials[material]["density_gcm3"], served))
+            out.append((materials[name]["zeff"], materials[name]["density_gcm3"], served))
     return tuple(out)
 
 
@@ -370,7 +369,8 @@ def _oblique_reference_curve(isotope: str, reference: str, slant: float):
     if curve is None:
         return None
     from .engines import load_bundle
-    entry = load_bundle()["material_map"][reference]
+    from .transport_materials import model_material
+    entry = load_bundle()["material_map"][model_material(reference)]
     energy = ISOTOPE_ENERGY_KEV[isotope]
     t, b = curve
     raised = [(ti, bi + oblique.log10_factor(((entry["zeff"], entry["density_gcm3"], ti / slant),),

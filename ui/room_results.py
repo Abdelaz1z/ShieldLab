@@ -176,9 +176,8 @@ def _wall_build_text(
         return (f"{suggested:g} mm {material}",
                 i18n.t("surrogate_sized_build", analytical=analytical_text))
 
-    layers = [f"{wall.thickness1_mm:g} mm {i18n.term(wall.material1)}"]
-    if wall.material2 and wall.thickness2_mm > 0:
-        layers.append(f"{wall.thickness2_mm:g} mm {i18n.term(wall.material2)}")
+    layers = [f"{thickness:g} mm {i18n.term(material)}"
+              for material, thickness in [(wall.material1, wall.thickness1_mm)] + wall.back_layers()]
     opening_kind = analytical_result.label.partition("·")[2].strip()
     if not opening_kind:
         return " + ".join(layers), i18n.t("declared_build")
@@ -684,6 +683,11 @@ def _render_transport_check(assessment: RoomAssessment) -> None:
     with st.expander(i18n.t("mc_view"), expanded=False):
         if not transport_engine.available():
             st.info(i18n.t("mc_unavailable"))
+            return
+        # the transport tier builds each wall from its first two layers only
+        three_layer_walls = [wall.id for wall in assessment.design.walls if len(wall.back_layers()) > 1]
+        if three_layer_walls:
+            st.info(i18n.t("mc_three_layers", walls=", ".join(three_layer_walls)))
             return
         design_json = assessment.design.to_json()
         layers_json = json.dumps(_designed_layers(assessment))

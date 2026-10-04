@@ -13,12 +13,21 @@ from shieldlab.room.model import AdjacentArea, RoomDesign  # noqa: E402
 
 
 def test_the_table_is_the_geant4_one():
-    # Read from GATE 10.1 / Geant4 11.4.1 in the production container on 2026-09-21. A change
-    # here means the physics the models learned has been misdescribed, not that the app improved.
+    # Read from GATE 10.1 / Geant4 11.4.1 in the production container on 2026-09-21; lead glass is
+    # E-Domain-4's RS 520 and wood, plate glass and water E-Domain-2's. A change here means the
+    # physics the models learned has been misdescribed, not that the app improved.
     assert {name: density for name, (_, density) in tm.SIMULATED.items()} == {
         "lead": 11.35, "concrete": 2.30, "steel": 8.00, "gypsum": 2.32,
-        "lead_glass": 6.22, "barite_concrete": 3.35, "brick": 1.80,
+        "lead_glass": 5.18, "barite_concrete": 3.35, "brick": 1.80,
+        "wood": 1.42, "plate_glass": 2.40, "water": 1.00,
     }
+
+
+def test_every_simulated_material_is_in_model_e():
+    engine = SurrogateEngine(RoomDesign.default())
+    if not engine.available():
+        pytest.skip("no surrogate bundle loaded")
+    assert {tm.model_material(name) for name in tm.SIMULATED} <= set(engine.bundle["material_map"])
 
 
 def test_wallboard_is_served_as_the_solid_gypsum_with_its_mass():
@@ -35,14 +44,26 @@ def test_lead_and_brick_are_unchanged():
     assert tm.simulated_thickness_mm("brick", 230.0) == pytest.approx(230.0)
 
 
-def test_lead_glass_of_another_density_is_not_rescaled():
+def test_the_apps_lead_glass_is_served_as_rs520():
+    # The app's 5.2 g/cm3 glass is within 0.5% of RS 520's 5.18, so it is served at its own thickness
+    # (x 5.2/5.18), under model E's name for RS 520.
+    assert tm.simulated_thickness_mm("lead_glass", 20.0) == pytest.approx(20.0 * 5.2 / 5.18)
+    assert tm.model_material("lead_glass") == "lead_glass_rs520"
+    assert tm.model_material("concrete") == "concrete"
+
+
+def test_lead_glass_of_another_density_is_not_rescaled(monkeypatch):
     # Its lead fraction falls with its density, so equal mass per area is not equal attenuation.
-    assert tm.product_density_gcm3("lead_glass") != pytest.approx(6.22, rel=0.005)
+    monkeypatch.setattr(tm, "product_density_gcm3", lambda material: 4.80)
     assert tm.simulated_thickness_mm("lead_glass", 20.0) is None
 
 
 def test_a_material_never_simulated_has_no_simulated_thickness():
-    assert tm.simulated_thickness_mm("wood", 50.0) is None
+    assert tm.simulated_thickness_mm("polyethylene", 50.0) is None
+
+
+def test_wood_is_served_as_cellulose_of_its_mass():
+    assert tm.simulated_thickness_mm("wood", 50.0) == pytest.approx(50.0 * 0.56 / 1.42)
 
 
 def test_the_note_names_the_conversion_only_when_it_changes_the_wall():
