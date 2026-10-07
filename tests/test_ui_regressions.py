@@ -260,6 +260,20 @@ def test_shrinking_room_with_opening_keeps_editor_renderable_and_geometry_valid(
     assert not [error for error in design.validate() if "opening" in error.lower()]
 
 
+def test_resizing_room_keeps_source_position_and_clamps_it_inside():
+    app = _run_app(ROOM_APP_PATH)
+    start = app.session_state["design"].source
+    start_x, start_y = start.x_m, start.y_m
+
+    _element_with_label(app.number_input, "Width · West to East (m)").set_value(10.0).run()
+    design = app.session_state["design"]
+    assert (design.source.x_m, design.source.y_m) == (start_x, start_y)
+
+    _element_with_label(app.number_input, "Width · West to East (m)").set_value(1.5).run()
+    assert app.session_state["design"].source.x_m == 1.5
+    assert not app.exception
+
+
 def test_room_context_uses_source_values_changed_in_the_same_rerun():
     app = _run_app(ROOM_APP_PATH)
     _element_with_label(app.selectbox, "Radionuclide").select("I-131")

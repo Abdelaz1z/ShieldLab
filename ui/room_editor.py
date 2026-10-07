@@ -355,42 +355,30 @@ def _source_workload(room_design: RoomDesign) -> None:
     )
 
 
-def _source_slider_default(
-    key: str,
-    model_value: float,
-    maximum: float,
-) -> float | None:
-    if key not in st.session_state:
-        return min(max(model_value, 0.0), maximum)
-    widget_value = float(st.session_state[key])
-    bounded_value = min(max(widget_value, 0.0), maximum)
-    if not isclose(widget_value, bounded_value, rel_tol=0.0, abs_tol=1e-9):
-        st.session_state[key] = bounded_value
-    return None
+def _seed_source_slider(key: str, model_value: float, maximum: float) -> None:
+    # A new room dimension changes the slider's max, and Streamlit then treats it as a new widget
+    # whose value falls back to the minimum (the source jumped onto the wall). Writing the bounded
+    # position into session state before the slider is built carries it across that reset.
+    current_value = float(st.session_state.get(key, model_value))
+    st.session_state[key] = min(max(current_value, 0.0), maximum)
 
 
 def _source_position(room_design: RoomDesign) -> None:
-    source_x = _source_slider_default(
-        "room_source_x_m", room_design.source.x_m, room_design.room.width_m
-    )
-    source_y = _source_slider_default(
-        "room_source_y_m", room_design.source.y_m, room_design.room.length_m
-    )
+    _seed_source_slider("room_source_x_m", room_design.source.x_m, room_design.room.width_m)
+    _seed_source_slider("room_source_y_m", room_design.source.y_m, room_design.room.length_m)
     x_col, y_col = st.columns(2)
     room_design.source.x_m = x_col.slider(
         i18n.t("source_x"),
         0.0,
         room_design.room.width_m,
-        source_x,
-        0.1,
+        step=0.1,
         key="room_source_x_m",
     )
     room_design.source.y_m = y_col.slider(
         i18n.t("source_y"),
         0.0,
         room_design.room.length_m,
-        source_y,
-        0.1,
+        step=0.1,
         key="room_source_y_m",
     )
 
