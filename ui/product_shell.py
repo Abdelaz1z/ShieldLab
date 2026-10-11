@@ -114,6 +114,11 @@ def _workspace_links() -> None:
             label=i18n.t("room_designer"),
             icon=":material/architecture:",
         )
+        st.page_link(
+            "pages/2_Draw_and_Survey.py",
+            label=i18n.t("draw_survey"),
+            icon=":material/draw:",
+        )
     except KeyError:
         st.markdown(_workspace_fallback_html(), unsafe_allow_html=True)
 
@@ -144,6 +149,7 @@ def render_sidebar(active_workspace: str) -> None:
     workspace_keys = {
         "calculator": "barrier_assessment",
         "room": "room_designer",
+        "draw": "draw_survey",
     }
     active_message_key = workspace_keys.get(active_workspace)
     active_label = i18n.t(active_message_key) if active_message_key else str(active_workspace)

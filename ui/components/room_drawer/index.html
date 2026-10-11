@@ -1,0 +1,4315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Room Designer — Radiation Survey Plans</title>
+<style>
+/* ───────── base ───────── */
+:root{
+  --bg:#f4f5f7;
+  --panel:#ffffff;
+  --line:#dfe3e8;
+  --ink:#16191d;
+  --muted:#6b7280;
+  --accent:#1b6ef3;
+  --accent-soft:#e8f0fe;
+  --danger:#d43b3b;
+  --radius:7px;
+  --tools-w:74px;
+  --props-w:262px;
+  --top-h:50px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-size:13px;overflow:hidden}
+button{font:inherit;color:inherit;touch-action:manipulation}
+hr{border:0;border-top:1px solid var(--line);margin:10px 0}
+.muted{color:var(--muted)}
+.grow{flex:1}
+
+/* ───────── buttons ───────── */
+.btn{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  padding:6px 11px;cursor:pointer;line-height:1.2;white-space:nowrap;
+}
+.btn:hover{background:#f0f2f5}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.danger{color:var(--danger);border-color:#f0c9c9}
+.btn.danger:hover{background:#fdf1f1}
+.btn.icon{padding:6px 9px;min-width:32px}
+.btn.wide{width:100%;margin-top:6px}
+.btn[disabled]{opacity:.4;cursor:default}
+.sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+
+/* ───────── topbar ───────── */
+.topbar{
+  height:var(--top-h);display:flex;align-items:center;gap:10px;padding:0 12px;
+  background:var(--panel);border-bottom:1px solid var(--line);position:relative;z-index:20;
+}
+.brand{display:flex;align-items:center;gap:7px;font-weight:650;letter-spacing:-.2px}
+.brand svg{color:var(--accent)}
+.doc-name{
+  border:1px solid transparent;background:transparent;border-radius:var(--radius);
+  padding:6px 9px;font:inherit;font-weight:550;width:230px;
+}
+.doc-name:hover{border-color:var(--line)}
+.doc-name:focus{outline:none;border-color:var(--accent);background:#fff}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:6px;position:relative}
+.menu{
+  position:absolute;top:38px;right:0;background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:0 8px 26px rgba(0,0,0,.14);padding:5px;min-width:186px;z-index:30;
+}
+.menu button{display:block;width:100%;text-align:left;background:none;border:0;padding:7px 10px;border-radius:5px;cursor:pointer}
+.menu button:hover{background:var(--accent-soft)}
+/* a plain part of the toolbar on a desktop; a dropdown once the bar runs out of room */
+.bar-group{display:contents}
+#btnMore{display:none}
+
+/* ───────── layout ───────── */
+.workspace{display:flex;height:calc(100% - var(--top-h))}
+
+.tools{
+  width:var(--tools-w);background:var(--panel);border-right:1px solid var(--line);
+  padding:8px 7px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;
+}
+.tools hr{margin:6px 2px}
+.tool{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:none;border:1px solid transparent;border-radius:var(--radius);
+  padding:7px 2px;cursor:pointer;
+}
+.tool .ti{font-size:16px;line-height:1}
+.tool em{font-style:normal;font-size:10px;color:var(--muted)}
+.tool:hover{background:#f0f2f5}
+.tool.active{background:var(--accent-soft);border-color:#c3d8fb}
+.tool.active em{color:var(--accent)}
+
+.stage{flex:1;position:relative;overflow:hidden;background:
+  linear-gradient(0deg,rgba(0,0,0,.02),rgba(0,0,0,.02)),#eef0f3}
+.stage,.tools{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+/* finishing a shape without a keyboard */
+.draftbar{position:absolute;left:50%;transform:translateX(-50%);bottom:52px;display:flex;gap:6px;z-index:12}
+.sheet-toggle{display:none}
+.hint{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:14px;
+  background:rgba(20,22,26,.88);color:#fff;padding:6px 13px;border-radius:20px;
+  font-size:12px;pointer-events:none;opacity:0;transition:opacity .15s;
+}
+.hint.on{opacity:1}
+.zoombar{
+  position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:6px;
+  background:#fff;border:1px solid var(--line);border-radius:20px;padding:3px 5px;
+}
+.zoombar span{min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
+
+.props{
+  width:var(--props-w);background:var(--panel);border-left:1px solid var(--line);
+  padding:12px;overflow-y:auto;
+}
+.panel h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+
+/* collapsible groups in the Plan panel */
+.grp{border-top:1px solid var(--line)}
+.grp:first-child{border-top:0}
+.grp-head{
+  display:flex;align-items:center;width:100%;background:none;border:0;cursor:pointer;
+  padding:10px 2px;font:inherit;font-size:12px;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--muted);text-align:left;
+}
+.grp-head:hover{color:var(--ink)}
+.grp-head .chev{margin-left:auto;font-size:10px;transition:transform .15s}
+.grp.closed .chev{transform:rotate(-90deg)}
+.grp.closed .grp-body{display:none}
+.grp-body{padding-bottom:9px}
+.grp-body .row:first-child{margin-top:0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:7px 0}
+.row>span:first-child{color:var(--muted);flex:0 0 auto}
+.row input[type=number],.row input[type=text],.row select{
+  width:104px;padding:5px 7px;border:1px solid var(--line);border-radius:5px;font:inherit;background:#fff;
+}
+.row input[type=range]{width:104px}
+.row.check{justify-content:flex-start;gap:8px}
+.row.check span{color:var(--ink)}
+.row2{display:flex;gap:6px;margin-top:8px}
+.row2 .btn{flex:1}
+.field-note{color:var(--muted);font-size:11px;margin:2px 0 8px}
+.seg{display:flex;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.seg button{flex:1;background:#fff;border:0;border-right:1px solid var(--line);padding:5px 0;cursor:pointer;font-size:12px}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--accent);color:#fff}
+
+/* ───────── modal ───────── */
+.modal{position:fixed;inset:0;background:rgba(16,18,22,.45);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal-box{background:#fff;border-radius:12px;width:min(1000px,92vw);height:min(720px,88vh);display:flex;flex-direction:column;overflow:hidden}
+.modal-box.narrow{width:min(520px,94vw);height:auto;max-height:92vh}
+.modal-body{padding:16px;overflow-y:auto}
+.modal-body .row input[type=text],.modal-body .row input[type=password],.modal-body .row select{width:250px}
+.modal-foot.ai-foot{display:flex;align-items:center;gap:10px}
+.modal-foot.ai-foot .muted{font-size:11.5px;max-width:250px;line-height:1.35}
+.ai-status{margin-top:12px;padding:10px 12px;border-radius:7px;background:#f2f4f7;border:1px solid var(--line);font-size:12.5px;line-height:1.45}
+.ai-status.busy{background:var(--accent-soft);border-color:#c3d8fb}
+.ai-status.bad{background:#fdf1f1;border-color:#f0c9c9;color:#8d2b2b}
+.ai-status.good{background:#eef8f0;border-color:#c8e6cf;color:#245c34}
+.modal-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.modal-head h2{margin:0;font-size:16px}
+.modal-head input{padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius);font:inherit;width:220px}
+.modal-foot{padding:10px 16px;border-top:1px solid var(--line)}
+.lib-grid{flex:1;overflow-y:auto;padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(206px,1fr));gap:14px;align-content:start}
+.lib-card{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.lib-card .thumb{height:140px;background:#fafbfc;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.lib-card .thumb svg{max-width:94%;max-height:94%}
+.lib-card .meta{padding:8px 10px}
+.lib-card .meta b{display:block;font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-card .meta small{color:var(--muted)}
+.lib-card .acts{display:flex;gap:4px;padding:0 8px 8px}
+.lib-card .acts .btn{flex:1;padding:4px 6px;font-size:11.5px}
+.lib-empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:60px 0}
+
+/* ───────── phones and small windows ─────────
+   The three columns become one: the canvas fills the screen, the tools run along the
+   bottom where a thumb reaches them, and the properties panel slides up over the canvas
+   only when it is needed. The height rule catches a phone held sideways. */
+@media (max-width:900px), (max-height:520px){
+  :root{
+    --top-h:46px;
+    --tools-h:calc(58px + env(safe-area-inset-bottom, 0px));
+  }
+  html,body{height:100dvh}
+
+  /* top bar: name + the few controls used constantly, everything else under ☰ */
+  .topbar{gap:6px;padding:0 8px}
+  .brand span{display:none}
+  .doc-name{width:auto;flex:1;min-width:60px;padding:6px}
+  .topbar-actions{gap:4px}
+  .topbar-actions>.sep{display:none}
+  #btnMore{display:block}
+  .bar-group{
+    display:none;position:absolute;top:38px;right:0;flex-direction:column;
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:0 8px 26px rgba(0,0,0,.16);padding:5px;min-width:180px;z-index:30;
+  }
+  .bar-group.open{display:flex}
+  .bar-group .btn{border:0;text-align:left;padding:9px 10px}
+  .bar-group .btn:hover{background:var(--accent-soft)}
+  .bar-group .sep{width:auto;height:1px;margin:4px 0}
+
+  .workspace{position:relative}
+  .stage{position:absolute;inset:0 0 var(--tools-h) 0}
+
+  .tools{
+    position:absolute;left:0;right:0;bottom:0;width:auto;height:var(--tools-h);
+    flex-direction:row;border-right:0;border-top:1px solid var(--line);
+    padding:5px 6px calc(5px + env(safe-area-inset-bottom, 0px));
+    gap:2px;overflow-x:auto;overflow-y:hidden;z-index:16;
+  }
+  .tool{flex:0 0 auto;min-width:52px;padding:5px 3px}
+  /* The strip is wider than the screen, so it is ordered by what a phone is actually for:
+     photograph the drawing first, tidy it up afterwards. */
+  .tools hr{display:none}
+  .tool[data-tool=ai]{order:1}
+  .tool[data-tool=trace]{order:2}
+  .tool[data-tool=select]{order:3}
+  .tool[data-tool=room]{order:4}
+  .tool[data-tool=wall]{order:5}
+  .tool[data-tool=door]{order:6}
+  .tool[data-tool=window]{order:7}
+  .tool[data-tool=marker]{order:8}
+  .tool[data-tool=equipment]{order:9}
+  .tool[data-tool=trefoil]{order:10}
+  .tool[data-tool=text]{order:11}
+  .tool[data-tool=scale]{order:12}
+  .tool[data-tool=eraser]{order:13}
+  .tool[data-tool=brush]{order:14}
+
+  /* the panel becomes a sheet that slides up from above the tool strip */
+  .props{
+    position:absolute;left:0;right:0;bottom:var(--tools-h);top:auto;width:auto;
+    display:flex;flex-direction:column;max-height:52%;
+    border-left:0;border-top:1px solid var(--line);
+    box-shadow:0 -10px 26px rgba(0,0,0,.13);
+    transform:translateY(105%);transition:transform .22s;z-index:15;
+  }
+  .props.open{transform:none}
+  .panel{flex:0 0 auto}
+  #panelSel{order:-1}                     /* whatever was just tapped comes first */
+
+  .sheet-toggle{display:block;position:absolute;left:10px;bottom:10px;z-index:14;
+    box-shadow:0 2px 10px rgba(0,0,0,.14)}
+  .sheet-toggle.attn{background:var(--accent);border-color:var(--accent);color:#fff}
+  .zoombar{bottom:10px}
+  .draftbar{bottom:56px}
+
+  /* modals take the whole screen — there is no room for a floating box */
+  .modal-box,.modal-box.narrow{width:100%;height:100%;max-height:none;border-radius:0}
+  .modal-head{flex-wrap:wrap}
+  .modal-head input{width:auto;flex:1;min-width:120px}
+  .modal-body .row input[type=text],.modal-body .row input[type=password],
+  .modal-body .row select{width:auto;flex:1;min-width:0}
+  .modal-foot.ai-foot{flex-wrap:wrap}
+  .modal-foot.ai-foot .muted{max-width:none;flex:1 0 100%;order:2;margin-top:8px}
+  .lib-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:12px}
+  .lib-card .thumb{height:104px}
+  .lib-card .acts .btn{padding:6px 4px}
+}
+
+/* ───────── toast ───────── */
+.toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  background:#16191d;color:#fff;padding:9px 16px;border-radius:22px;z-index:99;font-size:12.5px;
+}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <rect x="2" y="3" width="20" height="18" fill="none" stroke="currentColor" stroke-width="2.4"/>
+      <path d="M2 14h6" stroke="currentColor" stroke-width="2.4"/>
+    </svg>
+    <span>Room Designer</span>
+  </div>
+
+  <input id="docName" class="doc-name" type="text" value="Untitled room" spellcheck="false">
+
+  <div class="topbar-actions">
+    <!-- On a phone this group folds into the ☰ button; on a desktop it stays a plain row. -->
+    <div class="bar-group" id="barMore">
+      <button class="btn" id="btnNew" title="New plan">New</button>
+      <button class="btn" id="btnSave" title="Save to library (Ctrl+S)">Save</button>
+      <button class="btn" id="btnLibrary" title="Open library">Library</button>
+      <span class="sep"></span>
+      <button class="btn" id="btnFlipH" title="Mirror the whole plan horizontally">Flip H</button>
+      <button class="btn" id="btnFlipV" title="Mirror the whole plan vertically">Flip V</button>
+      <button class="btn icon" id="btnRotL" title="Turn the whole plan 90&deg; anticlockwise">&#8630;90</button>
+      <button class="btn icon" id="btnRotR" title="Turn the whole plan 90&deg; clockwise">&#8631;90</button>
+      <button class="btn" id="btnFit" title="Fit to screen (F)">Fit</button>
+    </div>
+    <button class="btn icon" id="btnMore" title="More">&#9776;</button>
+    <span class="sep"></span>
+    <button class="btn icon" id="btnUndo" title="Undo (Ctrl+Z)">&#8630;</button>
+    <button class="btn icon" id="btnRedo" title="Redo (Ctrl+Y)">&#8631;</button>
+    <span class="sep"></span>
+    <button class="btn primary" id="btnExport" title="Export">Export &#9662;</button>
+    <div class="menu" id="exportMenu" hidden>
+      <button data-export="png2">PNG &mdash; 2x</button>
+      <button data-export="png4">PNG &mdash; 4x (print)</button>
+      <button data-export="svg">SVG (vector)</button>
+      <button data-export="clip">Copy PNG to clipboard</button>
+      <button data-export="table">Copy survey table</button>
+      <button data-export="tablecsv">Survey table (.csv)</button>
+      <button data-export="json">Plan file (.json)</button>
+      <button data-export="app">App file to send someone&hellip;</button>
+    </div>
+  </div>
+</header>
+
+<main class="workspace">
+
+  <!-- ─────────── tools ─────────── -->
+  <aside class="tools" id="tools">
+    <button class="tool" data-tool="select" title="Select / move  (V)"><span class="ti">&#10132;</span><em>Select</em></button>
+    <button class="tool" data-tool="room"   title="Draw room outline  (R)"><span class="ti">&#9633;</span><em>Room</em></button>
+    <button class="tool" data-tool="wall"   title="Inner wall / barrier  (P)"><span class="ti">&#9585;</span><em>Wall</em></button>
+    <hr>
+    <button class="tool" data-tool="door"      title="Door  (D)"><span class="ti">&#9697;</span><em>Door</em></button>
+    <button class="tool" data-tool="window"    title="Window / lead glass  (W)"><span class="ti">&#9707;</span><em>Window</em></button>
+    <hr>
+    <button class="tool" data-tool="equipment" title="Equipment box  (U)"><span class="ti">&#9707;</span><em>Unit</em></button>
+    <button class="tool" data-tool="trefoil"   title="Radiation symbol  (T)"><span class="ti">&#9762;</span><em>Trefoil</em></button>
+    <button class="tool" data-tool="marker"    title="Numbered survey point  (N)"><span class="ti">&#10112;</span><em>Point</em></button>
+    <button class="tool" data-tool="text"      title="Free text  (X)"><span class="ti">A</span><em>Text</em></button>
+    <hr>
+    <button class="tool" data-tool="eraser"    title="Eraser — objects and whole wall sides  (E)"><span class="ti">&#9003;</span><em>Erase</em></button>
+    <button class="tool" data-tool="brush"     title="Free-hand eraser — rub things out like in Paint  (B)"><span class="ti">&#9711;</span><em>Brush</em></button>
+    <hr>
+    <button class="tool" data-tool="trace"  title="Trace a photo / sketch  (I)"><span class="ti">&#128247;</span><em>Trace</em></button>
+    <button class="tool" data-tool="ai"     title="Read a photo with AI and draw it  (G)"><span class="ti">&#10024;</span><em>AI</em></button>
+    <button class="tool" data-tool="scale"  title="Set the scale from a known length  (M)"><span class="ti">&#8596;</span><em>Scale</em></button>
+  </aside>
+
+  <!-- ─────────── canvas ─────────── -->
+  <div class="stage" id="stage">
+    <svg id="canvas" xmlns="http://www.w3.org/2000/svg"></svg>
+    <!-- Shown only while a room or wall is being drawn — there is no Enter key on a phone. -->
+    <div class="draftbar" id="draftBar" hidden>
+      <button class="btn primary" id="btnDraftDone">Finish</button>
+      <button class="btn" id="btnDraftCancel">Cancel</button>
+    </div>
+    <div class="hint" id="hint"></div>
+    <button class="btn icon sheet-toggle" id="btnSheet" title="Show or hide the panel">&#9636;</button>
+    <div class="zoombar">
+      <button class="btn icon" id="btnZoomOut">&minus;</button>
+      <span id="zoomLabel">100%</span>
+      <button class="btn icon" id="btnZoomIn">+</button>
+    </div>
+  </div>
+
+  <!-- ─────────── properties ─────────── -->
+  <aside class="props" id="props">
+    <!-- Each heading folds its group away, so the parts further down stay in reach. -->
+    <div class="panel" id="panelPlan">
+      <section class="grp" data-grp="plan">
+        <button class="grp-head" type="button">Plan<span class="chev">&#9662;</span></button>
+        <div class="grp-body">
+          <label class="row"><span>Wall thickness</span><input type="number" id="pWallT" min="2" max="60" step="1"></label>
+          <label class="row"><span>Grid</span><input type="number" id="pGrid" min="1" max="100" step="1"></label>
+          <label class="row check"><input type="checkbox" id="pShowGrid"><span>Show grid</span></label>
+          <label class="row check"><input type="checkbox" id="pSnap"><span>Snap to grid</span></label>
+          <label class="row check"><input type="checkbox" id="pOrtho"><span>Force straight walls</span></label>
+          <label class="row check"><input type="checkbox" id="pShowDims"><span>Show wall lengths</span></label>
+        </div>
+      </section>
+
+      <section class="grp" data-grp="turn">
+        <button class="grp-head" type="button">Turn plan<span class="chev">&#9662;</span></button>
+        <div class="grp-body">
+          <label class="row"><span>Turn plan by</span><input type="number" id="pRotate" value="15" min="-180" max="180" step="1"></label>
+          <div class="row2">
+            <button class="btn" id="btnRotMinus">&minus; turn</button>
+            <button class="btn" id="btnRotPlus">+ turn</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="grp" data-grp="brush">
+        <button class="grp-head" type="button">Eraser brush<span class="chev">&#9662;</span></button>
+        <div class="grp-body">
+          <label class="row"><span>Brush size</span><input type="number" id="pBrushSize" min="4" max="400" step="2"></label>
+          <label class="row"><span>Brush erases</span>
+            <select id="pBrushTarget">
+              <option value="both">Everything</option>
+              <option value="drawing">Drawing only</option>
+              <option value="photo">Photo only</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="grp" data-grp="points">
+        <button class="grp-head" type="button">Survey points &amp; scale<span class="chev">&#9662;</span></button>
+        <div class="grp-body">
+          <div class="row"><span>Scale</span><span class="muted" id="scaleInfo">not set</span></div>
+          <button class="btn wide" id="btnAutoMarkers">Number every wall</button>
+          <button class="btn wide" id="btnRenumber">Renumber points clockwise</button>
+          <button class="btn wide" id="btnNameMarkers">Name points from the drawing</button>
+        </div>
+      </section>
+
+      <section class="grp" data-grp="bg">
+        <button class="grp-head" type="button">Background photo<span class="chev">&#9662;</span></button>
+        <div class="grp-body">
+          <div class="row"><span>Background</span><span class="muted" id="bgInfo">none</span></div>
+          <label class="row"><span>Opacity</span><input type="range" id="pBgOpacity" min="0" max="100" step="5"></label>
+          <div class="row2">
+            <button class="btn" id="btnBgLoad">Load image</button>
+            <button class="btn" id="btnBgClear">Remove</button>
+          </div>
+          <label class="row check"><input type="checkbox" id="pBgLock"><span>Lock background</span></label>
+        </div>
+      </section>
+    </div>
+
+    <div class="panel" id="panelSel" hidden>
+      <h3 id="selTitle">Selection</h3>
+      <div id="selFields"></div>
+      <hr>
+      <div class="row2">
+        <button class="btn" id="btnDup">Duplicate</button>
+        <button class="btn danger" id="btnDel">Delete</button>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- ─────────── library modal ─────────── -->
+<div class="modal" id="library" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Library</h2>
+      <input id="libSearch" type="search" placeholder="Search rooms…">
+      <div class="grow"></div>
+      <button class="btn" id="btnImport">Import .json</button>
+      <button class="btn" id="btnExportAll">Backup all</button>
+      <button class="btn icon" id="btnCloseLib">&times;</button>
+    </div>
+    <div class="lib-grid" id="libGrid"></div>
+    <div class="modal-foot">
+      <span class="muted" id="storageInfo"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── AI import ─────────── -->
+<div class="modal" id="aiModal" hidden>
+  <div class="modal-box narrow">
+    <div class="modal-head">
+      <h2>Read a plan with AI</h2>
+      <div class="grow"></div>
+      <button class="btn icon" id="btnCloseAi">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="field-note">
+        Pick a photo of a sketch or a hospital drawing. The photo goes in as the background and the
+        room is drawn on top of it, so you can see what it got right and drag what it got wrong.
+      </p>
+
+      <label class="row"><span>Service</span>
+        <select id="aiProvider">
+          <option value="gemini">Google Gemini (free tier)</option>
+          <option value="claude">Claude</option>
+        </select>
+      </label>
+
+      <label class="row"><span>API key</span><input type="password" id="aiKey" placeholder="paste your key" autocomplete="off"></label>
+      <p class="field-note" id="aiKeyHelp"></p>
+
+      <label class="row"><span>Model</span>
+        <select id="aiModel"></select>
+      </label>
+
+      <div class="row2">
+        <button class="btn" id="btnAiCheck">Check key &amp; list models</button>
+      </div>
+
+      <hr>
+      <label class="row check"><input type="checkbox" id="aiSnap" checked><span>Tidy up: straighten walls and snap to the grid</span></label>
+      <label class="row"><span>Straighten within</span><input type="number" id="aiTol" value="14" min="0" max="40" step="1"></label>
+      <p class="field-note">Sides within this many degrees of level are pulled exactly straight. Lower it for a room with genuinely slanted walls.</p>
+
+      <div id="aiStatus" class="ai-status" hidden></div>
+    </div>
+
+    <div class="modal-foot ai-foot">
+      <span class="muted">The key stays in this browser only — it is never part of the file you share.</span>
+      <div class="grow"></div>
+      <button class="btn primary" id="btnAiRun">Choose image &amp; read it</button>
+    </div>
+  </div>
+</div>
+
+<!-- Location names offered on every survey point; grows with whatever gets typed. -->
+<datalist id="locNames"></datalist>
+
+<input type="file" id="aiPicker" accept="image/*" hidden>
+<input type="file" id="filePicker" accept="image/*" hidden>
+<input type="file" id="jsonPicker" accept="application/json,.json" hidden>
+<div id="toast" class="toast" hidden></div>
+
+
+
+
+
+
+
+
+<script>
+/* Small geometry helpers. All points are {x, y} in plan units. */
+var Geom = (function () {
+
+  function dist(a, b) { return Math.hypot(b.x - a.x, b.y - a.y); }
+
+  function lerp(a, b, t) { return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }; }
+
+  function angleDeg(a, b) { return Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI; }
+
+  function rotate(p, c, deg) {
+    var r = deg * Math.PI / 180, s = Math.sin(r), k = Math.cos(r);
+    var dx = p.x - c.x, dy = p.y - c.y;
+    return { x: c.x + dx * k - dy * s, y: c.y + dx * s + dy * k };
+  }
+
+  /* Nearest point on segment ab; returns {t, point, dist} with t clamped to [0,1]. */
+  function projectOnSegment(p, a, b) {
+    var vx = b.x - a.x, vy = b.y - a.y;
+    var len2 = vx * vx + vy * vy;
+    var t = len2 === 0 ? 0 : ((p.x - a.x) * vx + (p.y - a.y) * vy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    var pt = { x: a.x + vx * t, y: a.y + vy * t };
+    return { t: t, point: pt, dist: dist(p, pt) };
+  }
+
+  /* Walks every segment of every wall path and returns the closest hit. */
+  function nearestOnPaths(p, paths) {
+    var best = null;
+    paths.forEach(function (path) {
+      var pts = path.points, n = pts.length, last = path.closed ? n : n - 1;
+      for (var i = 0; i < last; i++) {
+        var a = pts[i], b = pts[(i + 1) % n];
+        var r = projectOnSegment(p, a, b);
+        if (!best || r.dist < best.dist) {
+          best = { dist: r.dist, t: r.t, seg: i, pathId: path.id, point: r.point, a: a, b: b };
+        }
+      }
+    });
+    return best;
+  }
+
+  function signedArea(pts) {
+    var s = 0;
+    for (var i = 0; i < pts.length; i++) {
+      var a = pts[i], b = pts[(i + 1) % pts.length];
+      s += a.x * b.y - b.x * a.y;
+    }
+    return s / 2;
+  }
+
+  function centroid(pts) {
+    var x = 0, y = 0;
+    pts.forEach(function (p) { x += p.x; y += p.y; });
+    return { x: x / pts.length, y: y / pts.length };
+  }
+
+  function bbox(pts) {
+    if (!pts.length) return { x: 0, y: 0, w: 0, h: 0 };
+    var x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+    pts.forEach(function (p) {
+      if (p.x < x1) x1 = p.x; if (p.y < y1) y1 = p.y;
+      if (p.x > x2) x2 = p.x; if (p.y > y2) y2 = p.y;
+    });
+    return { x: x1, y: y1, w: x2 - x1, h: y2 - y1, x2: x2, y2: y2 };
+  }
+
+  function unionBox(boxes) {
+    var live = boxes.filter(Boolean);
+    if (!live.length) return null;
+    var x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+    live.forEach(function (b) {
+      x1 = Math.min(x1, b.x); y1 = Math.min(y1, b.y);
+      x2 = Math.max(x2, b.x + b.w); y2 = Math.max(y2, b.y + b.h);
+    });
+    return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+  }
+
+  function snap(v, grid) { return grid > 0 ? Math.round(v / grid) * grid : v; }
+
+  function snapPoint(p, grid) { return { x: snap(p.x, grid), y: snap(p.y, grid) }; }
+
+  /* Pulls a point onto the horizontal or vertical axis of `from`, whichever is closer. */
+  function ortho(from, to) {
+    return Math.abs(to.x - from.x) > Math.abs(to.y - from.y)
+      ? { x: to.x, y: from.y }
+      : { x: from.x, y: to.y };
+  }
+
+  /* Point inside polygon (ray casting). */
+  function inPolygon(p, pts) {
+    var hit = false;
+    for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      var a = pts[i], b = pts[j];
+      if ((a.y > p.y) !== (b.y > p.y) &&
+          p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) hit = !hit;
+    }
+    return hit;
+  }
+
+  return {
+    dist: dist, lerp: lerp, angleDeg: angleDeg, rotate: rotate,
+    projectOnSegment: projectOnSegment, nearestOnPaths: nearestOnPaths,
+    signedArea: signedArea, centroid: centroid, bbox: bbox, unionBox: unionBox,
+    snap: snap, snapPoint: snapPoint, ortho: ortho, inPolygon: inPolygon
+  };
+})();
+
+</script>
+<script>
+/* The plan document: creation, defaults and whole-plan transforms. */
+var Model = (function () {
+
+  var SCHEMA = 1;
+
+  function uid(prefix) {
+    return (prefix || 'x') + '_' + Math.random().toString(36).slice(2, 9);
+  }
+
+  function defaultSettings() {
+    return {
+      wallThickness: 14,
+      grid: 10,
+      showGrid: true,
+      snap: true,
+      ortho: true,
+      showDims: false,
+      unitsPerMeter: 100,   // plan units per metre; 100 => 1 unit = 1 cm
+      scaleSet: false,
+      markerSize: 11,
+      uniformMarkers: true, // one size for every survey point
+      brushSize: 34,
+      brushTarget: 'both'   // both | drawing | photo
+    };
+  }
+
+  function newWall(points, kind, closed) {
+    return {
+      id: uid('w'),
+      kind: kind || 'partition',
+      closed: !!closed,
+      points: points || [],
+      thickness: null,           // null = inherit settings.wallThickness
+      segThickness: {}           // per-side override, keyed by segment index
+    };
+  }
+
+  function newDesign(name) {
+    var d = {
+      v: SCHEMA,
+      id: uid('d'),
+      name: name || 'Untitled room',
+      created: Date.now(),
+      updated: Date.now(),
+      settings: defaultSettings(),
+      background: null,
+      walls: [],
+      openings: [],
+      items: [],
+      markers: []
+    };
+    return d;
+  }
+
+  /* A plain rectangular room, used for "New plan". */
+  function starterDesign() {
+    var d = newDesign('Untitled room');
+    d.walls.push(newWall([
+      { x: 0, y: 0 }, { x: 520, y: 0 }, { x: 520, y: 400 }, { x: 0, y: 400 }
+    ], 'outline', true));
+    return d;
+  }
+
+  var EQUIPMENT_PRESETS = [
+    { label: 'CT',        w: 210, h: 60 },
+    { label: 'X-ray',     w: 170, h: 55 },
+    { label: 'Panorama',  w: 110, h: 46 },
+    { label: 'Mammo',     w: 90,  h: 60 },
+    { label: 'C-arm',     w: 150, h: 70 },
+    { label: 'MRI',       w: 220, h: 80 },
+    { label: 'Console',   w: 90,  h: 40 },
+    { label: 'Cath lab',  w: 200, h: 70 }
+  ];
+
+  function newEquipment(x, y, label) {
+    var p = EQUIPMENT_PRESETS.find(function (q) { return q.label === label; });
+    return {
+      id: uid('i'), type: 'equipment',
+      x: x, y: y,
+      w: p ? p.w : 140, h: p ? p.h : 55,
+      rot: 0,
+      label: label || 'Unit',
+      shape: 'round',        // round | rect
+      trefoil: false,
+      fontSize: 40           // an upper bound — the renderer shrinks it to fit the box
+    };
+  }
+
+  function newTrefoil(x, y) {
+    return { id: uid('i'), type: 'trefoil', x: x, y: y, w: 62, h: 62, rot: 0 };
+  }
+
+  function newText(x, y, label) {
+    return { id: uid('i'), type: 'text', x: x, y: y, w: 0, h: 0, rot: 0,
+             label: label || 'Label', fontSize: 20, align: 'middle' };
+  }
+
+  function newMarker(n, x, y, r) {
+    return { id: uid('m'), n: n, x: x, y: y, r: r || 11, label: '', note: '' };
+  }
+
+  /* The names that go in the report's Location column. The saved list grows past these. */
+  var LOCATION_PRESETS = [
+    'Lead glass window', 'Window', 'Door', 'Main door', 'Inside Door', 'Control door',
+    'Operator location', 'Corridor', 'Waiting area', 'Changing room', 'Clinic',
+    'Toilet / WC', 'Stairs', 'Outside'
+  ];
+
+  var OPENING_NAMES = {
+    leadglass: 'Lead glass window', window: 'Window', door: 'Door',
+    door2: 'Main door', slider: 'Sliding door', gap: 'Opening'
+  };
+
+  /*
+    What a survey point is standing at, read off the drawing itself: the opening it is next to.
+    A point against plain wall is left blank on purpose — what lies beyond that wall (a corridor,
+    a clinic, the street) is not in the drawing, so only the physicist can name it.
+  */
+  function guessLocation(d, p) {
+    var reach = 70 * ((d.settings.unitsPerMeter || 100) / 100);   // about 0.7 m
+    var best = null;
+    d.openings.forEach(function (o) {
+      var f = openingFrame(d, o);
+      if (!f) return;
+      var gap = Geom.dist(p, f.center) - o.width / 2;             // from the edge of the opening
+      if (!best || gap < best.gap) best = { gap: gap, name: OPENING_NAMES[o.type] || 'Opening' };
+    });
+    return best && best.gap <= reach ? best.name : '';
+  }
+
+  function newOpening(type, ref) {
+    var o = {
+      id: uid('o'), type: type,
+      pathId: ref.pathId, seg: ref.seg, t: ref.t,
+      width: type === 'window' || type === 'leadglass' ? 70 : 90,
+      hinge: 'start',        // start | end  (which jamb the leaf pivots on)
+      swing: 'in',           // in | out
+      open: 90,              // leaf opening angle in degrees
+      vision: false,         // lead glass viewing panel set into the leaf
+      visionLen: null        // how long that panel is; null means the default proportion
+    };
+    return o;
+  }
+
+  /*
+    How long the leaded panel reads along one leaf, in plan units. A double door has the
+    panel in each of its two leaves, so it is measured against half the opening. Left unset
+    it keeps the proportion the panel was drawn at before the length could be typed in.
+  */
+  function glassLength(o) {
+    if (!o.vision) return 0;
+    var leaf = o.type === 'door2' ? o.width / 2 : o.width;
+    return Math.min(o.visionLen || leaf * (o.type === 'slider' ? 0.84 : 0.48), leaf * 0.9);
+  }
+
+  /* ── lookups ── */
+
+  function wallById(d, id) {
+    return d.walls.filter(function (w) { return w.id === id; })[0] || null;
+  }
+  function outline(d) {
+    return d.walls.filter(function (w) { return w.kind === 'outline'; })[0] || d.walls[0] || null;
+  }
+  function thicknessOf(d, wall) {
+    return wall && wall.thickness != null ? wall.thickness : d.settings.wallThickness;
+  }
+  /* Thickness of one side of a wall — a lead-lined barrier is often thicker than the rest. */
+  function thicknessAt(d, wall, seg) {
+    if (!wall) return d.settings.wallThickness;
+    var over = wall.segThickness && wall.segThickness[seg];
+    return over != null ? over : thicknessOf(d, wall);
+  }
+  function anyById(d, id) {
+    var pools = [d.walls, d.openings, d.items, d.markers];
+    for (var i = 0; i < pools.length; i++) {
+      for (var j = 0; j < pools[i].length; j++) if (pools[i][j].id === id) return pools[i][j];
+    }
+    return null;
+  }
+  function removeById(d, id) {
+    d.walls = d.walls.filter(function (w) { return w.id !== id; });
+    // openings anchored to a deleted wall go with it
+    d.openings = d.openings.filter(function (o) { return o.id !== id && wallById(d, o.pathId); });
+    d.items = d.items.filter(function (i) { return i.id !== id; });
+    d.markers = d.markers.filter(function (m) { return m.id !== id; });
+  }
+
+  /* World position + direction of an opening. */
+  function openingFrame(d, o) {
+    var wall = wallById(d, o.pathId);
+    if (!wall) return null;
+    var pts = wall.points, n = pts.length;
+    if (n < 2) return null;
+    var a = pts[o.seg], b = pts[(o.seg + 1) % n];
+    if (!a || !b) return null;
+    var c = Geom.lerp(a, b, o.t);
+    return { a: a, b: b, center: c, angle: Geom.angleDeg(a, b),
+             length: Geom.dist(a, b), thickness: thicknessAt(d, wall, o.seg) };
+  }
+
+  /* ── whole-plan transforms ── */
+
+  function planBox(d) {
+    var boxes = [];
+    d.walls.forEach(function (w) { if (w.points.length) boxes.push(Geom.bbox(w.points)); });
+    d.items.forEach(function (i) { boxes.push({ x: i.x - i.w / 2, y: i.y - i.h / 2, w: i.w, h: i.h }); });
+    d.markers.forEach(function (m) { boxes.push({ x: m.x - m.r, y: m.y - m.r, w: m.r * 2, h: m.r * 2 }); });
+    if (d.background) boxes.push({ x: d.background.x, y: d.background.y, w: d.background.w, h: d.background.h });
+    return Geom.unionBox(boxes) || { x: 0, y: 0, w: 520, h: 400 };
+  }
+
+  function flip(d, axis) {
+    var b = planBox(d);
+    var cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    var fx = function (x) { return axis === 'h' ? 2 * cx - x : x; };
+    var fy = function (y) { return axis === 'v' ? 2 * cy - y : y; };
+
+    d.walls.forEach(function (w) {
+      w.points = w.points.map(function (p) { return { x: fx(p.x), y: fy(p.y) }; });
+      w.points.reverse();                       // keep winding, so "outside" stays outside
+      var n = w.points.length, moved = {};
+      Object.keys(w.segThickness || {}).forEach(function (k) {
+        var i = parseInt(k, 10);
+        moved[w.closed ? ((n - 2 - i) % n + n) % n : Math.max(0, n - 2 - i)] = w.segThickness[k];
+      });
+      w.segThickness = moved;
+    });
+    // reversing the point order re-indexes every segment: old i becomes n-2-i
+    d.openings.forEach(function (o) {
+      var w = wallById(d, o.pathId);
+      if (!w) return;
+      var n = w.points.length;
+      o.seg = w.closed ? ((n - 2 - o.seg) % n + n) % n : Math.max(0, n - 2 - o.seg);
+      o.t = 1 - o.t;
+      o.hinge = o.hinge === 'start' ? 'end' : 'start';
+    });
+    d.items.forEach(function (i) { i.x = fx(i.x); i.y = fy(i.y); i.rot = -i.rot; });
+    d.markers.forEach(function (m) { m.x = fx(m.x); m.y = fy(m.y); });
+    if (d.background) {
+      d.background.x = axis === 'h' ? 2 * cx - (d.background.x + d.background.w) : d.background.x;
+      d.background.y = axis === 'v' ? 2 * cy - (d.background.y + d.background.h) : d.background.y;
+      if (axis === 'h') d.background.mirrorH = !d.background.mirrorH;
+      else d.background.mirrorV = !d.background.mirrorV;
+      d.background.rot = -(d.background.rot || 0);
+    }
+  }
+
+  /* Turns the whole plan about its own centre. Survey numbers stay upright. */
+  function rotatePlan(d, deg) {
+    var b = planBox(d);
+    var c = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+    var norm = function (a) { return ((a + 180) % 360 + 360) % 360 - 180; };
+
+    d.walls.forEach(function (w) {
+      w.points = w.points.map(function (p) { return Geom.rotate(p, c, deg); });
+    });
+    d.items.forEach(function (i) {
+      var p = Geom.rotate({ x: i.x, y: i.y }, c, deg);
+      i.x = p.x; i.y = p.y; i.rot = norm((i.rot || 0) + deg);
+    });
+    d.markers.forEach(function (m) {
+      var p = Geom.rotate({ x: m.x, y: m.y }, c, deg);
+      m.x = p.x; m.y = p.y;
+    });
+    if (d.background) {
+      var bg = d.background;
+      var bc = Geom.rotate({ x: bg.x + bg.w / 2, y: bg.y + bg.h / 2 }, c, deg);
+      bg.x = bc.x - bg.w / 2; bg.y = bc.y - bg.h / 2;
+      bg.rot = norm((bg.rot || 0) + deg);
+    }
+    // openings ride on their walls, so they need no work at all
+  }
+
+  function clone(d) { return JSON.parse(JSON.stringify(d)); }
+
+  /* Fills any gaps left by older files. */
+  function migrate(d) {
+    var base = defaultSettings();
+    d.settings = Object.assign(base, d.settings || {});
+    d.walls = d.walls || []; d.openings = d.openings || [];
+    d.items = d.items || []; d.markers = d.markers || [];
+    d.items.forEach(function (i) { if (i.rot == null) i.rot = 0; });
+    d.markers.forEach(function (m) { if (m.label == null) m.label = ''; });
+    d.walls.forEach(function (w) { if (!w.segThickness) w.segThickness = {}; });
+    if (d.background && d.background.rot == null) d.background.rot = 0;
+    return d;
+  }
+
+  return {
+    SCHEMA: SCHEMA, uid: uid,
+    newDesign: newDesign, starterDesign: starterDesign, newWall: newWall,
+    newEquipment: newEquipment, newTrefoil: newTrefoil, newText: newText,
+    newMarker: newMarker, newOpening: newOpening,
+    EQUIPMENT_PRESETS: EQUIPMENT_PRESETS,
+    LOCATION_PRESETS: LOCATION_PRESETS, guessLocation: guessLocation,
+    wallById: wallById, outline: outline, thicknessOf: thicknessOf,
+    thicknessAt: thicknessAt,
+    anyById: anyById, removeById: removeById, openingFrame: openingFrame,
+    glassLength: glassLength,
+    planBox: planBox, flip: flip, rotatePlan: rotatePlan, clone: clone, migrate: migrate
+  };
+})();
+
+</script>
+<script>
+/*
+  Reads a photo of a floor plan with a vision model and turns it into a plan.
+
+  The model answers in a 0-1000 coordinate space laid over the image, so whatever it
+  returns lands exactly on top of the traced photo — you can see how well it did and
+  drag the parts it got wrong.
+*/
+var AI = (function () {
+
+  var SETTINGS_KEY = 'roomdesigner.ai';
+
+  var DEFAULTS = {
+    provider: 'gemini',
+    key: '',
+    model: 'gemini-3.5-flash'
+  };
+
+  var MODEL_HINTS = {
+    gemini: 'gemini-3.5-flash',
+    claude: 'claude-opus-5'
+  };
+
+  function loadSettings() {
+    try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}); }
+    catch (e) { return Object.assign({}, DEFAULTS); }
+  }
+  function saveSettings(s) {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  }
+
+  /* ───────── prompt & schema ───────── */
+
+  var PROMPT = [
+    'You are reading an architectural floor plan of ONE room in a medical imaging facility.',
+    'It may be a rough hand sketch or a scanned technical drawing.',
+    '',
+    'Coordinates: x and y run from 0 to 1000 across the full width and height of the image.',
+    'x increases to the right, y increases downward. Use this system for every coordinate.',
+    '',
+    'Return:',
+    '- room.points: the corners of the room\'s outer wall, in order around the room.',
+    '  Use as few corners as the drawing actually shows — most rooms are rectangular or L-shaped.',
+    '  Do not trace furniture, hatching, dimension lines or text as corners.',
+    '- innerWalls: partitions or protective barriers inside the room, each an open polyline.',
+    '- openings: every door, window or gap in a wall. "at" is a point on the wall centre line',
+    '  where the opening sits; "width" is its length along the wall in the same 0-1000 units.',
+    '  kind is one of: door, double_door, sliding_door, window, lead_glass, opening.',
+    '- equipment: imaging units, tables and consoles drawn inside the room. Take the label from',
+    '  the drawing when it is written there (CT, X-ray, Panorama, Console); otherwise give your',
+    '  best short guess. center/width/height describe the bounding box; rotation in degrees.',
+    '- labels: room names or short notes written inside the room that are worth keeping.',
+    '',
+    'Walls in these drawings are almost always at right angles — if a line looks nearly',
+    'horizontal or nearly vertical, report it as exactly horizontal or vertical.',
+    'If something is unclear, leave it out rather than inventing it.'
+  ].join('\n');
+
+  var PT = { type: 'OBJECT', properties: { x: { type: 'NUMBER' }, y: { type: 'NUMBER' } }, required: ['x', 'y'] };
+  var PTS = { type: 'ARRAY', items: PT };
+
+  var SCHEMA = {
+    type: 'OBJECT',
+    properties: {
+      room: { type: 'OBJECT', properties: { points: PTS }, required: ['points'] },
+      innerWalls: { type: 'ARRAY', items: { type: 'OBJECT', properties: { points: PTS }, required: ['points'] } },
+      openings: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+        kind: { type: 'STRING' }, at: PT, width: { type: 'NUMBER' }
+      }, required: ['kind', 'at', 'width'] } },
+      equipment: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+        label: { type: 'STRING' }, center: PT,
+        width: { type: 'NUMBER' }, height: { type: 'NUMBER' }, rotation: { type: 'NUMBER' }
+      }, required: ['label', 'center', 'width', 'height'] } },
+      labels: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+        text: { type: 'STRING' }, at: PT
+      }, required: ['text', 'at'] } }
+    },
+    required: ['room']
+  };
+
+  /* ───────── providers ───────── */
+
+  function readError(res, body) {
+    var msg = '';
+    try { msg = (JSON.parse(body).error || {}).message || ''; } catch (e) {}
+    if (res.status === 401 || res.status === 403 || /api[_ ]?key/i.test(msg))
+      return 'The API key was rejected. Check that you pasted it whole and that it is for this service.';
+    if (res.status === 429) return 'The free quota is used up for now. Wait a little and try again.';
+    if (res.status === 404)
+      return 'This key cannot use that model. Press “Check key & list models” — it now tests the ' +
+             'models and keeps one that works.' + (msg ? ' (' + msg + ')' : '');
+    return 'The service returned ' + res.status + (msg ? ': ' + msg : '.');
+  }
+
+  function fetchJSON(url, options) {
+    return fetch(url, options).then(function (res) {
+      return res.text().then(function (body) {
+        if (!res.ok) {
+          var err = new Error(readError(res, body));
+          err.status = res.status;
+          throw err;
+        }
+        try { return JSON.parse(body); }
+        catch (e) { throw new Error('The service sent a reply that could not be read.'); }
+      });
+    }, function () {
+      throw new Error('Could not reach the service. Check the internet connection — and if this ' +
+                      'page was opened straight from a file, try it through a local server instead.');
+    });
+  }
+
+  /* Models sometimes wrap JSON in a markdown fence; peel it off. */
+  function parseJSONish(text) {
+    var t = (text || '').trim();
+    var fence = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fence) t = fence[1].trim();
+    var first = t.indexOf('{'), last = t.lastIndexOf('}');
+    if (first > 0 || last < t.length - 1) t = t.slice(first, last + 1);
+    return JSON.parse(t);
+  }
+
+  /* A model id may be stored as "models/x" or "x"; the URL wants the bare name. */
+  function geminiURL(model, method) {
+    return 'https://generativelanguage.googleapis.com/v1beta/models/' +
+           encodeURIComponent(String(model).trim().replace(/^models\//, '')) + ':' + method;
+  }
+
+  function askGemini(cfg, model, b64, mime) {
+    return fetchJSON(geminiURL(model, 'generateContent'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cfg.key },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: PROMPT }, { inline_data: { mime_type: mime, data: b64 } }] }],
+        generationConfig: { response_mime_type: 'application/json', response_schema: SCHEMA }
+      })
+    }).then(function (j) {
+      var cand = (j.candidates || [])[0];
+      if (!cand) throw new Error('The model returned nothing. Try a clearer photo.');
+      var text = ((cand.content || {}).parts || []).map(function (p) { return p.text || ''; }).join('');
+      if (!text) throw new Error('The model returned nothing usable (' + (cand.finishReason || 'no reason given') + ').');
+      return parseJSONish(text);
+    });
+  }
+
+  /*
+    Tries the chosen model, then any others the key offered. A model can be listed and still
+    refuse the call, so one 404 must not end the import.
+  */
+  function callGemini(cfg, b64, mime, onFallback) {
+    var queue = [cfg.model].concat(rank(cfg.candidates || []))
+      .filter(function (m, i, a) { return m && a.indexOf(m) === i; });
+
+    function attempt(i) {
+      return askGemini(cfg, queue[i], b64, mime).catch(function (err) {
+        if (!isSkippable(err) || i + 1 >= queue.length) throw err;
+        if (onFallback) onFallback(queue[i], queue[i + 1]);
+        return attempt(i + 1);
+      });
+    }
+    return attempt(0);
+  }
+
+  function callClaude(cfg, b64, mime) {
+    return fetchJSON('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cfg.key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: cfg.model,
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+          { type: 'text', text: PROMPT + '\n\nReply with JSON only, matching this shape:\n' +
+                                JSON.stringify(SCHEMA) }
+        ] }]
+      })
+    }).then(function (j) {
+      var text = (j.content || []).map(function (b) { return b.text || ''; }).join('');
+      if (!text) throw new Error('The model returned nothing usable.');
+      return parseJSONish(text);
+    });
+  }
+
+  /* Speech, transcription, embedding and picture-making variants cannot read a plan for us. */
+  var NOT_VISION = /tts|live|audio|embedding|imagen|veo|image|transcribe|robotics|computer-use|thinking-exp/i;
+
+  /* A model can be listed and still refuse: retired for new keys (404) or simply busy (503). */
+  function isSkippable(err) {
+    return err.status === 404 || err.status === 503 || err.status === 429;
+  }
+
+  /*
+    Best first: newest version, plain names ahead of previews, flash ahead of pro
+    (flash is the one the free tier is generous with and it reads a sketch well enough).
+  */
+  function rank(models) {
+    return models.slice().filter(function (m) { return !NOT_VISION.test(m); }).sort(function (a, b) {
+      return score(b) - score(a) || (a < b ? -1 : 1);
+    });
+    function score(m) {
+      var v = parseFloat((m.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0);
+      return v * 100
+        + (/preview|exp/.test(m) ? 0 : 30)
+        + (/flash/.test(m) ? 20 : 0)
+        + (/lite/.test(m) ? -10 : 0);
+    }
+  }
+
+  function listModels(cfg) {
+    if (cfg.provider !== 'gemini') return Promise.resolve([]);
+    return fetchJSON('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', {
+      headers: { 'x-goog-api-key': cfg.key }
+    }).then(function (j) {
+      return (j.models || [])
+        .filter(function (m) {
+          return (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0 &&
+                 /gemini/.test(m.name || '');
+        })
+        .map(function (m) { return (m.name || '').replace(/^models\//, ''); });
+    });
+  }
+
+  /*
+    Smallest possible call, only to see whether the key may use this model at all.
+    A refusal comes straight back, so once the request has been running for a moment we
+    know it was accepted and need not sit through the whole answer.
+  */
+  function probe(cfg, model) {
+    var call = fetchJSON(geminiURL(model, 'generateContent'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cfg.key },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'hi' }] }],
+        generationConfig: { maxOutputTokens: 1 }
+      })
+    }).then(function () { return true; }, function (err) {
+      if (isSkippable(err)) return false;
+      throw err;                                   // a key problem is not this model's fault
+    });
+    var accepted = new Promise(function (done) { setTimeout(function () { done(true); }, 3000); });
+    return Promise.race([call, accepted]);
+  }
+
+  /* Walks the ranked list until one model answers, so the import cannot fail on a dead name. */
+  function pickModel(cfg, models, onTry) {
+    var queue = rank(models);
+    if (!queue.length) return Promise.reject(new Error('This key offers no model that can read an image.'));
+    function next(i) {
+      if (i >= queue.length) return Promise.reject(new Error(
+        'The key is valid but every model refused right now — they are either retired or busy. ' +
+        'Wait a minute and press Check again.'));
+      if (onTry) onTry(queue[i]);
+      return probe(cfg, queue[i]).then(function (ok) {
+        return ok ? { model: queue[i], order: queue } : next(i + 1);
+      });
+    }
+    return next(0);
+  }
+
+  function analyse(cfg, b64, mime, onFallback) {
+    if (!cfg.key) return Promise.reject(new Error('Add an API key first.'));
+    if (!cfg.model) return Promise.reject(new Error('Choose a model first.'));
+    return cfg.provider === 'claude' ? callClaude(cfg, b64, mime) : callGemini(cfg, b64, mime, onFallback);
+  }
+
+  /* ───────── turning the answer into a plan ───────── */
+
+  /* Pulls near-horizontal and near-vertical sides onto exact axes and closes the corners. */
+  function rectify(points, closed, tolDeg) {
+    var n = points.length;
+    if (n < 2) return points;
+    var pts = points.map(function (p) { return { x: p.x, y: p.y }; });
+    var count = closed ? n : n - 1;
+    var kind = [];
+    for (var i = 0; i < count; i++) {
+      var ang = Math.abs(Geom.angleDeg(pts[i], pts[(i + 1) % n]));
+      var toH = Math.min(ang, Math.abs(180 - ang));
+      var toV = Math.abs(90 - ang);
+      kind[i] = toH <= tolDeg ? 'h' : (toV <= tolDeg ? 'v' : null);
+    }
+    for (var pass = 0; pass < 4; pass++) {
+      for (var k = 0; k < count; k++) {
+        var a = pts[k], b = pts[(k + 1) % n];
+        if (kind[k] === 'h') { var y = (a.y + b.y) / 2; a.y = y; b.y = y; }
+        else if (kind[k] === 'v') { var x = (a.x + b.x) / 2; a.x = x; b.x = x; }
+      }
+    }
+    return pts;
+  }
+
+  /* Removes corners the model doubled up or that sit on a straight run. */
+  function tidy(points, closed, minLen) {
+    var pts = points.slice();
+    for (var i = pts.length - 1; i >= 0 && pts.length > (closed ? 3 : 2); i--) {
+      var next = pts[(i + 1) % pts.length];
+      if (i === pts.length - 1 && !closed) continue;
+      if (Geom.dist(pts[i], next) < minLen) pts.splice(i, 1);
+    }
+    for (var j = pts.length - 1; j >= 0 && pts.length > (closed ? 3 : 2); j--) {
+      var prev = pts[(j - 1 + pts.length) % pts.length];
+      var nxt = pts[(j + 1) % pts.length];
+      if (!closed && (j === 0 || j === pts.length - 1)) continue;
+      var d1 = Geom.angleDeg(prev, pts[j]), d2 = Geom.angleDeg(pts[j], nxt);
+      var diff = Math.abs(((d1 - d2 + 180) % 360 + 360) % 360 - 180);
+      if (diff < 6) pts.splice(j, 1);
+    }
+    return pts;
+  }
+
+  var KIND_MAP = {
+    door: 'door', double_door: 'door2', sliding_door: 'slider',
+    window: 'window', lead_glass: 'leadglass', opening: 'gap'
+  };
+
+  /*
+    Writes the model's answer into `design`, positioned over its background photo.
+    Returns a short summary of what was added.
+  */
+  function applyResult(design, result, opts) {
+    opts = opts || {};
+    var bg = design.background;
+    if (!bg) throw new Error('The photo must be loaded before the result can be placed.');
+
+    var c = { x: bg.x + bg.w / 2, y: bg.y + bg.h / 2 };
+    function toWorld(p) {
+      var q = { x: bg.x + (p.x / 1000) * bg.w, y: bg.y + (p.y / 1000) * bg.h };
+      if (bg.mirrorH) q.x = 2 * c.x - q.x;
+      if (bg.mirrorV) q.y = 2 * c.y - q.y;
+      return bg.rot ? Geom.rotate(q, c, bg.rot) : q;
+    }
+    var unit = Math.min(bg.w, bg.h) / 1000;          // one model unit, in plan units
+    var grid = opts.snap ? design.settings.grid : 0;
+    var minLen = Math.max(bg.w, bg.h) * 0.015;
+
+    function makeWall(rawPoints, closed) {
+      var pts = (rawPoints || []).filter(function (p) {
+        return p && isFinite(p.x) && isFinite(p.y);
+      }).map(toWorld);
+      if (pts.length < (closed ? 3 : 2)) return null;
+      pts = tidy(rectify(pts, closed, opts.tolerance || 14), closed, minLen);
+      if (grid) pts = pts.map(function (p) { return Geom.snapPoint(p, grid); });
+      if (pts.length < (closed ? 3 : 2)) return null;
+      var wall = Model.newWall(pts, closed ? 'outline' : 'partition', closed);
+      design.walls.push(wall);
+      return wall;
+    }
+
+    var added = { walls: 0, openings: 0, items: 0 };
+
+    var outline = makeWall((result.room || {}).points, true);
+    if (!outline) throw new Error('No room outline could be read from that image.');
+    added.walls++;
+
+    (result.innerWalls || []).forEach(function (w) {
+      if (makeWall(w.points, false)) added.walls++;
+    });
+
+    var paths = design.walls.filter(function (w) { return w.points.length >= 2; });
+    (result.openings || []).forEach(function (o) {
+      if (!o || !o.at) return;
+      var hit = Geom.nearestOnPaths(toWorld(o.at), paths);
+      if (!hit) return;
+      var wall = Model.wallById(design, hit.pathId);
+      var op = Model.newOpening(KIND_MAP[o.kind] || 'door', hit);
+      op.width = Math.max(20, (o.width || 80) * unit);
+      op.side = insideSign(design, wall, hit.seg);
+      var frame = Model.openingFrame(design, op);
+      if (frame) {
+        var half = (op.width / 2) / Math.max(frame.length, 1);
+        if (half >= 0.5) { op.width = frame.length * 0.85; half = 0.425; }
+        op.t = Math.max(half, Math.min(1 - half, op.t));
+      }
+      design.openings.push(op);
+      added.openings++;
+    });
+
+    (result.equipment || []).forEach(function (q) {
+      if (!q || !q.center) return;
+      var p = toWorld(q.center);
+      var it = Model.newEquipment(p.x, p.y, (q.label || 'Unit').slice(0, 30));
+      it.w = Math.max(24, (q.width || 100) * unit);
+      it.h = Math.max(18, (q.height || 50) * unit);
+      it.rot = Math.round(q.rotation || 0);
+      design.items.push(it);
+      added.items++;
+    });
+
+    (result.labels || []).forEach(function (l) {
+      if (!l || !l.at || !l.text) return;
+      var p = toWorld(l.at);
+      design.items.push(Model.newText(p.x, p.y, String(l.text).slice(0, 60)));
+      added.items++;
+    });
+
+    return added;
+  }
+
+  /* Which way the room interior lies from a wall side — copied intent from the editor. */
+  function insideSign(design, wall, seg) {
+    var ref = Model.outline(design) || wall;
+    var pts = wall.points;
+    var a = pts[seg], b = pts[(seg + 1) % pts.length];
+    if (!a || !b) return 1;
+    var len = Geom.dist(a, b) || 1;
+    var n = { x: -(b.y - a.y) / len, y: (b.x - a.x) / len };
+    var mid = Geom.lerp(a, b, 0.5);
+    var c = Geom.centroid(ref.points.length ? ref.points : pts);
+    return ((c.x - mid.x) * n.x + (c.y - mid.y) * n.y) >= 0 ? 1 : -1;
+  }
+
+  return {
+    loadSettings: loadSettings, saveSettings: saveSettings,
+    MODEL_HINTS: MODEL_HINTS,
+    listModels: listModels, pickModel: pickModel, rank: rank,
+    analyse: analyse, applyResult: applyResult,
+    rectify: rectify, tidy: tidy
+  };
+})();
+
+</script>
+<script>
+/* Draws a design into an <svg>. Used for both the live canvas and exports. */
+var Render = (function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var SERIF = "Georgia, 'Times New Roman', 'Noto Serif', serif";
+  var YELLOW = '#E6B325';
+  var LW = 1.6;                          // base line weight, in plan units
+
+  function el(tag, attrs, parent) {
+    var n = document.createElementNS(NS, tag);
+    if (attrs) for (var k in attrs) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+
+  function pathD(points, closed) {
+    if (!points.length) return '';
+    var d = 'M' + points.map(function (p) { return p.x.toFixed(2) + ' ' + p.y.toFixed(2); }).join(' L');
+    return closed ? d + ' Z' : d;
+  }
+
+  function polar(r, deg) {
+    var a = deg * Math.PI / 180;
+    return { x: r * Math.cos(a), y: r * Math.sin(a) };
+  }
+
+  /* ───────────────── radiation trefoil ───────────────── */
+
+  function trefoilGlyph(parent, size, withPlate) {
+    var g = el('g', null, parent);
+    if (withPlate) {
+      el('rect', {
+        x: -size / 2, y: -size / 2, width: size, height: size, rx: size * 0.22,
+        fill: YELLOW, stroke: '#111', 'stroke-width': size * 0.035
+      }, g);
+    }
+    var rIn = size * 0.115, rOut = size * 0.345;
+    el('circle', { cx: 0, cy: 0, r: size * 0.078, fill: '#000' }, g);
+    [90, 210, 330].forEach(function (A) {
+      var a1 = A - 30, a2 = A + 30;
+      var p1 = polar(rIn, a1), p2 = polar(rOut, a1), p3 = polar(rOut, a2), p4 = polar(rIn, a2);
+      el('path', {
+        d: 'M' + p1.x + ' ' + p1.y + ' L' + p2.x + ' ' + p2.y +
+           ' A' + rOut + ' ' + rOut + ' 0 0 1 ' + p3.x + ' ' + p3.y +
+           ' L' + p4.x + ' ' + p4.y +
+           ' A' + rIn + ' ' + rIn + ' 0 0 0 ' + p1.x + ' ' + p1.y + ' Z',
+        fill: '#000'
+      }, g);
+    });
+    return g;
+  }
+
+  /* Rotation + mirroring of the traced photo, always about its own centre. */
+  function backgroundTransform(b) {
+    var cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    var sx = b.mirrorH ? -1 : 1, sy = b.mirrorV ? -1 : 1;
+    if (!b.rot && sx > 0 && sy > 0) return null;
+    return 'translate(' + cx + ',' + cy + ') rotate(' + (b.rot || 0) + ')' +
+           ' scale(' + sx + ',' + sy + ') translate(' + (-cx) + ',' + (-cy) + ')';
+  }
+
+  /* ───────────────── openings ───────────────── */
+
+  /* Rect that punches this opening out of its wall band. */
+  function openingMaskShape(d, o, parent) {
+    var f = Model.openingFrame(d, o);
+    if (!f) return;
+    var g = el('g', { transform: 'translate(' + f.center.x + ',' + f.center.y + ') rotate(' + f.angle + ')' }, parent);
+    el('rect', {
+      x: -o.width / 2, y: -f.thickness / 2 - 1.5,
+      width: o.width, height: f.thickness + 3, fill: '#000'
+    }, g);
+  }
+
+  /*
+    The leaded viewing panel, wherever it appears: an outlined box split down the middle,
+    the same double line a lead glass window is drawn with, so the two read as the same
+    material on the plan. `cy` is the centre line of the leaf it is set into.
+  */
+  function glassPanel(parent, lo, hi, cy, lw, leafThickness) {
+    var h = Math.max(lw * 3, leafThickness || 0);
+    el('rect', { x: lo, y: cy - h / 2, width: hi - lo, height: h,
+                 fill: '#fff', stroke: '#000', 'stroke-width': lw }, parent);
+    el('line', { x1: lo, y1: cy, x2: hi, y2: cy, stroke: '#000', 'stroke-width': lw * 0.6 }, parent);
+  }
+
+  function drawLeaf(g, W, t, hinge, side, open, lw, glass) {
+    var hx = hinge === 'start' ? -W / 2 : W / 2;
+    var dirSign = hinge === 'start' ? 1 : -1;
+    var theta = side * open * dirSign;
+    var closedPt = { x: hx + dirSign * W, y: 0 };
+    var tip = Geom.rotate(closedPt, { x: hx, y: 0 }, theta);
+
+    el('path', {
+      d: 'M' + closedPt.x + ' ' + closedPt.y + ' A' + W + ' ' + W + ' 0 0 ' +
+         (theta > 0 ? 1 : 0) + ' ' + tip.x.toFixed(2) + ' ' + tip.y.toFixed(2),
+      fill: 'none', stroke: '#000', 'stroke-width': lw * 0.6
+    }, g);
+
+    el('line', {
+      x1: hx, y1: 0, x2: tip.x.toFixed(2), y2: tip.y.toFixed(2),
+      stroke: '#000', 'stroke-width': lw * 1.5, 'stroke-linecap': 'butt'
+    }, g);
+
+    /* The panel sits towards the latch end, where a vision panel is, and grows about that
+       point as its length is changed. */
+    if (glass > 0) {
+      var pg = el('g', { transform: 'translate(' + hx + ',0) rotate(' + theta + ')' }, g);
+      // slides along the leaf rather than being cut short, so it always draws its full length
+      var to = Math.min(W * 0.95, W * 0.64 + glass / 2);     // distance out from the hinge
+      var from = Math.max(W * 0.05, to - glass);
+      glassPanel(pg, Math.min(dirSign * from, dirSign * to),
+                     Math.max(dirSign * from, dirSign * to), 0, lw);
+    }
+  }
+
+  /*
+    A sliding leaf does not sit inside the wall band. It hangs on a track past the face of
+    the wall, so it is drawn standing clear of the wall and running past the gap at both
+    ends — that overshoot is the stretch of leaf that hides behind the wall when the door
+    is open. `side` says which face of the wall the track is on; only the physicist who
+    saw the room knows that, so it is a button rather than a guess.
+  */
+  function sliderLeaf(d, o, t) {
+    var cm = (d.settings.unitsPerMeter || 100) / 100;   // one centimetre in plan units
+    var step = Math.max(cm, LW * 1.6);                  // never thinner than the pen draws
+    var thick = Math.max(t * 0.3, LW * 2.5);
+    var side = o.side || 1;
+    var near = side * (t / 2 + step);                   // the edge facing the wall
+    return { over: step * 5, thick: thick,              // the overshoot reads at a glance
+             y: Math.min(near, near + side * thick),    // top edge, whichever side it is on
+             mid: near + side * thick / 2,
+             reach: step + thick };                     // how far past the wall face it goes
+  }
+
+  function drawOpening(d, o, parent, lw) {
+    var f = Model.openingFrame(d, o);
+    if (!f) return;
+    var t = f.thickness, W = o.width;
+    var sl = o.type === 'slider' ? sliderLeaf(d, o, t) : null;
+    var g = el('g', {
+      transform: 'translate(' + f.center.x + ',' + f.center.y + ') rotate(' + f.angle + ')',
+      'data-id': o.id, 'data-kind': 'opening'
+    }, parent);
+
+    // invisible grab area — the door lines themselves are too thin to click
+    var padY = sl ? sl.reach : lw * 2, padX = sl ? sl.over : 0;
+    el('rect', { x: -W / 2 - padX, y: -t / 2 - padY,
+                 width: W + padX * 2, height: t + padY * 2, fill: 'transparent' }, g);
+
+    // jamb ticks close the wall band at both ends of the gap
+    function jambs() {
+      [-W / 2, W / 2].forEach(function (x) {
+        el('line', { x1: x, y1: -t / 2, x2: x, y2: t / 2, stroke: '#000', 'stroke-width': lw * 1.2 }, g);
+      });
+    }
+
+    if (o.type === 'window' || o.type === 'leadglass') {
+      el('rect', { x: -W / 2, y: -t / 2, width: W, height: t,
+                   fill: '#fff', stroke: '#000', 'stroke-width': lw * 1.4 }, g);
+      if (o.type === 'leadglass') {
+        el('line', { x1: -W / 2, y1: 0, x2: W / 2, y2: 0, stroke: '#000', 'stroke-width': lw * 0.8 }, g);
+      }
+    } else if (o.type === 'gap') {
+      jambs();
+    } else if (o.type === 'slider') {
+      jambs();
+      el('rect', { x: -W / 2 - sl.over, y: sl.y, width: W + sl.over * 2, height: sl.thick,
+                   fill: '#fff', stroke: '#000', 'stroke-width': lw }, g);
+      var sg = Model.glassLength(o);
+      // the panel is at least as deep as the leaf, so it is boxed off rather than hidden in it
+      if (sg > 0) glassPanel(g, -sg / 2, sg / 2, sl.mid, lw, sl.thick);
+    } else if (o.type === 'door2') {
+      jambs();
+      var half = W / 2, glass2 = Model.glassLength(o);
+      var gl = el('g', { transform: 'translate(' + (-half / 2) + ',0)' }, g);
+      drawLeaf(gl, half, t, 'start', o.side || 1, o.open, lw, glass2);
+      var gr = el('g', { transform: 'translate(' + (half / 2) + ',0)' }, g);
+      drawLeaf(gr, half, t, 'end', o.side || 1, o.open, lw, glass2);
+    } else { // single door
+      jambs();
+      drawLeaf(g, W, t, o.hinge, o.side || 1, o.open, lw, Model.glassLength(o));
+    }
+    return g;
+  }
+
+  /* ───────────────── walls ───────────────── */
+
+  /* Walks a wall side by side, since each side can carry its own thickness. */
+  function eachSegment(wall, fn) {
+    var pts = wall.points, n = pts.length, count = wall.closed ? n : n - 1;
+    for (var i = 0; i < count; i++) {
+      var a = pts[i], b = pts[(i + 1) % n];
+      var len = Geom.dist(a, b);
+      if (!len) continue;
+      fn(i, a, b, len, { x: (b.x - a.x) / len, y: (b.y - a.y) / len },
+         wall.closed || i > 0, wall.closed || i < count - 1);
+    }
+  }
+
+  function drawWalls(d, root, defs, lw) {
+    var box = Model.planBox(d);
+    // the mask region must be stated explicitly: its default is a share of the
+    // viewport, which clips whole walls once the view is panned away from them
+    var area = { x: box.x - 500, y: box.y - 500, width: box.w + 1000, height: box.h + 1000 };
+    var drawn = d.walls.filter(function (wall) { return wall.points.length >= 2; });
+
+    // one mask per wall, punched by its own openings; both passes below reference it
+    drawn.forEach(function (wall) {
+      var mask = el('mask', {
+        id: 'wm_' + wall.id, maskUnits: 'userSpaceOnUse',
+        x: area.x, y: area.y, width: area.width, height: area.height
+      }, defs);
+      el('rect', { x: area.x, y: area.y, width: area.width, height: area.height, fill: '#fff' }, mask);
+      d.openings.forEach(function (o) { if (o.pathId === wall.id) openingMaskShape(d, o, mask); });
+    });
+
+    /*
+      Every wall is laid down in two passes: a black band the full thickness, then a white
+      core inside it, which is what leaves the pair of lines a wall is drawn with.
+
+      All the black comes first and all the white on top, rather than finishing one wall
+      before starting the next. That is what dissolves a junction: the white core of one
+      wall rubs out the black lines of the other where they cross, so a T or a crossing
+      reads as one continuous body instead of two pieces butted together with a seam.
+    */
+    function pass(color, widthOf) {
+      drawn.forEach(function (wall) {
+        // pointer events are handled by the invisible fat strokes added later
+        var g = el('g', { mask: 'url(#wm_' + wall.id + ')', 'pointer-events': 'none' }, root);
+
+        /* Each side is stretched past a corner by half its own width, so the two
+           passes meet exactly the way a mitred join would. */
+        eachSegment(wall, function (i, a, b, len, u, joinA, joinB) {
+          var w = widthOf(Model.thicknessAt(d, wall, i));
+          var ea = joinA ? w / 2 : 0, eb = joinB ? w / 2 : 0;
+          el('line', {
+            x1: a.x - u.x * ea, y1: a.y - u.y * ea,
+            x2: b.x + u.x * eb, y2: b.y + u.y * eb,
+            stroke: color, 'stroke-width': w, 'stroke-linecap': 'butt'
+          }, g);
+        });
+      });
+    }
+    pass('#000', function (t) { return t; });
+    pass('#fff', function (t) { return Math.max(t - lw * 3.4, t * 0.15); });
+  }
+
+  /* ───────────────── items ───────────────── */
+
+  function drawItem(d, it, parent, lw) {
+    var g = el('g', {
+      transform: 'translate(' + it.x + ',' + it.y + ') rotate(' + (it.rot || 0) + ')',
+      'data-id': it.id, 'data-kind': 'item'
+    }, parent);
+
+    if (it.type === 'trefoil') {
+      trefoilGlyph(g, Math.min(it.w, it.h), true);
+
+    } else if (it.type === 'text') {
+      var fs = it.fontSize || 20;
+      var lines = (it.label || '').split('\n');
+      var longest = lines.reduce(function (m, l) { return Math.max(m, l.length); }, 1);
+      // rough text metrics, good enough to size the selection box and grab area
+      it.w = longest * fs * 0.55;
+      it.h = lines.length * fs * 1.2;
+      el('rect', { x: -it.w / 2, y: -it.h / 2, width: it.w, height: it.h, fill: 'transparent' }, g);
+      var txt = el('text', {
+        x: 0, y: 0, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'font-family': SERIF, 'font-size': fs, fill: '#000'
+      }, g);
+      lines.forEach(function (line, i) {
+        el('tspan', { x: 0, dy: i === 0 ? -(lines.length - 1) * fs * 0.6 : fs * 1.2 }, txt).textContent = line;
+      });
+
+    } else { // equipment
+      var rx = it.shape === 'rect' ? lw * 2 : it.h / 2;
+      el('rect', { x: -it.w / 2, y: -it.h / 2, width: it.w, height: it.h, rx: rx,
+                   fill: '#fff', stroke: '#000', 'stroke-width': lw * 1.5 }, g);
+      var badge = it.h * 0.92;
+      var labelShift = it.trefoil ? -(badge / 2 + lw) : 0;
+      var room = it.w - (it.trefoil ? badge + lw * 4 : it.h * 0.35);
+      var label = it.label || '';
+      // shrink the label if the box is too small for it
+      var fs = Math.min(it.fontSize || 22, it.h * 0.58, room / Math.max(label.length * 0.55, 1));
+      el('text', { x: labelShift, y: 0, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+                   'font-family': SERIF, 'font-size': Math.max(fs, 4), fill: '#000' }, g)
+        .textContent = label;
+      if (it.trefoil) {
+        var tg = el('g', { transform: 'translate(' + (it.w / 2 - badge / 2 - lw) + ',0)' }, g);
+        trefoilGlyph(tg, badge, true);
+      }
+    }
+    return g;
+  }
+
+  /* ───────────────── markers & dimensions ───────────────── */
+
+  function drawMarker(m, parent, lw) {
+    var g = el('g', { transform: 'translate(' + m.x + ',' + m.y + ')',
+                      'data-id': m.id, 'data-kind': 'marker' }, parent);
+    el('circle', { cx: 0, cy: 0, r: m.r, fill: '#fff', stroke: '#000', 'stroke-width': lw * 1.3 }, g);
+    el('text', { x: 0, y: 0, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+                 'font-family': SERIF, 'font-size': m.r * 1.25, fill: '#000' }, g).textContent = m.n;
+    return g;
+  }
+
+  function drawDims(d, parent, lw) {
+    var upm = d.settings.unitsPerMeter || 100;
+    d.walls.forEach(function (wall) {
+      var pts = wall.points, n = pts.length, last = wall.closed ? n : n - 1;
+      for (var i = 0; i < last; i++) {
+        var a = pts[i], b = pts[(i + 1) % n];
+        var len = Geom.dist(a, b);
+        if (len < 20) continue;
+        var mid = Geom.lerp(a, b, 0.5);
+        var ang = Geom.angleDeg(a, b);
+        var nx = -Math.sin(ang * Math.PI / 180), ny = Math.cos(ang * Math.PI / 180);
+        var c = Geom.centroid(pts);
+        var away = ((mid.x + nx - c.x) * nx + (mid.y + ny - c.y) * ny) > 0 ? 1 : -1;
+        var off = Model.thicknessAt(d, wall, i) / 2 + 14;
+        var flipText = (ang > 90 || ang < -90) ? 180 : 0;
+        el('text', {
+          x: 0, y: 0, transform: 'translate(' + (mid.x + nx * off * away) + ',' + (mid.y + ny * off * away) +
+                     ') rotate(' + (ang + flipText) + ')',
+          'text-anchor': 'middle', 'dominant-baseline': 'central',
+          'font-family': SERIF, 'font-size': 15, fill: '#444'
+        }, parent).textContent = (len / upm).toFixed(2) + ' m';
+      }
+    });
+  }
+
+  /* ───────────────── main ───────────────── */
+
+  /*
+    opts = { view:{x,y,w,h}, ppu, interactive, selection:[ids], showHandles, hoverId }
+    ppu = plan units per screen pixel (keeps handles a constant on-screen size)
+  */
+  function draw(svg, d, opts) {
+    opts = opts || {};
+    var ppu = opts.ppu || 1;
+    var lw = LW;
+    clear(svg);
+
+    if (opts.view) {
+      svg.setAttribute('viewBox', [opts.view.x, opts.view.y, opts.view.w, opts.view.h].join(' '));
+    }
+    var defs = el('defs', null, svg);
+
+    /* grid */
+    if (opts.interactive && d.settings.showGrid && d.settings.grid > 0) {
+      var g0 = d.settings.grid;
+      var step = g0;
+      while (step / ppu < 7) step *= 5;          // keep the grid readable when zoomed out
+      var pat = el('pattern', { id: 'grid', width: step, height: step, patternUnits: 'userSpaceOnUse' }, defs);
+      el('path', { d: 'M' + step + ' 0 L0 0 0 ' + step, fill: 'none',
+                   stroke: '#c9ced6', 'stroke-width': ppu }, pat);
+      el('rect', { x: opts.view.x, y: opts.view.y, width: opts.view.w, height: opts.view.h,
+                   fill: 'url(#grid)', 'pointer-events': 'none' }, svg);
+    }
+
+    /* background photo / plan scan */
+    if (d.background && d.background.src) {
+      var b = d.background;
+      el('image', {
+        href: b.src, 'xlink:href': b.src,
+        x: b.x, y: b.y, width: b.w, height: b.h,
+        transform: backgroundTransform(b),
+        opacity: (b.opacity == null ? 45 : b.opacity) / 100,
+        preserveAspectRatio: 'none',
+        'data-id': 'background', 'data-kind': b.locked ? 'none' : 'background',
+        'pointer-events': b.locked ? 'none' : 'auto'
+      }, svg);
+    }
+
+    var gWalls = el('g', null, svg);
+    drawWalls(d, gWalls, defs, lw);
+
+    /* invisible fat strokes so thin walls are still easy to grab */
+    if (opts.interactive) {
+      var gHit = el('g', null, svg);
+      d.walls.forEach(function (wall) {
+        if (wall.points.length < 2) return;
+        eachSegment(wall, function (i, a, b) {
+          el('line', {
+            x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: 'transparent',
+            'stroke-width': Math.max(Model.thicknessAt(d, wall, i), (opts.touch ? 22 : 12) * ppu),
+            'pointer-events': 'stroke',
+            'data-id': wall.id, 'data-kind': 'wall', 'data-index': i
+          }, gHit);
+        });
+      });
+    }
+
+    var gOpen = el('g', null, svg);
+    d.openings.forEach(function (o) { drawOpening(d, o, gOpen, lw); });
+
+    var gItems = el('g', null, svg);
+    d.items.forEach(function (it) { drawItem(d, it, gItems, lw); });
+
+    var gMarks = el('g', null, svg);
+    d.markers.forEach(function (m) { drawMarker(m, gMarks, lw); });
+
+    if (d.settings.showDims) drawDims(d, el('g', { 'pointer-events': 'none' }, svg), lw);
+
+    if (opts.interactive && opts.showHandles) {
+      drawHandles(d, el('g', null, svg), opts, ppu);
+    }
+    return svg;
+  }
+
+  /* ───────────────── editor handles ───────────────── */
+
+  function drawHandles(d, root, opts, ppu) {
+    var sel = opts.selection || [];
+    var HS = (opts.touch ? 9 : 5) * ppu; // handle half-size on screen — a finger needs more
+
+    sel.forEach(function (id) {
+      var obj = Model.anyById(d, id);
+      if (!obj) return;
+
+      if (obj.points) {                  // wall
+        el('path', { d: pathD(obj.points, obj.closed), fill: 'none', stroke: '#1b6ef3',
+                     'stroke-width': 1.6 * ppu, 'stroke-dasharray': (5 * ppu) + ' ' + (4 * ppu),
+                     'pointer-events': 'none' }, root);
+        obj.points.forEach(function (p, i) {
+          el('rect', { x: p.x - HS, y: p.y - HS, width: HS * 2, height: HS * 2,
+                       fill: '#fff', stroke: '#1b6ef3', 'stroke-width': 1.6 * ppu,
+                       'data-id': obj.id, 'data-kind': 'vertex', 'data-index': i,
+                       style: 'cursor:move' }, root);
+        });
+        var n = obj.points.length, lastSeg = obj.closed ? n : n - 1;
+        for (var i = 0; i < lastSeg; i++) {
+          var mid = Geom.lerp(obj.points[i], obj.points[(i + 1) % n], 0.5);
+          el('circle', { cx: mid.x, cy: mid.y, r: HS * 0.75, fill: '#1b6ef3', opacity: .35,
+                         'data-id': obj.id, 'data-kind': 'addvertex', 'data-index': i,
+                         style: 'cursor:copy' }, root);
+        }
+
+      } else if (obj.pathId) {           // opening (checked before items: it also has .type)
+        var f = Model.openingFrame(d, obj);
+        if (f) {
+          // a sliding leaf stands outside the wall band, so the marquee has to reach it
+          var slb = obj.type === 'slider' ? sliderLeaf(d, obj, f.thickness) : null;
+          var ex = slb ? slb.over : 0, ey = slb ? slb.reach : 0;
+          el('rect', {
+            x: -obj.width / 2 - 3 * ppu - ex, y: -f.thickness / 2 - 5 * ppu - ey,
+            width: obj.width + 6 * ppu + ex * 2, height: f.thickness + 10 * ppu + ey * 2,
+            transform: 'translate(' + f.center.x + ',' + f.center.y + ') rotate(' + f.angle + ')',
+            fill: 'none', stroke: '#1b6ef3', 'stroke-width': 1.6 * ppu,
+            'stroke-dasharray': (5 * ppu) + ' ' + (4 * ppu), 'pointer-events': 'none'
+          }, root);
+        }
+
+      } else if (obj.type) {             // item
+        var w = Math.max(obj.w, 40), h = Math.max(obj.h, 26);
+        var g = el('g', { transform: 'translate(' + obj.x + ',' + obj.y + ') rotate(' + (obj.rot || 0) + ')' }, root);
+        el('rect', { x: -w / 2, y: -h / 2, width: w, height: h, fill: 'none',
+                     stroke: '#1b6ef3', 'stroke-width': 1.4 * ppu,
+                     'stroke-dasharray': (5 * ppu) + ' ' + (4 * ppu), 'pointer-events': 'none' }, g);
+        if (obj.type !== 'text') {
+          [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (c, i) {
+            el('rect', { x: c[0] * w / 2 - HS, y: c[1] * h / 2 - HS, width: HS * 2, height: HS * 2,
+                         fill: '#fff', stroke: '#1b6ef3', 'stroke-width': 1.5 * ppu,
+                         'data-id': obj.id, 'data-kind': 'resize', 'data-corner': i,
+                         style: 'cursor:nwse-resize' }, g);
+          });
+        }
+        el('line', { x1: 0, y1: -h / 2, x2: 0, y2: -h / 2 - 26 * ppu,
+                     stroke: '#1b6ef3', 'stroke-width': 1.4 * ppu, 'pointer-events': 'none' }, g);
+        el('circle', { cx: 0, cy: -h / 2 - 26 * ppu, r: HS * 1.1, fill: '#fff',
+                       stroke: '#1b6ef3', 'stroke-width': 1.6 * ppu,
+                       'data-id': obj.id, 'data-kind': 'rotate', style: 'cursor:grab' }, g);
+
+      } else if (obj.r != null) {        // marker
+        el('circle', { cx: obj.x, cy: obj.y, r: obj.r + 5 * ppu, fill: 'none',
+                       stroke: '#1b6ef3', 'stroke-width': 1.6 * ppu, 'pointer-events': 'none' }, root);
+      }
+    });
+
+    /* live drawing preview */
+    if (opts.draft && opts.draft.points && opts.draft.points.length) {
+      var pts = opts.draft.points.concat(opts.draft.cursor ? [opts.draft.cursor] : []);
+      el('path', { d: pathD(pts, false), fill: 'none', stroke: '#1b6ef3',
+                   'stroke-width': 2 * ppu, 'pointer-events': 'none' }, root);
+      opts.draft.points.forEach(function (p) {
+        el('circle', { cx: p.x, cy: p.y, r: 3.5 * ppu, fill: '#1b6ef3', 'pointer-events': 'none' }, root);
+      });
+    }
+    if (opts.ghost) {
+      el('circle', { cx: opts.ghost.x, cy: opts.ghost.y, r: 5 * ppu, fill: 'none',
+                     stroke: '#1b6ef3', 'stroke-width': 2 * ppu, 'pointer-events': 'none' }, root);
+    }
+    /* free-hand eraser: white paint over the photo, plus the brush outline */
+    if (opts.brush) {
+      var bp = opts.brush;
+      if (bp.painting && bp.stroke.length && bp.photo && d.background) {
+        var clipId = 'brushclip';
+        var clip = el('clipPath', { id: clipId, clipPathUnits: 'userSpaceOnUse' }, root);
+        el('rect', { x: d.background.x, y: d.background.y,
+                     width: d.background.w, height: d.background.h,
+                     transform: backgroundTransform(d.background) }, clip);
+        var line = bp.stroke.length === 1 ? bp.stroke.concat(bp.stroke) : bp.stroke;
+        el('path', {
+          d: pathD(line, false), fill: 'none', stroke: '#fff', 'stroke-width': bp.size,
+          'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+          'clip-path': 'url(#' + clipId + ')', 'pointer-events': 'none'
+        }, root);
+      }
+      if (bp.cursor) {
+        el('circle', { cx: bp.cursor.x, cy: bp.cursor.y, r: bp.size / 2, fill: 'none',
+                       stroke: '#d43b3b', 'stroke-width': 1.4 * ppu,
+                       'stroke-dasharray': (4 * ppu) + ' ' + (3 * ppu),
+                       'pointer-events': 'none' }, root);
+      }
+    }
+
+    /* the stretch of wall the eraser is about to remove */
+    if (opts.erase) {
+      el('line', {
+        x1: opts.erase.a.x, y1: opts.erase.a.y, x2: opts.erase.b.x, y2: opts.erase.b.y,
+        stroke: '#d43b3b', opacity: .55, 'stroke-width': opts.erase.thickness,
+        'stroke-linecap': 'butt', 'pointer-events': 'none'
+      }, root);
+    }
+  }
+
+  /* Standalone SVG string for export / thumbnails. */
+  function toStandaloneSVG(d, pad) {
+    pad = pad == null ? 90 : pad;
+    var copy = Model.clone(d);
+    copy.settings.showGrid = false;
+    copy.background = null;            // the traced photo is a guide, never part of the output
+    var b = Model.planBox(copy);
+    // markers and dimension text sit outside the walls, so grow the box a little
+    var box = { x: b.x - pad, y: b.y - pad, w: b.w + pad * 2, h: b.h + pad * 2 };
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('xmlns', NS);
+    svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    svg.setAttribute('width', Math.round(box.w));
+    svg.setAttribute('height', Math.round(box.h));
+    draw(svg, copy, { view: box, ppu: 1, interactive: false });
+    svg.insertBefore(
+      (function () {
+        var r = document.createElementNS(NS, 'rect');
+        r.setAttribute('x', box.x); r.setAttribute('y', box.y);
+        r.setAttribute('width', box.w); r.setAttribute('height', box.h);
+        r.setAttribute('fill', '#ffffff');
+        return r;
+      })(), svg.firstChild.nextSibling || null);
+    return { svg: svg, box: box };
+  }
+
+  return { draw: draw, el: el, clear: clear, pathD: pathD, eachSegment: eachSegment,
+           backgroundTransform: backgroundTransform,
+           trefoilGlyph: trefoilGlyph, toStandaloneSVG: toStandaloneSVG, NS: NS };
+})();
+
+</script>
+<script>
+/* Library persistence. Everything lives in localStorage so the app works from file://. */
+var Store = (function () {
+
+  var KEY = 'roomdesigner.library.v1';
+
+  function readAll() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function writeAll(map) {
+    localStorage.setItem(KEY, JSON.stringify(map));
+  }
+
+  function thumbnail(design) {
+    var lite = Model.clone(design);
+    lite.background = null;               // never bake the photo into the thumbnail
+    lite.settings.showGrid = false;
+    lite.settings.showDims = false;
+    var out = Render.toStandaloneSVG(lite, 60);
+    out.svg.removeAttribute('width');
+    out.svg.removeAttribute('height');
+    return out.svg.outerHTML;
+  }
+
+  function list() {
+    var map = readAll();
+    return Object.keys(map).map(function (k) { return map[k]; })
+      .sort(function (a, b) { return b.updated - a.updated; });
+  }
+
+  function get(id) {
+    var rec = readAll()[id];
+    return rec ? Model.migrate(JSON.parse(JSON.stringify(rec.data))) : null;
+  }
+
+  function save(design) {
+    var map = readAll();
+    design.updated = Date.now();
+    map[design.id] = {
+      id: design.id,
+      name: design.name,
+      created: design.created,
+      updated: design.updated,
+      thumb: thumbnail(design),
+      data: design
+    };
+    try {
+      writeAll(map);
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: 'Storage is full. Remove the background photo, or delete old plans.' };
+    }
+  }
+
+  function remove(id) {
+    var map = readAll();
+    delete map[id];
+    writeAll(map);
+  }
+
+  function duplicate(id) {
+    var d = get(id);
+    if (!d) return null;
+    d.id = Model.uid('d');
+    d.name = d.name + ' (copy)';
+    d.created = Date.now();
+    save(d);
+    return d;
+  }
+
+  function rename(id, name) {
+    var map = readAll();
+    if (!map[id]) return;
+    map[id].name = name;
+    map[id].data.name = name;
+    map[id].updated = Date.now();
+    writeAll(map);
+  }
+
+  function usage() {
+    var bytes = (localStorage.getItem(KEY) || '').length * 2;   // UTF-16
+    return { bytes: bytes, mb: (bytes / 1048576).toFixed(2), count: Object.keys(readAll()).length };
+  }
+
+  function exportAll() {
+    return JSON.stringify({ app: 'room-designer', v: Model.SCHEMA, designs: list().map(function (r) { return r.data; }) }, null, 1);
+  }
+
+  /* Accepts either a single plan or a full backup. Returns how many were added. */
+  function importJSON(text) {
+    var parsed = JSON.parse(text);
+    var designs = Array.isArray(parsed.designs) ? parsed.designs : [parsed];
+    var n = 0;
+    designs.forEach(function (d) {
+      if (!d || !d.walls) return;
+      Model.migrate(d);
+      if (!d.id || readAll()[d.id]) d.id = Model.uid('d');
+      d.created = d.created || Date.now();
+      save(d);
+      n++;
+    });
+    return n;
+  }
+
+  return { list: list, get: get, save: save, remove: remove, duplicate: duplicate,
+           rename: rename, usage: usage, exportAll: exportAll, importJSON: importJSON };
+})();
+
+</script>
+<script>
+/* Export helpers: SVG, PNG, clipboard, plan file, plus image down-scaling on import. */
+var Exporters = (function () {
+
+  function serialize(svgNode) {
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(svgNode);
+  }
+
+  function download(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  function safeName(name) {
+    return (name || 'room').replace(/[\\/:*?"<>|]+/g, '-').trim() || 'room';
+  }
+
+  function svgString(design) {
+    return serialize(Render.toStandaloneSVG(design).svg);
+  }
+
+  function toCanvas(design, scale) {
+    return new Promise(function (resolve, reject) {
+      var out = Render.toStandaloneSVG(design);
+      var str = serialize(out.svg);
+      var img = new Image();
+      img.onload = function () {
+        var c = document.createElement('canvas');
+        c.width = Math.round(out.box.w * scale);
+        c.height = Math.round(out.box.h * scale);
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        resolve(c);
+      };
+      img.onerror = function () { reject(new Error('Could not rasterise the plan.')); };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(str);
+    });
+  }
+
+  function exportSVG(design) {
+    download(new Blob([svgString(design)], { type: 'image/svg+xml' }), safeName(design.name) + '.svg');
+  }
+
+  function exportPNG(design, scale) {
+    return toCanvas(design, scale).then(function (c) {
+      return new Promise(function (res) {
+        c.toBlob(function (b) {
+          download(b, safeName(design.name) + (scale > 2 ? '@4x' : '') + '.png');
+          res();
+        }, 'image/png');
+      });
+    });
+  }
+
+  function copyPNG(design, scale) {
+    return toCanvas(design, scale || 2).then(function (c) {
+      return new Promise(function (res, rej) {
+        c.toBlob(function (b) {
+          if (!navigator.clipboard || !window.ClipboardItem) return rej(new Error('Clipboard images are not supported in this browser.'));
+          navigator.clipboard.write([new ClipboardItem({ 'image/png': b })]).then(res, rej);
+        }, 'image/png');
+      });
+    });
+  }
+
+  function exportJSON(design) {
+    download(new Blob([JSON.stringify(design, null, 1)], { type: 'application/json' }),
+             safeName(design.name) + '.json');
+  }
+
+  function exportText(text, filename) {
+    download(new Blob([text], { type: 'application/json' }), filename);
+  }
+
+  /* ───────── the report's survey table ─────────
+     Two columns, in the drawing's own numbering, so the table and the numbered points on the
+     plan can never drift apart. */
+
+  function surveyRows(design) {
+    return design.markers.slice()
+      .sort(function (a, b) { return a.n - b.n; })
+      .map(function (m) { return { n: m.n, label: m.label || '' }; });
+  }
+
+  /* Tab separated and with no heading row: pasted into Excel it lands as two columns,
+     straight underneath the headings the sheet already has. */
+  function surveyTSV(design) {
+    return surveyRows(design).map(function (r) { return r.n + '\t' + r.label; }).join('\n');
+  }
+
+  function surveyCSV(design) {
+    function cell(v) {
+      v = String(v);
+      return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    }
+    return ['No.,Location'].concat(surveyRows(design).map(function (r) {
+      return r.n + ',' + cell(r.label);
+    })).join('\r\n');
+  }
+
+  function exportSurveyCSV(design) {
+    // the BOM is what makes Excel open it as UTF-8 rather than the local code page
+    download(new Blob(['﻿' + surveyCSV(design)], { type: 'text/csv;charset=utf-8' }),
+             safeName(design.name) + ' - survey points.csv');
+  }
+
+  /*
+    The modern clipboard API is missing outright when the app is opened straight off the disk
+    (file:// is not a secure context) and refuses when the window is not focused. The old
+    execCommand route works in both cases, so it stands behind the new one rather than
+    instead of it.
+  */
+  function copyByHand(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    ta.remove();
+    return ok ? Promise.resolve()
+              : Promise.reject(new Error('This browser would not let the app copy. ' +
+                                         'Use “Survey table (.csv)” instead.'));
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).catch(function () { return copyByHand(text); });
+    }
+    return copyByHand(text);
+  }
+
+  /*
+    Hands out a copy of the app itself, so a colleague gets one file and double-clicks it.
+    `seed` (optional) is an AI settings object baked in, so they do not have to get their own
+    API key — it is only applied if they have not already saved settings of their own.
+  */
+  function exportApp(seed) {
+    var snap = window.__appSnapshot;
+    if (!snap) throw new Error('This copy cannot duplicate itself.');
+
+    var doc = snap.cloneNode(true);
+    /*
+      The deployed page's visit counter sits below the snapshot line, so it should never have
+      been copied in here to begin with. This file goes onto someone else's machine, though,
+      so the counter is checked for and removed rather than assumed absent.
+    */
+    Array.prototype.forEach.call(doc.querySelectorAll('[data-va]'), function (n) {
+      n.parentNode.removeChild(n);
+    });
+    if (doc.querySelector('script[src]')) {
+      throw new Error('Only the single-file version can be shared. Run "node build.js" and send ' +
+                      'dist/Room-Designer.html instead.');
+    }
+
+    var canvas = doc.querySelector('#canvas');
+    if (canvas) canvas.innerHTML = '';                       // never ship a drawing inside the app
+    Array.prototype.forEach.call(doc.querySelectorAll('.modal'), function (m) {
+      m.setAttribute('hidden', '');
+    });
+    var old = doc.querySelector('#sharedKey');                // never stack seeds when re-sharing
+    if (old) old.parentNode.removeChild(old);
+
+    if (seed) {
+      var s = document.createElement('script');
+      s.id = 'sharedKey';
+      s.textContent = 'try{if(!localStorage.getItem("roomdesigner.ai"))' +
+                      'localStorage.setItem("roomdesigner.ai",' +
+                      JSON.stringify(JSON.stringify(seed)) + ');}catch(e){}';
+      doc.querySelector('body').appendChild(s);
+    }
+
+    download(new Blob(['<!doctype html>\n' + doc.outerHTML], { type: 'text/html' }),
+             'Room-Designer.html');
+  }
+
+  /* Shrinks a photo before it is stored, so the library stays inside the localStorage budget. */
+  function downscaleImage(file, maxPx, quality) {
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var k = Math.min(1, maxPx / Math.max(img.width, img.height));
+          var w = Math.round(img.width * k), h = Math.round(img.height * k);
+          var c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          var ctx = c.getContext('2d');
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve({ src: c.toDataURL('image/jpeg', quality || 0.7), width: w, height: h });
+        };
+        img.onerror = function () { reject(new Error('That file is not a readable image.')); };
+        img.src = fr.result;
+      };
+      fr.onerror = function () { reject(new Error('Could not read the file.')); };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  return { exportSVG: exportSVG, exportPNG: exportPNG, exportJSON: exportJSON,
+           exportText: exportText, copyPNG: copyPNG, svgString: svgString, toCanvas: toCanvas,
+           exportApp: exportApp, copyText: copyText,
+           surveyRows: surveyRows, surveyTSV: surveyTSV, surveyCSV: surveyCSV,
+           exportSurveyCSV: exportSurveyCSV,
+           downscaleImage: downscaleImage, download: download, safeName: safeName };
+})();
+
+</script>
+<script>
+/* Canvas interaction: tools, selection, dragging, zoom/pan and undo history. */
+var Editor = (function () {
+
+  var svg, stage, design;
+  var view = { x: -60, y: -60, w: 800, h: 600 };
+  var tool = 'select';
+  var selection = [];
+  var draft = null;          // in-progress polyline while drawing a room / wall
+  var ghost = null;          // preview dot for placement tools
+  var erase = null;          // preview band for the precise eraser
+  var brush = null;          // free-hand eraser: cursor ring and the current stroke
+  var photo = null;          // offscreen copy of the background, so pixels can be rubbed out
+  var pickedSeg = null;      // {wallId, index} — which side of a wall was last clicked
+  var drag = null;
+  var spaceDown = false;
+  var history = { stack: [], i: -1 };
+  var listeners = {};
+  var pendingFrame = null;
+
+  /* touch */
+  var coarse = !!(window.matchMedia && window.matchMedia('(pointer:coarse)').matches);
+  var pointers = {};         // every finger currently on the canvas
+  var pinch = null;          // two-finger zoom / pan in progress
+  var tap = null;            // a touch that has not yet decided if it is a tap or a pan
+  var gestureLock = false;   // ignore leftover fingers until the hand is lifted
+
+  /* ───────── events ───────── */
+  function on(name, fn) { (listeners[name] = listeners[name] || []).push(fn); }
+  function emit(name, arg) { (listeners[name] || []).forEach(function (f) { f(arg); }); }
+
+  /* ───────── view helpers ───────── */
+  function rect() { return svg.getBoundingClientRect(); }
+  function ppu() { var r = rect(); return r.width ? view.w / r.width : 1; }
+
+  function syncAspect() {
+    var r = rect();
+    if (r.width > 0) view.h = view.w * (r.height / r.width);
+  }
+
+  function toWorld(cx, cy) {
+    var r = rect();
+    return { x: view.x + (cx - r.left) / r.width * view.w,
+             y: view.y + (cy - r.top) / r.height * view.h };
+  }
+
+  function evtPoint(e, useSnap) {
+    var p = toWorld(e.clientX, e.clientY);
+    if (useSnap !== false && design.settings.snap) p = Geom.snapPoint(p, design.settings.grid);
+    return p;
+  }
+
+  function zoomAt(cx, cy, factor) {
+    var w = toWorld(cx, cy);
+    view.w = Math.max(60, Math.min(40000, view.w * factor));
+    syncAspect();
+    var after = toWorld(cx, cy);
+    view.x += w.x - after.x;
+    view.y += w.y - after.y;
+    requestRender();
+    emit('view');
+  }
+
+  function fit(padRatio) {
+    var b = Model.planBox(design);
+    var pad = (padRatio || 0.14);
+    var r = rect();
+    var aspect = r.height / r.width || 0.75;
+    var w = Math.max(b.w * (1 + pad * 2), 200);
+    var h = Math.max(b.h * (1 + pad * 2), 150);
+    if (w * aspect < h) w = h / aspect;
+    view.w = w;
+    view.h = w * aspect;
+    view.x = b.x + b.w / 2 - view.w / 2;
+    view.y = b.y + b.h / 2 - view.h / 2;
+    requestRender();
+    emit('view');
+  }
+
+  /* ───────── render ───────── */
+  function requestRender() {
+    if (pendingFrame) return;
+    pendingFrame = requestAnimationFrame(function () {
+      pendingFrame = null;
+      syncAspect();
+      Render.draw(svg, design, {
+        view: view, ppu: ppu(), interactive: true, showHandles: true, touch: coarse,
+        selection: selection, draft: draft, ghost: ghost, erase: erase, brush: brush
+      });
+      drawBackgroundHandles();
+    });
+  }
+
+  /* Background gets its own handles because it is not a normal item. */
+  function drawBackgroundHandles() {
+    if (selection.indexOf('background') < 0 || !design.background) return;
+    var b = design.background, k = ppu(), HS = 5 * k;
+    var cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    var g = Render.el('g', {
+      transform: 'translate(' + cx + ',' + cy + ') rotate(' + (b.rot || 0) + ')'
+    }, svg);
+    Render.el('rect', { x: -b.w / 2, y: -b.h / 2, width: b.w, height: b.h, fill: 'none',
+                        stroke: '#1b6ef3', 'stroke-width': 1.4 * k,
+                        'stroke-dasharray': (5 * k) + ' ' + (4 * k), 'pointer-events': 'none' }, g);
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (c, i) {
+      Render.el('rect', { x: c[0] * b.w / 2 - HS, y: c[1] * b.h / 2 - HS,
+                          width: HS * 2, height: HS * 2, fill: '#fff', stroke: '#1b6ef3',
+                          'stroke-width': 1.5 * k, 'data-kind': 'bgresize', 'data-corner': i,
+                          style: 'cursor:nwse-resize' }, g);
+    });
+    Render.el('line', { x1: 0, y1: -b.h / 2, x2: 0, y2: -b.h / 2 - 28 * k,
+                        stroke: '#1b6ef3', 'stroke-width': 1.4 * k, 'pointer-events': 'none' }, g);
+    Render.el('circle', { cx: 0, cy: -b.h / 2 - 28 * k, r: HS * 1.1, fill: '#fff',
+                          stroke: '#1b6ef3', 'stroke-width': 1.6 * k,
+                          'data-kind': 'bgrotate', style: 'cursor:grab' }, g);
+  }
+
+  /* ───────── history ───────── */
+  function pushHistory() {
+    history.stack = history.stack.slice(0, history.i + 1);
+    history.stack.push(JSON.stringify(design));
+    if (history.stack.length > 60) history.stack.shift();
+    history.i = history.stack.length - 1;
+    emit('history');
+  }
+  function commit() {
+    design.updated = Date.now();
+    pushHistory();
+    requestRender();
+    emit('change');
+  }
+  function undo() {
+    if (history.i <= 0) return;
+    history.i--;
+    design = Model.migrate(JSON.parse(history.stack[history.i]));
+    selection = [];
+    requestRender(); emit('change'); emit('history');
+  }
+  function redo() {
+    if (history.i >= history.stack.length - 1) return;
+    history.i++;
+    design = Model.migrate(JSON.parse(history.stack[history.i]));
+    selection = [];
+    requestRender(); emit('change'); emit('history');
+  }
+  function canUndo() { return history.i > 0; }
+  function canRedo() { return history.i < history.stack.length - 1; }
+
+  /* ───────── selection ───────── */
+  function select(ids, additive) {
+    var next = Array.isArray(ids) ? ids : (ids ? [ids] : []);
+    selection = additive ? selection.concat(next.filter(function (i) { return selection.indexOf(i) < 0; })) : next;
+    requestRender();
+    emit('select');
+  }
+  function selected() {
+    return selection.map(function (id) {
+      return id === 'background' ? { id: 'background', bg: design.background } : Model.anyById(design, id);
+    }).filter(Boolean);
+  }
+
+  /* ───────── tools ───────── */
+  function setTool(t) {
+    if (tool === t) return;
+    finishDraft(false);
+    tool = t;
+    ghost = null; erase = null; brush = null;
+    if (t === 'brush') ensurePhotoCanvas();
+    svg.style.cursor = (t === 'select') ? 'default' : 'crosshair';
+    requestRender();
+    emit('tool', t);
+  }
+  function getTool() { return tool; }
+
+  /* Kept in one place so the shell can show its Finish / Cancel buttons at the right moment. */
+  function setDraft(v) {
+    draft = v;
+    emit('draft', !!v);
+  }
+
+  function finishDraft(commitIt) {
+    if (!draft) return;
+    if (draft.kind === 'scale') { setDraft(null); requestRender(); return; }
+    var pts = draft.points;
+    // a double-click lands two points on the same spot — drop the repeat
+    while (pts.length > 1 && Geom.dist(pts[pts.length - 1], pts[pts.length - 2]) < 1e-6) pts.pop();
+    if (commitIt && pts.length >= 2) {
+      var closed = draft.kind === 'room';
+      if (closed && pts.length < 3) { setDraft(null); requestRender(); return; }
+      var hasOutline = design.walls.some(function (w) { return w.kind === 'outline'; });
+      var wall = Model.newWall(pts, (closed && !hasOutline) ? 'outline' : 'partition', closed);
+      design.walls.push(wall);
+      setDraft(null);
+      // once the room is traced the photo has done its job — stop it stealing clicks
+      if (wall.kind === 'outline' && design.background) design.background.locked = true;
+      select(wall.id);
+      commit();
+      setTool('select');
+      return;
+    }
+    setDraft(null);
+    requestRender();
+  }
+
+  function insideSignFor(wall, seg) {
+    var ref = Model.outline(design);
+    var pts = wall.points;
+    var a = pts[seg], b = pts[(seg + 1) % pts.length];
+    if (!a || !b) return 1;
+    var len = Geom.dist(a, b) || 1;
+    var n = { x: -(b.y - a.y) / len, y: (b.x - a.x) / len };
+    var c = Geom.centroid((ref && ref.points.length ? ref : wall).points);
+    var mid = Geom.lerp(a, b, 0.5);
+    return ((c.x - mid.x) * n.x + (c.y - mid.y) * n.y) >= 0 ? 1 : -1;
+  }
+
+  function wallPaths() {
+    return design.walls.filter(function (w) { return w.points.length >= 2; });
+  }
+
+  function placeOpening(type, p) {
+    var hit = Geom.nearestOnPaths(p, wallPaths());
+    if (!hit) { emit('toast', 'Draw a wall first.'); return; }
+    var wall = Model.wallById(design, hit.pathId);
+    var o = Model.newOpening(type, hit);
+    o.side = insideSignFor(wall, hit.seg);
+    clampOpening(o);
+    design.openings.push(o);
+    select(o.id);
+    commit();
+    setTool('select');
+  }
+
+  /* Keeps an opening fully inside its wall segment. A plain gap may span the whole side. */
+  function clampOpening(o) {
+    var f = Model.openingFrame(design, o);
+    if (!f) return;
+    var limit = o.type === 'gap' ? 1 : 0.9;
+    if (o.width > f.length * limit) o.width = Math.max(10, f.length * limit);
+    var half = (o.width / 2) / Math.max(f.length, 1);
+    o.t = Math.max(half, Math.min(1 - half, o.t));
+  }
+
+  /* ───────── eraser ───────── */
+
+  /* Punches a hole in one side of a wall, swallowing any gap it runs into. */
+  function applyGapSpan(wallId, seg, t0, t1) {
+    var wall = Model.wallById(design, wallId);
+    if (!wall) return;
+    var pts = wall.points, n = pts.length;
+    var len = Geom.dist(pts[seg], pts[(seg + 1) % n]) || 1;
+    var lo = Math.max(0, Math.min(t0, t1)), hi = Math.min(1, Math.max(t0, t1));
+
+    design.openings = design.openings.filter(function (o) {
+      if (o.type !== 'gap' || o.pathId !== wallId || o.seg !== seg) return true;
+      var half = (o.width / 2) / len;
+      if (o.t + half < lo - 1e-6 || o.t - half > hi + 1e-6) return true;   // untouched
+      lo = Math.min(lo, o.t - half);                                       // overlapping —
+      hi = Math.max(hi, o.t + half);                                       // absorb it
+      return false;
+    });
+
+    var g = Model.newOpening('gap', { pathId: wallId, seg: seg, t: (lo + hi) / 2 });
+    g.width = Math.max((hi - lo) * len, 4);
+    g.side = insideSignFor(wall, seg);
+    clampOpening(g);
+    design.openings.push(g);
+  }
+
+  function eraseWallSpan(wallId, seg, t0, t1) {
+    applyGapSpan(wallId, seg, t0, t1);
+    commit();
+  }
+
+  function updateErasePreview() {
+    if (!drag || drag.mode !== 'erase') { erase = null; return; }
+    var wall = Model.wallById(design, drag.wallId);
+    if (!wall) { erase = null; return; }
+    var pts = wall.points, n = pts.length;
+    var a = pts[drag.seg], b = pts[(drag.seg + 1) % n];
+    var lo = Math.min(drag.t0, drag.t1), hi = Math.max(drag.t0, drag.t1);
+    var full = Geom.dist(a, b) * (hi - lo) < 6 * ppu();     // a click, not a drag
+    erase = {
+      a: Geom.lerp(a, b, full ? 0 : lo),
+      b: Geom.lerp(a, b, full ? 1 : hi),
+      thickness: Model.thicknessAt(design, wall, drag.seg),
+      full: full
+    };
+  }
+
+  /* ───────── free-hand (pixel) eraser ───────── */
+
+  /* Keeps an editable copy of the photo so the brush can paint white onto it. */
+  function ensurePhotoCanvas() {
+    var bg = design.background;
+    if (!bg || !bg.src) { photo = null; return; }
+    if (photo && photo.src === bg.src) return;
+    var rec = { src: bg.src, ready: false };
+    photo = rec;
+    var img = new Image();
+    img.onload = function () {
+      if (photo !== rec) return;
+      var c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#ffffff';
+      rec.canvas = c; rec.ctx = ctx; rec.ready = true;
+    };
+    img.src = bg.src;
+  }
+
+  /* Undoes the photo's placement transform, giving a pixel position in the bitmap. */
+  function worldToPhoto(p) {
+    var b = design.background;
+    var c = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+    var q = Geom.rotate(p, c, -(b.rot || 0));
+    if (b.mirrorH) q.x = 2 * c.x - q.x;
+    if (b.mirrorV) q.y = 2 * c.y - q.y;
+    return {
+      x: (q.x - b.x) / b.w * photo.canvas.width,
+      y: (q.y - b.y) / b.h * photo.canvas.height
+    };
+  }
+
+  function brushTargets() {
+    var t = design.settings.brushTarget || 'both';
+    return { drawing: t !== 'photo', photo: t !== 'drawing' };
+  }
+
+  /* One dab of the brush at p. Wall spans are collected, everything else goes now. */
+  function brushAt(p, spans) {
+    var r = design.settings.brushSize / 2;
+    var want = brushTargets();
+    if (!want.drawing) return;
+
+    design.walls.forEach(function (wall) {
+      var pts = wall.points, n = pts.length, count = wall.closed ? n : n - 1;
+      for (var i = 0; i < count; i++) {
+        var a = pts[i], b = pts[(i + 1) % n];
+        var len = Geom.dist(a, b);
+        if (!len) continue;
+        var u = { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
+        var tc = ((p.x - a.x) * u.x + (p.y - a.y) * u.y) / len;
+        var foot = Geom.lerp(a, b, tc);
+        var off = Geom.dist(p, foot);
+        if (off >= r) continue;
+        var half = Math.sqrt(r * r - off * off) / len;
+        var lo = Math.max(0, tc - half), hi = Math.min(1, tc + half);
+        if (hi <= lo) continue;
+        var key = wall.id + '|' + i;
+        var s = spans[key];
+        if (s) { s.lo = Math.min(s.lo, lo); s.hi = Math.max(s.hi, hi); }
+        else spans[key] = { wallId: wall.id, seg: i, lo: lo, hi: hi };
+      }
+    });
+
+    // objects go the moment the brush centre passes over them
+    design.markers = design.markers.filter(function (m) {
+      return Geom.dist(p, m) > m.r;
+    });
+    design.items = design.items.filter(function (it) {
+      var local = Geom.rotate(p, { x: it.x, y: it.y }, -(it.rot || 0));
+      return !(Math.abs(local.x - it.x) <= it.w / 2 && Math.abs(local.y - it.y) <= it.h / 2);
+    });
+    design.openings = design.openings.filter(function (o) {
+      if (o.type === 'gap') return true;
+      var f = Model.openingFrame(design, o);
+      if (!f) return true;
+      var local = Geom.rotate(p, f.center, -f.angle);
+      return !(Math.abs(local.x - f.center.x) <= o.width / 2 &&
+               Math.abs(local.y - f.center.y) <= f.thickness / 2);
+    });
+  }
+
+  function paintPhoto(from, to) {
+    if (!brushTargets().photo || !photo || !photo.ready || !design.background) return;
+    var a = worldToPhoto(from), b = worldToPhoto(to);
+    var scale = photo.canvas.width / design.background.w;
+    photo.ctx.lineWidth = design.settings.brushSize * scale;
+    photo.ctx.beginPath();
+    photo.ctx.moveTo(a.x, a.y);
+    photo.ctx.lineTo(b.x, b.y);
+    photo.ctx.stroke();
+  }
+
+  function commitPhoto() {
+    if (!brushTargets().photo || !photo || !photo.ready || !design.background) return false;
+    design.background.src = photo.canvas.toDataURL('image/jpeg', 0.8);
+    photo.src = design.background.src;      // don't rebuild the canvas from our own output
+    return true;
+  }
+
+  function eraseTarget(hit) {
+    if (!hit) return false;
+    if (hit.kind === 'background') { design.background = null; select([]); commit(); return true; }
+    if (hit.kind === 'item' || hit.kind === 'marker' || hit.kind === 'opening') {
+      Model.removeById(design, hit.id);
+      select([]);
+      commit();
+      return true;
+    }
+    return false;
+  }
+
+  function placeItem(type, p) {
+    var it = type === 'trefoil' ? Model.newTrefoil(p.x, p.y)
+           : type === 'text' ? Model.newText(p.x, p.y, 'Label')
+           : Model.newEquipment(p.x, p.y, 'Unit');
+    design.items.push(it);
+    select(it.id);
+    commit();
+    setTool('select');
+  }
+
+  function placeMarker(p) {
+    var next = design.markers.reduce(function (m, k) { return Math.max(m, k.n); }, 0) + 1;
+    var m = Model.newMarker(next, p.x, p.y, design.settings.markerSize);
+    m.label = Model.guessLocation(design, m);
+    design.markers.push(m);
+    select(m.id);
+    commit();
+    // stay on the marker tool: survey points are always added in runs
+  }
+
+  /* ───────── pointer ───────── */
+  function targetInfo(e) {
+    var node = e.target.closest ? e.target.closest('[data-kind]') : null;
+    if (!node) return null;
+    var kind = node.getAttribute('data-kind');
+    if (!kind || kind === 'none') return null;
+    return {
+      kind: kind,
+      id: node.getAttribute('data-id'),
+      index: parseInt(node.getAttribute('data-index'), 10),
+      corner: parseInt(node.getAttribute('data-corner'), 10)
+    };
+  }
+
+  /*
+    Tools that act on a single tap. With a finger these wait until it lifts, so the very
+    same touch can still become a pan of the view or the first half of a pinch — otherwise
+    every attempt to zoom would drop a stray corner on the plan.
+  */
+  var TAP_TOOLS = { room: 1, wall: 1, door: 1, window: 1, equipment: 1,
+                    trefoil: 1, text: 1, marker: 1, scale: 1 };
+
+  function onPointerDown(e) {
+    pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+    var fingers = Object.keys(pointers).length;
+
+    if (fingers === 2) {                 // a second finger always means zoom, never drawing
+      tap = null;
+      finishDrag();
+      startPinch();
+      return;
+    }
+    if (fingers > 2 || pinch || gestureLock) return;
+
+    if (e.button === 1 || spaceDown || tool === 'pan') {
+      drag = { mode: 'pan', sx: e.clientX, sy: e.clientY, vx: view.x, vy: view.y };
+      svg.setPointerCapture(e.pointerId);
+      return;
+    }
+    if (e.button !== 0) return;
+    svg.setPointerCapture(e.pointerId);
+
+    var info = { p: evtPoint(e), raw: evtPoint(e, false), hit: targetInfo(e),
+                 shift: e.shiftKey, cx: e.clientX, cy: e.clientY, id: e.pointerId };
+    if (e.pointerType === 'touch' && TAP_TOOLS[tool]) { tap = info; return; }
+    act(info);
+  }
+
+  function act(info) {
+    var p = info.p, raw = info.raw, hit = info.hit;
+
+    switch (tool) {
+      case 'room':
+      case 'wall': {
+        if (!draft) setDraft({ kind: tool, points: [], cursor: p });
+        var pts = draft.points;
+        if (pts.length && design.settings.ortho) p = Geom.ortho(pts[pts.length - 1], p);
+        if (tool === 'room' && pts.length > 2 && Geom.dist(p, pts[0]) < (coarse ? 26 : 14) * ppu()) {
+          finishDraft(true); return;
+        }
+        pts.push(p);
+        requestRender();
+        return;
+      }
+      case 'eraser': {
+        if (hit && hit.kind === 'wall') {
+          var w2 = Model.wallById(design, hit.id);
+          var pr = Geom.projectOnSegment(raw, w2.points[hit.index], w2.points[(hit.index + 1) % w2.points.length]);
+          drag = { mode: 'erase', wallId: hit.id, seg: hit.index, t0: pr.t, t1: pr.t };
+          updateErasePreview();
+          return;
+        }
+        if (!eraseTarget(hit)) emit('toast', 'Nothing under the cursor to erase.');
+        return;
+      }
+      case 'brush': {
+        ensurePhotoCanvas();
+        drag = { mode: 'brush', spans: {}, last: raw };
+        brush = { cursor: raw, size: design.settings.brushSize,
+                  photo: brushTargets().photo, painting: true, stroke: [raw] };
+        brushAt(raw, drag.spans);
+        requestRender();
+        return;
+      }
+      case 'door':      placeOpening('door', raw); return;
+      case 'window':    placeOpening('window', raw); return;
+      case 'equipment': placeItem('equipment', p); return;
+      case 'trefoil':   placeItem('trefoil', p); return;
+      case 'text':      placeItem('text', p); return;
+      case 'marker':    placeMarker(p); return;
+      case 'scale': {
+        if (!draft) { setDraft({ kind: 'scale', points: [raw], cursor: raw }); requestRender(); return; }
+        draft.points.push(raw);
+        var len = Geom.dist(draft.points[0], draft.points[1]);
+        setDraft(null);
+        emit('scaleMeasured', len);
+        setTool('select');
+        return;
+      }
+    }
+
+    /* select tool */
+    if (!hit) {
+      if (!info.shift) select([]);
+      drag = { mode: 'pan', sx: info.cx, sy: info.cy, vx: view.x, vy: view.y };
+      return;
+    }
+
+    if (hit.kind === 'vertex') {
+      if (selection.indexOf(hit.id) < 0) select(hit.id);
+      drag = { mode: 'vertex', id: hit.id, index: hit.index };
+      return;
+    }
+    if (hit.kind === 'addvertex') {
+      var wall = Model.wallById(design, hit.id);
+      var n = wall.points.length;
+      var mid = Geom.lerp(wall.points[hit.index], wall.points[(hit.index + 1) % n], 0.5);
+      wall.points.splice(hit.index + 1, 0, mid);
+      design.openings.forEach(function (o) {
+        if (o.pathId === wall.id && o.seg > hit.index) o.seg++;
+      });
+      drag = { mode: 'vertex', id: wall.id, index: hit.index + 1 };
+      requestRender();
+      return;
+    }
+    if (hit.kind === 'resize') {
+      var it = Model.anyById(design, hit.id);
+      drag = { mode: 'resize', id: hit.id, w0: it.w, h0: it.h };
+      return;
+    }
+    if (hit.kind === 'rotate') {
+      drag = { mode: 'rotate', id: hit.id };
+      return;
+    }
+    if (hit.kind === 'bgresize') {
+      drag = { mode: 'bgresize', b0: Object.assign({}, design.background) };
+      return;
+    }
+    if (hit.kind === 'bgrotate') {
+      drag = { mode: 'bgrotate' };
+      return;
+    }
+
+    if (hit.kind === 'wall') pickedSeg = { wallId: hit.id, index: hit.index };
+    var id = hit.kind === 'background' ? 'background' : hit.id;
+    if (selection.indexOf(id) < 0) select(id, info.shift);
+    else if (hit.kind === 'wall') emit('select');   // another side of the same wall
+    drag = { mode: 'move', start: raw, last: raw, moved: false, snapshot: snapshotPositions() };
+  }
+
+  /* ───────── pinch ───────── */
+  function twoFingers() {
+    var ids = Object.keys(pointers);
+    var a = pointers[ids[0]], b = pointers[ids[1]];
+    if (!a || !b) return null;
+    return { cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2,
+             d: Math.max(Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y)), 1) };
+  }
+
+  function startPinch() {
+    var f = twoFingers();
+    if (f) pinch = { d: f.d, w: view.w, anchor: toWorld(f.cx, f.cy) };
+  }
+
+  /* Zoom and pan at once: the spot first grabbed stays under the middle of the two fingers. */
+  function updatePinch() {
+    var f = twoFingers();
+    if (!f) return;
+    view.w = Math.max(60, Math.min(40000, pinch.w * pinch.d / f.d));
+    syncAspect();
+    var r = rect();
+    view.x = pinch.anchor.x - (f.cx - r.left) / r.width * view.w;
+    view.y = pinch.anchor.y - (f.cy - r.top) / r.height * view.h;
+    requestRender();
+    emit('view');
+  }
+
+  function snapshotPositions() {
+    var s = {};
+    selection.forEach(function (id) {
+      if (id === 'background' && design.background) {
+        s[id] = { x: design.background.x, y: design.background.y };
+        return;
+      }
+      var o = Model.anyById(design, id);
+      if (!o) return;
+      if (o.points) s[id] = { points: o.points.map(function (p) { return { x: p.x, y: p.y }; }) };
+      else if (o.pathId) s[id] = { opening: true };
+      else s[id] = { x: o.x, y: o.y };
+    });
+    return s;
+  }
+
+  function onPointerMove(e) {
+    if (pointers[e.pointerId]) {
+      pointers[e.pointerId].x = e.clientX;
+      pointers[e.pointerId].y = e.clientY;
+    }
+    if (pinch) { updatePinch(); return; }
+    if (gestureLock) return;
+
+    if (tap) {
+      // a finger that travels was never a tap — let it drag the view instead
+      if (Math.abs(e.clientX - tap.cx) + Math.abs(e.clientY - tap.cy) < 12) return;
+      drag = { mode: 'pan', sx: tap.cx, sy: tap.cy, vx: view.x, vy: view.y };
+      tap = null;
+    }
+
+    if (draft) {
+      var c = evtPoint(e);
+      if (draft.points.length && design.settings.ortho && draft.kind !== 'scale') {
+        c = Geom.ortho(draft.points[draft.points.length - 1], c);
+      }
+      draft.cursor = c;
+      requestRender();
+    }
+    if (!drag) {
+      if (tool === 'door' || tool === 'window') {
+        var hit = Geom.nearestOnPaths(evtPoint(e, false), wallPaths());
+        ghost = hit ? hit.point : null;
+        requestRender();
+      } else if (tool === 'brush') {
+        brush = { cursor: evtPoint(e, false), size: design.settings.brushSize,
+                  photo: brushTargets().photo, painting: false, stroke: [] };
+        requestRender();
+      }
+      return;
+    }
+
+    var p = evtPoint(e);
+    var raw = evtPoint(e, false);
+
+    if (drag.mode === 'pan') {
+      var k = ppu();
+      view.x = drag.vx - (e.clientX - drag.sx) * k;
+      view.y = drag.vy - (e.clientY - drag.sy) * k;
+      requestRender();
+      emit('view');
+      return;
+    }
+
+    if (drag.mode === 'vertex') {
+      var wall = Model.wallById(design, drag.id);
+      if (!wall) return;
+      var np = p;
+      if (design.settings.ortho) {
+        var n = wall.points.length;
+        var prev = wall.points[(drag.index - 1 + n) % n], next = wall.points[(drag.index + 1) % n];
+        var tol = 10 * ppu();
+        [prev, next].forEach(function (q) {
+          if (!q) return;
+          if (Math.abs(np.x - q.x) < tol) np = { x: q.x, y: np.y };
+          if (Math.abs(np.y - q.y) < tol) np = { x: np.x, y: q.y };
+        });
+      }
+      wall.points[drag.index] = np;
+      drag.dirty = true;
+      requestRender();
+      return;
+    }
+
+    if (drag.mode === 'resize') {
+      var it = Model.anyById(design, drag.id);
+      var local = Geom.rotate(raw, { x: it.x, y: it.y }, -(it.rot || 0));
+      it.w = Math.max(14, Math.abs(local.x - it.x) * 2);
+      it.h = Math.max(14, Math.abs(local.y - it.y) * 2);
+      if (e.shiftKey) it.h = it.w * (drag.h0 / drag.w0);
+      if (it.type === 'trefoil') it.h = it.w;
+      drag.dirty = true;
+      requestRender();
+      return;
+    }
+
+    if (drag.mode === 'rotate') {
+      var i2 = Model.anyById(design, drag.id);
+      var ang = Math.atan2(raw.y - i2.y, raw.x - i2.x) * 180 / Math.PI + 90;
+      i2.rot = e.shiftKey ? Math.round(ang / 15) * 15 : Math.round(ang);
+      drag.dirty = true;
+      requestRender();
+      return;
+    }
+
+    if (drag.mode === 'bgresize') {
+      // symmetric about the centre, aspect locked, measured in the photo's own frame
+      var b = design.background, b0 = drag.b0;
+      var bc = { x: b0.x + b0.w / 2, y: b0.y + b0.h / 2 };
+      var local = Geom.rotate(raw, bc, -(b0.rot || 0));
+      var bw = Math.max(40, Math.abs(local.x - bc.x) * 2);
+      var bh = bw / (b0.w / b0.h);
+      b.w = bw; b.h = bh; b.x = bc.x - bw / 2; b.y = bc.y - bh / 2;
+      drag.dirty = true;
+      requestRender();
+      return;
+    }
+
+    if (drag.mode === 'bgrotate') {
+      var bg = design.background;
+      var c2 = { x: bg.x + bg.w / 2, y: bg.y + bg.h / 2 };
+      var a2 = Math.atan2(raw.y - c2.y, raw.x - c2.x) * 180 / Math.PI + 90;
+      bg.rot = e.shiftKey ? Math.round(a2 / 15) * 15 : Math.round(a2 * 10) / 10;
+      drag.dirty = true;
+      requestRender();
+      return;
+    }
+
+    if (drag.mode === 'brush') {
+      // walk the gap between pointer events so a fast drag leaves no holes
+      var step = Math.max(design.settings.brushSize / 3, 2);
+      var steps = Math.max(1, Math.ceil(Geom.dist(drag.last, raw) / step));
+      for (var s = 1; s <= steps; s++) brushAt(Geom.lerp(drag.last, raw, s / steps), drag.spans);
+      paintPhoto(drag.last, raw);
+      drag.last = raw;
+      brush.cursor = raw;
+      brush.stroke.push(raw);
+      requestRender();
+      return;
+    }
+
+    if (drag.mode === 'erase') {
+      var ew = Model.wallById(design, drag.wallId);
+      if (ew) {
+        var en = ew.points.length;
+        drag.t1 = Geom.projectOnSegment(raw, ew.points[drag.seg], ew.points[(drag.seg + 1) % en]).t;
+        updateErasePreview();
+        requestRender();
+      }
+      return;
+    }
+
+    if (drag.mode === 'move') {
+      var dx = raw.x - drag.start.x, dy = raw.y - drag.start.y;
+      if (design.settings.snap) {
+        dx = Geom.snap(dx, design.settings.grid);
+        dy = Geom.snap(dy, design.settings.grid);
+      }
+      if (Math.abs(dx) + Math.abs(dy) > 0) drag.moved = true;
+      selection.forEach(function (id) {
+        var snap = drag.snapshot[id];
+        if (!snap) return;
+        if (id === 'background') {
+          design.background.x = snap.x + dx;
+          design.background.y = snap.y + dy;
+          return;
+        }
+        var o = Model.anyById(design, id);
+        if (!o) return;
+        if (snap.points) {
+          o.points = snap.points.map(function (q) { return { x: q.x + dx, y: q.y + dy }; });
+        } else if (snap.opening) {
+          var hit = Geom.nearestOnPaths(raw, wallPaths());
+          if (hit) { o.pathId = hit.pathId; o.seg = hit.seg; o.t = hit.t; clampOpening(o); }
+        } else {
+          o.x = snap.x + dx; o.y = snap.y + dy;
+        }
+      });
+      drag.dirty = true;
+      requestRender();
+    }
+  }
+
+  function finishDrag() {
+    if (!drag) return;
+    if (drag.mode === 'erase') {
+      var whole = erase && erase.full;
+      eraseWallSpan(drag.wallId, drag.seg, whole ? 0 : drag.t0, whole ? 1 : drag.t1);
+      erase = null;
+    } else if (drag.mode === 'brush') {
+      Object.keys(drag.spans).forEach(function (k) {
+        var s = drag.spans[k];
+        applyGapSpan(s.wallId, s.seg, s.lo, s.hi);
+      });
+      commitPhoto();
+      brush.painting = false;
+      brush.stroke = [];
+      commit();
+    } else if (drag.dirty) commit();
+    drag = null;
+  }
+
+  function onPointerUp(e) {
+    delete pointers[e.pointerId];
+    var fingers = Object.keys(pointers).length;
+
+    // the fingers left over after a pinch are dead until the whole hand comes off
+    if (pinch) { pinch = null; gestureLock = fingers > 0; }
+
+    if (tap && tap.id === e.pointerId) {
+      var pending = tap;
+      tap = null;
+      if (!gestureLock) act(pending);
+    }
+    finishDrag();
+    if (!fingers) gestureLock = false;
+    try { svg.releasePointerCapture(e.pointerId); } catch (err) {}
+  }
+
+  function onWheel(e) {
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, e.deltaY > 0 ? 1.12 : 1 / 1.12);
+  }
+
+  function onDblClick() {
+    if (draft && draft.kind !== 'scale') finishDraft(true);
+  }
+
+  /* ───────── keyboard ───────── */
+  function onKeyDown(e) {
+    var typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+    if (e.code === 'Space' && !typing) { spaceDown = true; svg.style.cursor = 'grab'; }
+    if (typing) return;
+
+    var ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if (ctrl && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
+    if (ctrl && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateSelection(); return; }
+    if (ctrl) return;
+
+    if (e.key === 'Escape') { finishDraft(false); select([]); setTool('select'); return; }
+    if (e.key === 'Enter') { finishDraft(true); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSelection(); return; }
+
+    var map = { v: 'select', r: 'room', p: 'wall', d: 'door', w: 'window',
+                u: 'equipment', e: 'eraser', b: 'brush', t: 'trefoil', n: 'marker',
+                x: 'text', i: 'trace', g: 'ai', m: 'scale' };
+    var k = e.key.toLowerCase();
+    if (map[k]) { setTool(map[k]); emit('toolKey', map[k]); return; }
+    if (k === 'f') fit();
+
+    if (e.key === '[' || e.key === ']') {
+      var bs = design.settings.brushSize * (e.key === '[' ? 1 / 1.25 : 1.25);
+      design.settings.brushSize = Math.round(Math.max(4, Math.min(400, bs)));
+      if (brush) brush.size = design.settings.brushSize;
+      requestRender();
+      emit('change');
+      return;
+    }
+
+    var step = e.shiftKey ? design.settings.grid * 5 : design.settings.grid;
+    var nudge = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (nudge && selection.length) {
+      e.preventDefault();
+      selection.forEach(function (id) {
+        var o = id === 'background' ? design.background : Model.anyById(design, id);
+        if (!o) return;
+        if (o.points) o.points = o.points.map(function (q) { return { x: q.x + nudge[0], y: q.y + nudge[1] }; });
+        else if (o.pathId) {
+          // openings only slide along their own wall
+          var f = Model.openingFrame(design, o);
+          if (f) {
+            var along = (nudge[0] * Math.cos(f.angle * Math.PI / 180) + nudge[1] * Math.sin(f.angle * Math.PI / 180));
+            o.t += along / Math.max(f.length, 1);
+            clampOpening(o);
+          }
+        }
+        else { o.x += nudge[0]; o.y += nudge[1]; }
+      });
+      commit();
+    }
+  }
+  function onKeyUp(e) {
+    if (e.code === 'Space') { spaceDown = false; svg.style.cursor = tool === 'select' ? 'default' : 'crosshair'; }
+  }
+
+  /* ───────── selection commands ───────── */
+  function deleteSelection() {
+    if (!selection.length) return;
+    selection.forEach(function (id) {
+      if (id === 'background') design.background = null;
+      else Model.removeById(design, id);
+    });
+    select([]);
+    commit();
+  }
+
+  function duplicateSelection() {
+    var made = [];
+    selection.forEach(function (id) {
+      var o = Model.anyById(design, id);
+      if (!o) return;
+      var c = JSON.parse(JSON.stringify(o));
+      c.id = Model.uid(o.points ? 'w' : o.pathId ? 'o' : o.r != null ? 'm' : 'i');
+      var off = design.settings.grid * 2;
+      if (c.points) { c.points = c.points.map(function (q) { return { x: q.x + off, y: q.y + off }; }); c.kind = 'partition'; design.walls.push(c); }
+      else if (c.pathId) { c.t = Math.min(0.95, c.t + 0.06); design.openings.push(c); }
+      else if (c.r != null) { c.n = design.markers.reduce(function (m, k) { return Math.max(m, k.n); }, 0) + 1; c.x += off; c.y += off; design.markers.push(c); }
+      else { c.x += off; c.y += off; design.items.push(c); }
+      made.push(c.id);
+    });
+    if (made.length) { select(made); commit(); }
+  }
+
+  /* ───────── survey point helpers ───────── */
+  /* Half the gap between the two circles of a leaded door, never tighter than the circles. */
+  function glassGap(width) {
+    return Math.max(width * 0.25, design.settings.markerSize * 1.3);
+  }
+
+  /*
+    Where the survey points for one opening go. A leaded door is two readings, not one —
+    the door and the glass are different materials and get a number each — so it comes out
+    as a pair of circles side by side. `label` left null means the point names itself.
+  */
+  function openingSpots(o, a, b) {
+    var p = Geom.lerp(a, b, o.t);
+    if (Model.glassLength(o) <= 0) return [{ p: p, label: null }];
+    var len = Geom.dist(a, b) || 1;
+    var ux = (b.x - a.x) / len, uy = (b.y - a.y) / len, k = glassGap(o.width);
+    return [
+      { p: { x: p.x - ux * k, y: p.y - uy * k }, label: null },
+      { p: { x: p.x + ux * k, y: p.y + uy * k }, label: 'Lead glass window' }
+    ];
+  }
+
+  /* Is this spot already numbered? A second press must fill the gaps, not lay a second
+     row of circles on top of the first. */
+  function alreadyNumbered(x, y) {
+    var near = design.settings.markerSize * 1.2;
+    return design.markers.some(function (m) { return Geom.dist(m, { x: x, y: y }) < near; });
+  }
+
+  function markersOnEveryWall() {
+    var out = Model.outline(design);
+    if (!out) { emit('toast', 'Draw the room outline first.'); return null; }   // it never ran
+    var next = design.markers.reduce(function (m, k) { return Math.max(m, k.n); }, 0) + 1;
+    var added = 0;
+    var c = Geom.centroid(out.points);
+    var pts = out.points, n = pts.length, last = out.closed ? n : n - 1;
+    for (var i = 0; i < last; i++) {
+      var a = pts[i], b = pts[(i + 1) % n];
+      var mid = Geom.lerp(a, b, 0.5);
+      var len = Geom.dist(a, b) || 1;
+      // clear of the wall by twice the circle, so the gap stays the same at any point size
+      var off = Model.thicknessAt(design, out, i) / 2 + design.settings.markerSize * 2;
+      var nx = -(b.y - a.y) / len, ny = (b.x - a.x) / len;
+      var away = ((mid.x - c.x) * nx + (mid.y - c.y) * ny) >= 0 ? 1 : -1;
+
+      /* A wall with doors or windows in it gets a point at each one — that is where the
+         reading is actually taken, and it lets the point name itself. A blank stretch of
+         wall gets a single point in the middle. */
+      var here = design.openings.filter(function (o) {
+        return o.pathId === out.id && o.seg === i && o.type !== 'gap';
+      }).sort(function (p, q) { return p.t - q.t; });
+      var spots = [];
+      here.forEach(function (o) { spots = spots.concat(openingSpots(o, a, b)); });
+      if (!spots.length) spots = [{ p: mid, label: null }];
+
+      spots.forEach(function (s) {
+        var x = s.p.x + nx * off * away, y = s.p.y + ny * off * away;
+        if (alreadyNumbered(x, y)) return;
+        var m = Model.newMarker(next++, x, y, design.settings.markerSize);
+        m.label = s.label || Model.guessLocation(design, m);
+        design.markers.push(m);
+        added++;
+      });
+    }
+    if (added) commit();
+    return added;
+  }
+
+  /* Fills in the blanks only — a name already written by hand is never overwritten. */
+  function nameMarkers() {
+    var filled = 0;
+    design.markers.forEach(function (m) {
+      if (m.label) return;
+      var guess = Model.guessLocation(design, m);
+      if (guess) { m.label = guess; filled++; }
+    });
+    if (filled) commit();
+    return filled;
+  }
+
+  function renumberClockwise() {
+    if (!design.markers.length) return;
+    var out = Model.outline(design);
+    var ref = design.markers.length > 2 ? design.markers : (out && out.points.length ? out.points : design.markers);
+    var c = Geom.centroid(ref);
+    design.markers
+      .slice()
+      .sort(function (a, b) {
+        // start at 12 o'clock and run clockwise
+        var aa = (Math.atan2(a.y - c.y, a.x - c.x) * 180 / Math.PI + 450) % 360;
+        var bb = (Math.atan2(b.y - c.y, b.x - c.x) * 180 / Math.PI + 450) % 360;
+        return aa - bb;
+      })
+      .forEach(function (m, i) { m.n = i + 1; });
+    commit();
+  }
+
+  /* ───────── background ───────── */
+  function setBackground(src, w, h) {
+    var b = Model.planBox(design);
+    var target = Math.max(b.w, 520);
+    var k = target / w;
+    design.background = {
+      src: src, x: b.x, y: b.y, w: w * k, h: h * k,
+      opacity: 45, locked: false
+    };
+    select('background');
+    commit();
+    fit();
+  }
+
+  /* ───────── boot ───────── */
+  function init(svgEl, stageEl, initialDesign) {
+    svg = svgEl; stage = stageEl;
+    design = initialDesign;
+    history = { stack: [JSON.stringify(design)], i: 0 };
+
+    svg.addEventListener('pointerdown', onPointerDown);
+    svg.addEventListener('pointermove', onPointerMove);
+    svg.addEventListener('pointerup', onPointerUp);
+    svg.addEventListener('pointercancel', onPointerUp);
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    svg.addEventListener('dblclick', onDblClick);
+    svg.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('resize', function () { syncAspect(); requestRender(); });
+
+    fit();
+  }
+
+  function setDesign(d) {
+    design = Model.migrate(d);
+    selection = []; ghost = null; erase = null;
+    brush = null; photo = null; pickedSeg = null;
+    setDraft(null);
+    history = { stack: [JSON.stringify(design)], i: 0 };
+    fit();
+    emit('change'); emit('history'); emit('select');
+  }
+
+  return {
+    init: init, on: on, emit: emit,
+    getDesign: function () { return design; },
+    setDesign: setDesign,
+    render: requestRender,
+    commit: commit, undo: undo, redo: redo, canUndo: canUndo, canRedo: canRedo,
+    setTool: setTool, getTool: getTool,
+    finishShape: function () { finishDraft(true); },
+    cancelShape: function () { finishDraft(false); },
+    isTouch: function () { return coarse; },
+    select: select, selected: selected,
+    getSelection: function () { return selection.slice(); },
+    getPickedSegment: function () { return pickedSeg; },
+    deleteSelection: deleteSelection, duplicateSelection: duplicateSelection,
+    markersOnEveryWall: markersOnEveryWall, renumberClockwise: renumberClockwise,
+    nameMarkers: nameMarkers,
+    clampOpening: clampOpening,
+    setBackground: setBackground,
+    fit: fit, zoomAt: zoomAt,
+    zoomIn: function () { var r = rect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.25); },
+    zoomOut: function () { var r = rect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.25); },
+    zoomPercent: function () { var r = rect(); return r.width ? Math.round(r.width / view.w * 100) : 100; }
+  };
+})();
+
+</script>
+<script>
+/* DOM wiring: toolbar, property panel, library, exports. */
+(function () {
+
+  var $ = function (id) { return document.getElementById(id); };
+  var svg = $('canvas'), stage = $('stage');
+
+  var HINTS = {
+    select: '',
+    room:   'Click each corner of the room. Click the first corner again (or press Enter) to close it.',
+    wall:   'Click along the inner wall / barrier. Press Enter to finish, Esc to cancel.',
+    door:   'Click on a wall to drop a door there.',
+    window: 'Click on a wall to drop a window there.',
+    equipment: 'Click to place the unit, then rename it on the right.',
+    trefoil: 'Click to place the radiation symbol.',
+    marker: 'Click each survey point. Numbers run automatically.',
+    text:   'Click to place a text label.',
+    eraser: 'Click anything to remove it. On a wall: drag to rub out part of it, click to clear the whole side.',
+    brush:  'Drag to rub things out as you go. [ and ] change the brush size.',
+    scale:  'Click two points of a known distance, then type the real length.'
+  };
+
+  /* ───────── toast ───────── */
+  var toastTimer;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 2600);
+  }
+
+  /* ───────── use counter ─────────
+     Only the deployed copy loads Vercel's script, so on the handout — and on any copy opened
+     off a disk — `va` is simply missing and this does nothing at all. What goes out is the
+     name of the action and nothing else: no room, no drawing, no file name, no key. */
+  function track(name, data) {
+    try { if (window.va) window.va('event', { name: name, data: data }); } catch (e) {}
+  }
+
+  function showHint(text) {
+    var h = $('hint');
+    h.textContent = text || '';
+    h.classList.toggle('on', !!text);
+  }
+
+  /* ───────── boot ───────── */
+  var last = localStorage.getItem('roomdesigner.last');
+  var startDesign = null;
+  if (last) { try { startDesign = Model.migrate(JSON.parse(last)); } catch (e) {} }
+  if (!startDesign || !startDesign.walls) startDesign = Model.starterDesign();
+
+  Editor.init(svg, stage, startDesign);
+  $('docName').value = startDesign.name;
+
+  /* ───────── tools ───────── */
+  document.querySelectorAll('.tool').forEach(function (b) {
+    b.addEventListener('click', function () { Editor.setTool(b.dataset.tool); });
+  });
+
+  Editor.on('tool', function (t) {
+    if (t === 'trace') { $('filePicker').click(); Editor.setTool('select'); return; }
+    if (t === 'ai') { openAi(); Editor.setTool('select'); return; }
+    document.querySelectorAll('.tool').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.tool === t);
+    });
+    showHint(HINTS[t]);
+  });
+  Editor.emit('tool', 'select');
+  document.querySelector('.tool[data-tool="select"]').classList.add('active');
+
+  Editor.on('toast', toast);
+
+  /* ───────── autosave + change plumbing ───────── */
+  function autosave() {
+    try { localStorage.setItem('roomdesigner.last', JSON.stringify(Editor.getDesign())); } catch (e) {}
+  }
+
+  Editor.on('change', function () { autosave(); refreshPlanPanel(); refreshSelPanel(); });
+  Editor.on('select', refreshSelPanel);
+  Editor.on('history', function () {
+    $('btnUndo').disabled = !Editor.canUndo();
+    $('btnRedo').disabled = !Editor.canRedo();
+  });
+  Editor.on('view', function () { $('zoomLabel').textContent = Editor.zoomPercent() + '%'; });
+
+  /* ───────── collapsible groups ───────── */
+  /*
+    The Plan panel is long enough to push the parts below it out of sight, so every heading
+    folds its own group. Which ones are open is remembered between sessions.
+  */
+  var GROUPS_KEY = 'roomdesigner.panels';
+  var CLOSED_BY_DEFAULT = { turn: true, brush: true };
+
+  function loadGroupState() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(GROUPS_KEY));
+      if (saved && typeof saved === 'object') return saved;
+    } catch (e) {}
+    return Object.assign({}, CLOSED_BY_DEFAULT);
+  }
+
+  var groupState = loadGroupState();
+
+  Array.prototype.forEach.call(document.querySelectorAll('.grp'), function (grp) {
+    var key = grp.getAttribute('data-grp');
+    var head = grp.querySelector('.grp-head');
+    function paint() {
+      grp.classList.toggle('closed', !!groupState[key]);
+      head.setAttribute('aria-expanded', groupState[key] ? 'false' : 'true');
+    }
+    head.addEventListener('click', function () {
+      groupState[key] = !groupState[key];
+      paint();
+      try { localStorage.setItem(GROUPS_KEY, JSON.stringify(groupState)); } catch (e) {}
+    });
+    paint();
+  });
+
+  /* ───────── plan panel ───────── */
+  function refreshPlanPanel() {
+    var d = Editor.getDesign(), s = d.settings;
+    $('pWallT').value = s.wallThickness;
+    $('pGrid').value = s.grid;
+    $('pShowGrid').checked = s.showGrid;
+    $('pSnap').checked = s.snap;
+    $('pOrtho').checked = s.ortho;
+    $('pShowDims').checked = s.showDims;
+    $('pBrushSize').value = s.brushSize;
+    $('pBrushTarget').value = s.brushTarget;
+    $('scaleInfo').textContent = s.scaleSet
+      ? (s.unitsPerMeter).toFixed(0) + ' units = 1 m'
+      : 'not set (1 unit ≈ 1 cm)';
+    $('bgInfo').textContent = d.background ? 'loaded' : 'none';
+    $('pBgOpacity').value = d.background ? d.background.opacity : 45;
+    $('pBgOpacity').disabled = !d.background;
+    $('pBgLock').checked = d.background ? !!d.background.locked : false;
+    $('pBgLock').disabled = !d.background;
+  }
+
+  function bindSetting(inputId, key, kind) {
+    $(inputId).addEventListener('change', function () {
+      var d = Editor.getDesign();
+      d.settings[key] = kind === 'bool' ? this.checked : parseFloat(this.value) || 0;
+      Editor.commit();
+    });
+  }
+  bindSetting('pWallT', 'wallThickness');
+  bindSetting('pGrid', 'grid');
+  bindSetting('pShowGrid', 'showGrid', 'bool');
+  bindSetting('pSnap', 'snap', 'bool');
+  bindSetting('pOrtho', 'ortho', 'bool');
+  bindSetting('pShowDims', 'showDims', 'bool');
+  bindSetting('pBrushSize', 'brushSize');
+  $('pBrushTarget').addEventListener('change', function () {
+    Editor.getDesign().settings.brushTarget = this.value;
+    Editor.commit();
+  });
+
+  function turnPlan(deg) {
+    Model.rotatePlan(Editor.getDesign(), deg);
+    Editor.select([]);
+    Editor.commit();
+    Editor.fit();
+  }
+  $('btnRotL').addEventListener('click', function () { turnPlan(-90); });
+  $('btnRotR').addEventListener('click', function () { turnPlan(90); });
+  $('btnRotMinus').addEventListener('click', function () { turnPlan(-Math.abs(parseFloat($('pRotate').value) || 0)); });
+  $('btnRotPlus').addEventListener('click', function () { turnPlan(Math.abs(parseFloat($('pRotate').value) || 0)); });
+
+  $('btnAutoMarkers').addEventListener('click', function () {
+    var n = Editor.markersOnEveryWall();
+    if (n) track('Number every wall');
+    if (n === 0) toast('Every wall and opening already has its number.');
+  });
+  $('btnRenumber').addEventListener('click', function () { Editor.renumberClockwise(); });
+  $('btnNameMarkers').addEventListener('click', function () {
+    var n = Editor.nameMarkers();
+    toast(n ? n + ' point(s) named from the drawing.'
+            : 'Nothing to fill in — the points are named already, or there is no door or window ' +
+              'close enough to one to read.');
+  });
+
+  /* ───────── survey point names ─────────
+     A short list of the names that go in the report's Location column. Anything typed once is
+     offered again in every room after it. */
+  var LOC_KEY = 'roomdesigner.locations';
+
+  function locationNames() {
+    var extra = [];
+    try {
+      var saved = JSON.parse(localStorage.getItem(LOC_KEY));
+      if (Array.isArray(saved)) extra = saved.filter(function (s) { return typeof s === 'string'; });
+    } catch (e) {}
+    return Model.LOCATION_PRESETS.concat(extra.filter(function (s) {
+      return Model.LOCATION_PRESETS.indexOf(s) < 0;
+    }));
+  }
+
+  function paintLocations() {
+    var list = $('locNames');
+    list.innerHTML = '';
+    locationNames().forEach(function (name) {
+      var o = document.createElement('option');
+      o.value = name;
+      list.appendChild(o);
+    });
+  }
+
+  function rememberLocation(name) {
+    if (!name || locationNames().indexOf(name) >= 0) return;
+    var extra = [];
+    try { extra = JSON.parse(localStorage.getItem(LOC_KEY)) || []; } catch (e) {}
+    extra.push(name);
+    try { localStorage.setItem(LOC_KEY, JSON.stringify(extra)); } catch (e) {}
+    paintLocations();
+  }
+
+  paintLocations();
+
+  /* ───────── background ───────── */
+  $('btnBgLoad').addEventListener('click', function () { $('filePicker').click(); });
+  $('btnBgClear').addEventListener('click', function () {
+    var d = Editor.getDesign();
+    if (!d.background) return;
+    d.background = null;
+    Editor.select([]);
+    Editor.commit();
+  });
+  $('pBgOpacity').addEventListener('input', function () {
+    var d = Editor.getDesign();
+    if (!d.background) return;
+    d.background.opacity = parseInt(this.value, 10);
+    Editor.render();
+  });
+  $('pBgOpacity').addEventListener('change', function () { Editor.commit(); });
+  $('pBgLock').addEventListener('change', function () {
+    var d = Editor.getDesign();
+    if (!d.background) return;
+    d.background.locked = this.checked;
+    Editor.commit();
+  });
+
+  $('filePicker').addEventListener('change', function () {
+    var f = this.files[0];
+    this.value = '';
+    if (!f) return;
+    Exporters.downscaleImage(f, 1400, 0.72).then(function (img) {
+      Editor.setBackground(img.src, img.width, img.height);
+      Editor.setTool('room');
+      toast('Photo loaded. Now click the corners of the room over it.');
+    }).catch(function (e) { toast(e.message); });
+  });
+
+  /* ───────── scale tool ───────── */
+  Editor.on('scaleMeasured', function (lenUnits) {
+    var answer = prompt('That distance in metres:', '1');
+    if (answer == null) return;
+    var m = parseFloat(answer);
+    if (!m || m <= 0) { toast('Enter a number greater than zero.'); return; }
+    var d = Editor.getDesign();
+    d.settings.unitsPerMeter = lenUnits / m;
+    d.settings.scaleSet = true;
+    Editor.commit();
+    toast('Scale set. Wall lengths will read in metres.');
+  });
+
+  /* ───────── selection panel ───────── */
+  function field(label, node) {
+    var row = document.createElement('label');
+    row.className = 'row';
+    var s = document.createElement('span'); s.textContent = label;
+    row.appendChild(s); row.appendChild(node);
+    return row;
+  }
+  function num(value, opts, oninput) {
+    var i = document.createElement('input');
+    i.type = 'number'; i.value = Math.round(value * 100) / 100;
+    if (opts) for (var k in opts) i[k] = opts[k];
+    i.addEventListener('change', function () { oninput(parseFloat(i.value)); });
+    return i;
+  }
+  function textInput(value, oninput) {
+    var i = document.createElement('input');
+    i.type = 'text'; i.value = value || '';
+    i.addEventListener('change', function () { oninput(i.value); });
+    return i;
+  }
+  function selectInput(options, value, oninput) {
+    var s = document.createElement('select');
+    options.forEach(function (o) {
+      var op = document.createElement('option');
+      op.value = o[0]; op.textContent = o[1];
+      s.appendChild(op);
+    });
+    s.value = value;
+    s.addEventListener('change', function () { oninput(s.value); });
+    return s;
+  }
+  function checkRow(label, checked, oninput) {
+    var row = document.createElement('label');
+    row.className = 'row check';
+    var c = document.createElement('input'); c.type = 'checkbox'; c.checked = checked;
+    c.addEventListener('change', function () { oninput(c.checked); });
+    var s = document.createElement('span'); s.textContent = label;
+    row.appendChild(c); row.appendChild(s);
+    return row;
+  }
+  function buttonRow(pairs) {
+    var wrap = document.createElement('div');
+    wrap.className = 'row2';
+    pairs.forEach(function (p) {
+      var b = document.createElement('button');
+      b.className = 'btn'; b.textContent = p[0];
+      b.addEventListener('click', p[1]);
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+  function note(text) {
+    var p = document.createElement('p');
+    p.className = 'field-note'; p.textContent = text;
+    return p;
+  }
+
+  function refreshSelPanel() {
+    var box = $('selFields'), panel = $('panelSel');
+    box.innerHTML = '';
+    var ids = Editor.getSelection();
+    if (!ids.length) { panel.hidden = true; return; }
+    panel.hidden = false;
+
+    var d = Editor.getDesign();
+
+    if (ids.length > 1) {
+      $('selTitle').textContent = ids.length + ' objects';
+      box.appendChild(note('Drag to move them together, or use the arrow keys.'));
+      return;
+    }
+
+    var id = ids[0];
+
+    if (id === 'background') {
+      $('selTitle').textContent = 'Background photo';
+      box.appendChild(note('Drag to line it up, pull a corner to resize, or use the round handle above it to rotate. Hold Shift while rotating to step by 15°.'));
+      box.appendChild(field('Rotation', num(d.background.rot || 0, { min: -180, max: 180, step: 0.5 }, function (v) {
+        d.background.rot = v; Editor.commit();
+      })));
+      box.appendChild(field('Opacity', num(d.background.opacity, { min: 0, max: 100 }, function (v) {
+        d.background.opacity = v; Editor.commit();
+      })));
+      box.appendChild(buttonRow([
+        ['Rotate −90°', function () { d.background.rot = (((d.background.rot || 0) - 90) + 540) % 360 - 180; Editor.commit(); refreshSelPanel(); }],
+        ['Rotate +90°', function () { d.background.rot = (((d.background.rot || 0) + 90) + 540) % 360 - 180; Editor.commit(); refreshSelPanel(); }]
+      ]));
+      box.appendChild(buttonRow([
+        ['Straighten', function () { d.background.rot = 0; Editor.commit(); refreshSelPanel(); }],
+        ['Mirror', function () { d.background.mirrorH = !d.background.mirrorH; Editor.commit(); }]
+      ]));
+      return;
+    }
+
+    var o = Model.anyById(d, id);
+    if (!o) { panel.hidden = true; return; }
+
+    /* wall */
+    if (o.points) {
+      $('selTitle').textContent = o.kind === 'outline' ? 'Room outline' : 'Inner wall';
+      box.appendChild(field('Thickness — all sides', num(Model.thicknessOf(d, o), { min: 2, max: 120 }, function (v) {
+        o.thickness = v;
+        o.segThickness = {};                  // one number wins over the per-side overrides
+        Editor.commit(); refreshSelPanel();
+      })));
+
+      var picked = Editor.getPickedSegment();
+      if (picked && picked.wallId === o.id) {
+        var i = picked.index;
+        box.appendChild(field('This side (#' + (i + 1) + ')',
+          num(Model.thicknessAt(d, o, i), { min: 2, max: 120 }, function (v) {
+            o.segThickness[i] = v; Editor.commit();
+          })));
+        if (o.segThickness[i] != null) {
+          box.appendChild(buttonRow([['Reset this side', function () {
+            delete o.segThickness[i]; Editor.commit(); refreshSelPanel();
+          }]]));
+        }
+        box.appendChild(note('Click any side of the wall to set just that one — useful when a single barrier is lead-lined.'));
+      }
+
+      box.appendChild(checkRow('Closed loop', o.closed, function (v) { o.closed = v; Editor.commit(); }));
+      box.appendChild(checkRow('This is the room outline', o.kind === 'outline', function (v) {
+        if (v) d.walls.forEach(function (w) { w.kind = w === o ? 'outline' : 'partition'; });
+        else o.kind = 'partition';
+        Editor.commit();
+      }));
+      box.appendChild(note(o.points.length + ' corners. Drag a square handle to move a corner, or a faint dot to add one.'));
+      return;
+    }
+
+    /* opening */
+    if (o.pathId) {
+      $('selTitle').textContent = 'Opening';
+      box.appendChild(field('Type', selectInput([
+        ['door', 'Door — single'], ['door2', 'Door — double'], ['slider', 'Sliding door'],
+        ['window', 'Window'], ['leadglass', 'Lead glass window'], ['gap', 'Plain opening']
+      ], o.type, function (v) { o.type = v; Editor.commit(); refreshSelPanel(); })));
+      box.appendChild(field('Width', num(o.width, { min: 20, max: 600 }, function (v) {
+        o.width = v; Editor.clampOpening(o); Editor.commit();
+      })));
+      if (o.type === 'door' || o.type === 'door2') {
+        box.appendChild(field('Open angle', num(o.open, { min: 5, max: 120 }, function (v) {
+          o.open = v; Editor.commit();
+        })));
+        box.appendChild(buttonRow([
+          ['Swap hinge', function () { o.hinge = o.hinge === 'start' ? 'end' : 'start'; Editor.commit(); }],
+          ['Flip swing', function () { o.side = -(o.side || 1); Editor.commit(); }]
+        ]));
+      }
+      if (o.type === 'slider') {
+        box.appendChild(buttonRow([
+          ['Flip to other side', function () { o.side = -(o.side || 1); Editor.commit(); }]
+        ]));
+        box.appendChild(note('The leaf is drawn clear of the wall, running past the gap at ' +
+                             'both ends — the part that slides behind the wall.'));
+      }
+      if (o.type === 'door' || o.type === 'door2' || o.type === 'slider') {
+        box.appendChild(checkRow('Lead glass panel in the door', !!o.vision, function (v) {
+          o.vision = v;
+          // fix the length the moment it is switched on, so the box shows what is drawn
+          if (v && o.visionLen == null) o.visionLen = Math.round(Model.glassLength(o));
+          Editor.commit(); refreshSelPanel();
+        }));
+        if (o.vision) {
+          box.appendChild(field('Glass length', num(Math.round(Model.glassLength(o)),
+            { min: 5, max: 600 }, function (v) {
+              o.visionLen = v; Editor.commit(); refreshSelPanel();   // snap back if it was capped
+            })));
+          box.appendChild(note(o.type === 'door2'
+            ? 'The panel in each of the two leaves. It cannot run past 90% of a leaf.'
+            : 'Measured along the leaf. It cannot run past 90% of it.'));
+        }
+      }
+      box.appendChild(note('Drag it along the wall, or drop it on a different wall.'));
+      return;
+    }
+
+    /* marker */
+    if (o.r != null) {
+      $('selTitle').textContent = 'Survey point';
+      box.appendChild(field('Number', num(o.n, { min: 1, max: 999 }, function (v) { o.n = v; Editor.commit(); })));
+
+      // the Location column of the report — pick a name or type a new one
+      var loc = document.createElement('input');
+      loc.type = 'text';
+      loc.setAttribute('list', 'locNames');
+      loc.value = o.label || '';
+      loc.placeholder = 'pick or type';
+      loc.addEventListener('change', function () {
+        o.label = loc.value.trim();
+        rememberLocation(o.label);
+        Editor.commit();
+      });
+      box.appendChild(field('Location', loc));
+      box.appendChild(note('Goes in the Location column. A name you type here is kept and offered ' +
+                           'on every point after it.'));
+
+      box.appendChild(field('Size', num(o.r, { min: 6, max: 80 }, function (v) {
+        o.r = v;
+        if (d.settings.uniformMarkers) {
+          d.markers.forEach(function (m) { m.r = v; });
+          d.settings.markerSize = v;          // new points come out this size too
+        }
+        Editor.commit();
+      })));
+      box.appendChild(checkRow('Same size for every point', d.settings.uniformMarkers, function (v) {
+        d.settings.uniformMarkers = v;
+        if (v) {
+          d.markers.forEach(function (m) { m.r = o.r; });
+          d.settings.markerSize = o.r;
+        }
+        Editor.commit();
+      }));
+      return;
+    }
+
+    /* items */
+    if (o.type === 'trefoil') {
+      $('selTitle').textContent = 'Radiation symbol';
+      box.appendChild(field('Size', num(o.w, { min: 14, max: 400 }, function (v) { o.w = o.h = v; Editor.commit(); })));
+      return;
+    }
+
+    if (o.type === 'text') {
+      $('selTitle').textContent = 'Text';
+      var ta = document.createElement('textarea');
+      ta.value = o.label; ta.rows = 2;
+      ta.style.cssText = 'width:100%;font:inherit;padding:6px;border:1px solid var(--line);border-radius:5px';
+      ta.addEventListener('change', function () { o.label = ta.value; Editor.commit(); });
+      box.appendChild(ta);
+      box.appendChild(field('Font size', num(o.fontSize, { min: 6, max: 200 }, function (v) { o.fontSize = v; Editor.commit(); })));
+      box.appendChild(field('Rotation', num(o.rot, { min: -180, max: 180 }, function (v) { o.rot = v; Editor.commit(); })));
+      return;
+    }
+
+    $('selTitle').textContent = 'Equipment';
+    box.appendChild(field('Label', textInput(o.label, function (v) { o.label = v; Editor.commit(); })));
+    box.appendChild(field('Preset', selectInput(
+      [['', '—']].concat(Model.EQUIPMENT_PRESETS.map(function (p) { return [p.label, p.label]; })),
+      '', function (v) {
+        if (!v) return;
+        var p = Model.EQUIPMENT_PRESETS.filter(function (q) { return q.label === v; })[0];
+        o.label = p.label; o.w = p.w; o.h = p.h;
+        Editor.commit(); refreshSelPanel();
+      })));
+    box.appendChild(field('Width', num(o.w, { min: 10, max: 2000 }, function (v) { o.w = v; Editor.commit(); })));
+    box.appendChild(field('Height', num(o.h, { min: 10, max: 2000 }, function (v) { o.h = v; Editor.commit(); })));
+    box.appendChild(field('Rotation', num(o.rot, { min: -180, max: 180 }, function (v) { o.rot = v; Editor.commit(); })));
+    box.appendChild(field('Font size', num(o.fontSize, { min: 6, max: 200 }, function (v) { o.fontSize = v; Editor.commit(); })));
+    box.appendChild(field('Shape', selectInput([['round', 'Rounded'], ['rect', 'Square']], o.shape, function (v) {
+      o.shape = v; Editor.commit();
+    })));
+    box.appendChild(checkRow('Radiation symbol on the unit', !!o.trefoil, function (v) { o.trefoil = v; Editor.commit(); }));
+  }
+
+  $('btnDel').addEventListener('click', function () { Editor.deleteSelection(); });
+  $('btnDup').addEventListener('click', function () { Editor.duplicateSelection(); });
+
+  /* ───────── topbar ───────── */
+  $('docName').addEventListener('change', function () {
+    Editor.getDesign().name = this.value || 'Untitled room';
+    Editor.commit();
+  });
+
+  $('btnNew').addEventListener('click', function () {
+    if (!confirm('Start a new empty plan? Anything unsaved is lost.')) return;
+    var d = Model.starterDesign();
+    Editor.setDesign(d);
+    $('docName').value = d.name;
+    track('New plan');
+    toast('New plan.');
+  });
+
+  $('btnSave').addEventListener('click', saveCurrent);
+  function saveCurrent() {
+    var d = Editor.getDesign();
+    d.name = $('docName').value || 'Untitled room';
+    var r = Store.save(d);
+    if (r.ok) track('Save plan');
+    toast(r.ok ? 'Saved to library.' : r.error);
+  }
+
+  $('btnUndo').addEventListener('click', Editor.undo);
+  $('btnRedo').addEventListener('click', Editor.redo);
+  $('btnFlipH').addEventListener('click', function () { Model.flip(Editor.getDesign(), 'h'); Editor.select([]); Editor.commit(); });
+  $('btnFlipV').addEventListener('click', function () { Model.flip(Editor.getDesign(), 'v'); Editor.select([]); Editor.commit(); });
+  $('btnFit').addEventListener('click', function () { Editor.fit(); });
+  $('btnZoomIn').addEventListener('click', Editor.zoomIn);
+  $('btnZoomOut').addEventListener('click', Editor.zoomOut);
+
+  /* ───────── export menu ───────── */
+  var exportMenu = $('exportMenu');
+  $('btnExport').addEventListener('click', function (e) {
+    e.stopPropagation();
+    exportMenu.hidden = !exportMenu.hidden;
+  });
+  document.addEventListener('click', function () {
+    exportMenu.hidden = true;
+    $('barMore').classList.remove('open');
+  });
+  exportMenu.addEventListener('click', function (e) {
+    var what = e.target.dataset && e.target.dataset.export;
+    if (!what) return;
+    var d = Editor.getDesign();
+    d.name = $('docName').value || 'Untitled room';
+    track('Export', { as: what });          // which way out of the app actually gets used
+    if (what === 'svg') Exporters.exportSVG(d);
+    else if (what === 'png2') Exporters.exportPNG(d, 2).catch(function (err) { toast(err.message); });
+    else if (what === 'png4') Exporters.exportPNG(d, 4).catch(function (err) { toast(err.message); });
+    else if (what === 'json') Exporters.exportJSON(d);
+    else if (what === 'clip') Exporters.copyPNG(d, 2).then(function () { toast('Copied — paste it into your report.'); },
+                                                          function (err) { toast(err.message); });
+    else if (what === 'app') shareApp();
+    else if (what === 'table' || what === 'tablecsv') surveyTable(d, what === 'table');
+  });
+
+  /*
+    The two-column table that sits under the drawing in the report. Copying gives tab separated
+    rows with no heading, so a paste lands in the two columns the sheet already has.
+  */
+  function surveyTable(d, toClipboard) {
+    if (!d.markers.length) { toast('No survey points on the plan yet.'); return; }
+    var blanks = d.markers.filter(function (m) { return !m.label; }).length;
+    if (!toClipboard) {
+      Exporters.exportSurveyCSV(d);
+      toast('Saved ' + d.markers.length + ' point(s).');
+      return;
+    }
+    Exporters.copyText(Exporters.surveyTSV(d)).then(function () {
+      toast(d.markers.length + ' row(s) copied — paste under the No. heading in the sheet.' +
+            (blanks ? ' ' + blanks + ' still has no name.' : ''));
+    }, function (err) { toast(err.message); });
+  }
+
+  /*
+    Hands out a copy of the app. If a key is saved, offer to bake it in so the person
+    receiving it can use the AI import without signing up for anything.
+  */
+  function shareApp() {
+    var s = AI.loadSettings();
+    var seed = null;
+    if (s.key) {
+      seed = confirm(
+        'Include your saved API key in this copy?\n\n' +
+        'OK — they can use the AI import straight away, but anyone who gets the file can ' +
+        'spend your free quota. Only send it to people you trust, and replace the key if it spreads.\n\n' +
+        'Cancel — send the app without the key; they add their own.'
+      ) ? { provider: s.provider, key: s.key, model: s.model } : null;
+    }
+    try {
+      Exporters.exportApp(seed);
+      toast(seed ? 'App file saved — your key travels with it.'
+                 : 'App file saved — it carries no key.');
+    } catch (err) {
+      toast(err.message);
+    }
+  }
+
+  /* ───────── phone layout ─────────
+     On a narrow screen the toolbar folds into ☰ and the properties panel becomes a sheet
+     that slides up over the canvas. The layout itself is plain CSS; this only wires the
+     switches, and asks the stylesheet — not the browser — which layout is in force.
+  */
+  var barMore = $('barMore'), props = $('props'), sheetBtn = $('btnSheet');
+
+  function phoneLayout() { return getComputedStyle($('btnMore')).display !== 'none'; }
+
+  $('btnMore').addEventListener('click', function (e) {
+    e.stopPropagation();
+    exportMenu.hidden = true;
+    barMore.classList.toggle('open');
+  });
+
+  function showSheet(on) {
+    props.classList.toggle('open', on);
+    sheetBtn.classList.remove('attn');
+  }
+  sheetBtn.addEventListener('click', function () {
+    showSheet(!props.classList.contains('open'));
+  });
+
+  /* The sheet follows the selection, so tapping a wall puts its settings straight in front
+     of you — the same thing the corner handles do for the drawing itself. */
+  var sheetAuto = false;
+  Editor.on('select', function () {
+    if (!phoneLayout()) return;
+    var has = Editor.getSelection().length > 0;
+    if (has && !props.classList.contains('open')) { showSheet(true); sheetAuto = true; }
+    else if (!has && sheetAuto) { showSheet(false); sheetAuto = false; }
+  });
+
+  // a tool that draws needs the canvas, not the panel
+  Editor.on('tool', function (t) {
+    if (phoneLayout() && t !== 'select') { showSheet(false); sheetAuto = false; }
+  });
+
+  /* There is no Enter key on a phone, so a shape being drawn gets its own two buttons. */
+  var draftBar = $('draftBar');
+  Editor.on('draft', function (on) { draftBar.hidden = !on; });
+  $('btnDraftDone').addEventListener('click', function () { Editor.finishShape(); });
+  $('btnDraftCancel').addEventListener('click', function () { Editor.cancelShape(); });
+
+  /* ───────── library ───────── */
+  var libModal = $('library');
+  $('btnLibrary').addEventListener('click', openLibrary);
+  $('btnCloseLib').addEventListener('click', function () { libModal.hidden = true; });
+  libModal.addEventListener('click', function (e) { if (e.target === libModal) libModal.hidden = true; });
+  $('libSearch').addEventListener('input', function () { renderLibrary(this.value); });
+
+  function openLibrary() {
+    libModal.hidden = false;
+    $('libSearch').value = '';
+    renderLibrary('');
+  }
+
+  function renderLibrary(q) {
+    var grid = $('libGrid');
+    grid.innerHTML = '';
+    var rows = Store.list().filter(function (r) {
+      return !q || r.name.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+    });
+    var u = Store.usage();
+    $('storageInfo').textContent = u.count + ' plan(s) · ' + u.mb + ' MB used of about 5 MB. ' +
+      'Use “Backup all” from time to time.';
+
+    if (!rows.length) {
+      var empty = document.createElement('div');
+      empty.className = 'lib-empty';
+      empty.textContent = q ? 'Nothing matches that.' : 'No saved plans yet — draw a room and press Save.';
+      grid.appendChild(empty);
+      return;
+    }
+
+    rows.forEach(function (r) {
+      var card = document.createElement('div');
+      card.className = 'lib-card';
+
+      var thumb = document.createElement('div');
+      thumb.className = 'thumb';
+      thumb.innerHTML = r.thumb || '';
+      thumb.title = 'Open';
+      thumb.addEventListener('click', function () { openDesign(r.id); });
+
+      var meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.innerHTML = '<b></b><small></small>';
+      meta.querySelector('b').textContent = r.name;
+      meta.querySelector('small').textContent = new Date(r.updated).toLocaleString();
+
+      var acts = document.createElement('div');
+      acts.className = 'acts';
+      [['Open', function () { openDesign(r.id); }],
+       ['Copy', function () { Store.duplicate(r.id); renderLibrary($('libSearch').value); toast('Copied.'); }],
+       ['Rename', function () {
+          var n = prompt('New name:', r.name);
+          if (n) { Store.rename(r.id, n); renderLibrary($('libSearch').value); }
+        }],
+       ['Delete', function () {
+          if (!confirm('Delete “' + r.name + '” for good?')) return;
+          Store.remove(r.id); renderLibrary($('libSearch').value);
+        }]
+      ].forEach(function (p) {
+        var b = document.createElement('button');
+        b.className = 'btn' + (p[0] === 'Delete' ? ' danger' : '');
+        b.textContent = p[0];
+        b.addEventListener('click', p[1]);
+        acts.appendChild(b);
+      });
+
+      card.appendChild(thumb); card.appendChild(meta); card.appendChild(acts);
+      grid.appendChild(card);
+    });
+  }
+
+  function openDesign(id) {
+    var d = Store.get(id);
+    if (!d) return;
+    Editor.setDesign(d);
+    $('docName').value = d.name;
+    libModal.hidden = true;
+    toast('Opened “' + d.name + '”.');
+  }
+
+  $('btnExportAll').addEventListener('click', function () {
+    Exporters.exportText(Store.exportAll(), 'room-designer-backup.json');
+  });
+  $('btnImport').addEventListener('click', function () { $('jsonPicker').click(); });
+  $('jsonPicker').addEventListener('change', function () {
+    var f = this.files[0];
+    this.value = '';
+    if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      try {
+        var n = Store.importJSON(fr.result);
+        renderLibrary('');
+        toast(n + ' plan(s) imported.');
+      } catch (e) { toast('That file could not be read.'); }
+    };
+    fr.readAsText(f);
+  });
+
+  /* ───────── AI import ───────── */
+
+  var aiModal = $('aiModal');
+
+  var KEY_HELP = {
+    gemini: 'Get a free key at aistudio.google.com → Get API key.',
+    claude: 'Get a key at console.anthropic.com. Claude is paid — roughly 9 cents a room.'
+  };
+
+  var aiModels = [];                       // what the key offered, best first
+
+  function aiConfig() {
+    return {
+      provider: $('aiProvider').value,
+      key: $('aiKey').value.trim(),
+      model: $('aiModel').value,
+      candidates: aiModels
+    };
+  }
+
+  /* Fills the Model dropdown. Before the key is checked it holds one remembered name. */
+  function setAiModels(models, chosen) {
+    var sel = $('aiModel');
+    aiModels = models.slice();
+    sel.innerHTML = '';
+    models.forEach(function (m) {
+      var o = document.createElement('option');
+      o.value = m; o.textContent = m;
+      sel.appendChild(o);
+    });
+    if (chosen && models.indexOf(chosen) >= 0) sel.value = chosen;
+  }
+
+  function aiStatus(text, cls) {
+    var box = $('aiStatus');
+    box.hidden = !text;
+    box.textContent = text || '';
+    box.className = 'ai-status' + (cls ? ' ' + cls : '');
+  }
+
+  function openAi() {
+    var s = AI.loadSettings();
+    $('aiProvider').value = s.provider;
+    $('aiKey').value = s.key;
+    setAiModels(s.model ? [s.model] : [], s.model);
+    $('aiKeyHelp').textContent = KEY_HELP[s.provider];
+    aiStatus(s.key ? '' : 'Paste your key and press “Check key & list models” once.');
+    aiModal.hidden = false;
+  }
+
+  $('btnCloseAi').addEventListener('click', function () { aiModal.hidden = true; });
+  aiModal.addEventListener('click', function (e) { if (e.target === aiModal) aiModal.hidden = true; });
+
+  $('aiProvider').addEventListener('change', function () {
+    var hint = AI.MODEL_HINTS[this.value] || '';
+    setAiModels(hint ? [hint] : [], hint);
+    $('aiKeyHelp').textContent = KEY_HELP[this.value];
+    aiStatus('');
+  });
+
+  function rememberAi() {
+    var c = aiConfig();
+    AI.saveSettings({ provider: c.provider, key: c.key, model: c.model });
+  }
+  ['aiProvider', 'aiKey', 'aiModel'].forEach(function (id) {
+    $(id).addEventListener('change', rememberAi);
+  });
+
+  $('btnAiCheck').addEventListener('click', function () {
+    var cfg = aiConfig();
+    if (!cfg.key) { aiStatus('Paste an API key first.', 'bad'); return; }
+    if (cfg.provider !== 'gemini') { aiStatus('Model listing is only available for Gemini.', 'bad'); return; }
+    aiStatus('Checking the key…', 'busy');
+    /*
+      Listing is not enough: Google still lists models it has retired for new keys, and a
+      good one can be busy. So we try them in order until one actually answers.
+    */
+    AI.listModels(cfg).then(function (models) {
+      return AI.pickModel(cfg, models, function (m) {
+        aiStatus('Trying ' + m + '…', 'busy');
+      });
+    }).then(function (res) {
+      setAiModels(res.order, res.model);
+      rememberAi();
+      aiStatus('Key works. Using ' + res.model + ' — ' + res.order.length +
+               ' model(s) in the list if you want a different one.', 'good');
+    }, function (err) { aiStatus(err.message, 'bad'); });
+  });
+
+  $('btnAiRun').addEventListener('click', function () {
+    var cfg = aiConfig();
+    if (!cfg.key) { aiStatus('Paste an API key first.', 'bad'); return; }
+    rememberAi();
+    $('aiPicker').click();
+  });
+
+  $('aiPicker').addEventListener('change', function () {
+    var file = this.files[0];
+    this.value = '';
+    if (!file) return;
+    runAiImport(file);
+  });
+
+  function runAiImport(file) {
+    var cfg = aiConfig();
+    aiStatus('Preparing the image…', 'busy');
+    $('btnAiRun').disabled = true;
+
+    Exporters.downscaleImage(file, 1400, 0.85).then(function (img) {
+      var b64 = img.src.split(',')[1];
+      Editor.setBackground(img.src, img.width, img.height);
+      aiStatus('Reading the plan… this usually takes 10–30 seconds.', 'busy');
+      return AI.analyse(cfg, b64, 'image/jpeg', function (from, to) {
+        $('aiModel').value = to;
+        rememberAi();
+        aiStatus(from + ' would not answer — trying ' + to + '…', 'busy');
+      });
+    }).then(function (result) {
+      var d = Editor.getDesign();
+      // start from a clean sheet but keep the photo we just placed
+      d.walls = []; d.openings = []; d.items = []; d.markers = [];
+      var added = AI.applyResult(d, result, {
+        snap: $('aiSnap').checked,
+        tolerance: $('aiSnap').checked ? parseFloat($('aiTol').value) || 0 : 0
+      });
+      if (d.background) {
+        d.background.locked = true;
+        d.background.opacity = Math.min(d.background.opacity, 25);   // let the new drawing lead
+      }
+      // Select the outline: its corner handles are the clearest sign that this is a real,
+      // editable drawing and not a picture of one.
+      Editor.select(d.walls.length ? [d.walls[0].id] : []);
+      Editor.commit();
+      Editor.fit();
+      track('AI import', { result: 'read' });
+      aiStatus('Done — ' + added.walls + ' wall(s), ' + added.openings + ' opening(s), ' +
+               added.items + ' item(s). Check it against the photo and fix anything it missed.', 'good');
+      setTimeout(function () { aiModal.hidden = true; }, 1400);
+      toast('Drawn — and every part of it is editable. Click a wall, door or unit, then drag it.');
+    }).catch(function (err) {
+      track('AI import', { result: 'failed' });   // a run that keeps failing is worth knowing about
+      aiStatus(err.message || 'That did not work.', 'bad');
+    }).then(function () {
+      $('btnAiRun').disabled = false;
+    });
+  }
+
+  /* ───────── shortcuts that belong to the shell ───────── */
+  window.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveCurrent(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o') { e.preventDefault(); openLibrary(); }
+  });
+  window.addEventListener('beforeunload', autosave);
+
+  /* first paint */
+  refreshPlanPanel();
+  refreshSelPanel();
+  Editor.emit('history');
+  Editor.emit('view');
+})();
+
+</script>
+<!--
+  A clean copy of the page as it was loaded, kept so the app can hand out a copy of itself
+  (Export → App file to send someone). Taken before anything is drawn on it.
+-->
+<script>window.__appSnapshot = document.documentElement.cloneNode(true);</script>
+<script>
+/*
+  Bridge between Room Designer (bundled into index.html by build.py) and Streamlit.
+
+  Speaks the Streamlit component protocol by hand (no npm package needed): announces itself,
+  takes the frame height from the page, and sends the current plan back to Python when the user
+  presses "Send to survey". The background photo is left out of what is sent: it can be several
+  megabytes and the survey does not use it.
+*/
+(function () {
+  function post(type, extra) {
+    var message = Object.assign({ isStreamlitMessage: true, type: type }, extra || {});
+    window.parent.postMessage(message, '*');
+  }
+
+  var height = 760;
+  window.addEventListener('message', function (event) {
+    var data = event.data || {};
+    if (data.type !== 'streamlit:render') return;
+    var wanted = data.args && data.args.height;
+    if (wanted && wanted !== height) height = wanted;
+    post('streamlit:setFrameHeight', { height: height });
+  });
+
+  function planToSend() {
+    var plan = JSON.parse(JSON.stringify(Editor.getDesign()));
+    plan.background = null;
+    return plan;
+  }
+
+  function addButton() {
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'shieldlabSend';
+    button.textContent = 'Send to survey ▸';
+    button.title = 'Send this plan to the ShieldLab survey below the drawing';
+    button.setAttribute('style', [
+      'position:fixed', 'right:14px', 'bottom:14px', 'z-index:9999', 'padding:10px 16px',
+      'border:0', 'border-radius:8px', 'background:#0b6e4f', 'color:#fff',
+      'font:600 14px system-ui,sans-serif', 'box-shadow:0 2px 8px rgba(0,0,0,.25)',
+      'cursor:pointer'].join(';'));
+    button.addEventListener('click', function () {
+      post('streamlit:setComponentValue',
+           { value: { plan: planToSend(), sent_at: Date.now() }, dataType: 'json' });
+      button.textContent = 'Sent ✓';
+      setTimeout(function () { button.textContent = 'Send to survey ▸'; }, 1600);
+    });
+    document.body.appendChild(button);
+  }
+
+  addButton();
+  post('streamlit:componentReady', { apiVersion: 1 });
+  post('streamlit:setFrameHeight', { height: height });
+})();
+
+</script>
+</body>
+</html>
