@@ -17,10 +17,16 @@ For each point:
    Designer is, at its slant thickness (each layer times 1/cos of the angle to the wall's normal).
    Where model E serves it, the oblique-incidence correction the field tier applies is added
    (`oblique_correction`, fitted to 60 degrees and held at that edge beyond it).
-4. The transmissions of the crossed barriers are multiplied. That treats each barrier as seeing
-   a broad beam of its own and so counts buildup once per barrier, which over-states the
-   transmission of a line through two walls; the interval's edges are multiplied the same way and
-   are not a calibrated interval for the product.
+4. The transmissions of the crossed barriers are multiplied; the interval's edges are multiplied
+   the same way and are not a calibrated interval for the product.
+
+The Draw-1 Monte Carlo check (research repository, hpc_campaign/draw1, 2026-10-11; the reference is
+the app's transport tier) found single-barrier lines within x2 at 44 of 45 points (median 0.90x).
+Lines through several barriers failed: two walls with a room between them read up to 15x low at
+low energy, because the second wall is reached from every direction once the first has scattered
+the beam, and a line that leaves the room and comes back in through the same wall (a point around a
+corner of the source's own room) read 2,000 to 1,000,000x low. Such results are flagged
+(`caution`), not corrected.
 
 The dose is the unshielded weekly dose at the point's distance (`AnalyticalEngine`, inverse
 square, the source's workload) times that product, judged against the point's design goal P/T.
@@ -47,6 +53,8 @@ Layers = Tuple[Tuple[str, float], ...]          # (material, mm at normal incide
 SNAP_REACH_M = 0.6          # how far from a wall's face a drawn point still counts as "at the wall"
 MAX_SLANT = 20.0            # a near-grazing line is held at 87 degrees
 SURROGATE = "surrogate"     # SurrogateEngine's name when model E served the barrier in its domain
+SEVERAL_BARRIERS = "several barriers"
+AROUND_A_CORNER = "around a corner"
 
 
 @dataclass
@@ -103,6 +111,7 @@ class PointResult:
     goal_over_T: float
     passes: Optional[bool]
     notes: List[str]
+    caution: Optional[str] = None           # SEVERAL_BARRIERS or AROUND_A_CORNER (Draw-1 failures)
 
 
 # ------------------------------------------------------------------------------- geometry
@@ -235,6 +244,15 @@ def _opening_layers(setup: SurveySetup, opening: PlanOpening, path: BarrierPath,
     return panel if b_panel.B_achieved > b_leaf.B_achieved else leaf
 
 
+def _stronger_than_its_wall(setup: SurveySetup, served: Optional[EngineResult], segment: Segment,
+                            path: BarrierPath, angle: float, area: AdjacentArea) -> bool:
+    """True when the opening on the line transmits less than the wall it is set in."""
+    if served is None or served.B_achieved is None:
+        return False
+    wall = serve_barrier(setup, path, setup.walls.get(segment.key, ()), angle, area)[0]
+    return wall is not None and wall.B_achieved is not None and wall.B_achieved > served.B_achieved
+
+
 def _product(values: List[Optional[float]]) -> Optional[float]:
     if any(v is None for v in values):
         return None
@@ -247,7 +265,7 @@ def survey_point(plan: DrawnPlan, setup: SurveySetup, source: Point, point: Surv
     calc, moved = calculation_point(plan, source, point)
     distance = max(math.dist(source, calc), 1e-3)
     area = setup.area(point.n)
-    crossings, notes = [], []
+    crossings, notes, walls_crossed = [], [], []
     for segment, angle, opening in crossed_sides(plan, source, calc):
         label = opening.label if opening else segment.label
         path = BarrierPath(wall_id=opening.key if opening else segment.key, kind="wall",
@@ -257,6 +275,11 @@ def survey_point(plan: DrawnPlan, setup: SurveySetup, source: Point, point: Surv
                   else setup.walls.get(segment.key, ()))
         served, analytical, factor = serve_barrier(setup, path, layers, angle, area)
         crossings.append(Crossing(label, tuple(layers), angle, served, analytical, factor))
+        walls_crossed.append(segment.wall_id)
+        if opening and _stronger_than_its_wall(setup, served, segment, path, angle, area):
+            notes.append(f"{opening.label} is stronger than the wall around it on this line; "
+                         "radiation through the wall beside it can dominate (Draw-1: 20x low for "
+                         "2 mm lead in a 120 mm brick wall at Tc-99m).")
 
     design = setup.design()
     engine = AnalyticalEngine(design)
@@ -281,9 +304,19 @@ def survey_point(plan: DrawnPlan, setup: SurveySetup, source: Point, point: Surv
         notes.append("No wall lies between the source and this point.")
     elif not served:
         notes.append("The line passes only through open gaps.")
-    if len(served) > 1:
-        notes.append("Several barriers: their transmissions are multiplied, which over-states the "
-                     "dose, and the interval is not calibrated for the product.")
+    caution = None
+    if len(set(walls_crossed)) < len(walls_crossed):
+        caution = AROUND_A_CORNER
+        notes.append("The line leaves the room and comes back in through the same wall: this point "
+                     "shares open space with the source around a corner, and radiation reaches it "
+                     "that way, which a line-of-sight survey cannot see (Draw-1: the true dose was "
+                     "2,000 to 1,000,000 times higher). Needs Monte Carlo.")
+    elif len(served) > 1:
+        caution = SEVERAL_BARRIERS
+        notes.append("Several barriers: their transmissions are multiplied along the line. In the "
+                     "Draw-1 Monte Carlo check this read up to 15x low for two walls with a room "
+                     "between them (Tc-99m, Lu-177), because the second wall is reached from every "
+                     "direction. Confirm with Monte Carlo before relying on it.")
     if B is None:
         notes.append("At least one barrier is outside every tier; a Monte Carlo run is needed.")
     notes += [f"{c.barrier}: {c.result.note}" for c in crossings
@@ -292,7 +325,7 @@ def survey_point(plan: DrawnPlan, setup: SurveySetup, source: Point, point: Surv
                        distance_m=distance, crossings=crossings, B=B, B_low=B_low, B_high=B_high,
                        B_analytical=B_analytical, dose_mSv_wk=dose, dose_upper_mSv_wk=upper,
                        goal_over_T=goal_over_T, passes=None if dose is None else dose <= goal_over_T,
-                       notes=notes)
+                       notes=notes, caution=caution)
 
 
 def survey(plan: DrawnPlan, setup: SurveySetup) -> List[PointResult]:

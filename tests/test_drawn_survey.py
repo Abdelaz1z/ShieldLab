@@ -15,7 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shieldlab.room.drawn_plan import parse_plan
-from shieldlab.room.drawn_survey import SurveySetup, calculation_point, crossed_sides, survey
+from shieldlab.room.drawn_survey import (AROUND_A_CORNER, SEVERAL_BARRIERS, SurveySetup,
+                                         calculation_point, crossed_sides, survey)
 from shieldlab.room.engines import AnalyticalEngine, SurrogateEngine
 from shieldlab.room.model import Room, RoomDesign, Source
 
@@ -99,6 +100,31 @@ def test_two_walls_multiply():
     assert [c.barrier.split(",")[0] for c in result.crossings] == ["Inner wall W2.1", "Outline W1.1"]
     assert math.isclose(result.B, result.crossings[0].result.B_achieved
                         * result.crossings[1].result.B_achieved, rel_tol=1e-12)
+
+
+def test_several_barriers_are_flagged():
+    inner = {"id": "w_in", "kind": "partition", "closed": False, "thickness": 10, "segThickness": {},
+             "points": [{"x": 0, "y": 100}, {"x": 400, "y": 100}]}
+    plan = parse_plan(_plan([(200, -25)], inner=inner))
+    setup = _setup()
+    setup.walls["W2.1"] = (("gypsum", 100.0),)
+    assert survey(plan, setup)[0].caution == SEVERAL_BARRIERS
+    assert survey(parse_plan(_plan([(200, -25)])), _setup())[0].caution is None
+
+
+def test_point_around_a_corner_of_the_same_room_needs_monte_carlo():
+    """An L-shaped outline: the line leaves through one side of the re-entrant corner and comes
+    back in through the other (Draw-1 plan B, point 3)."""
+    plan = parse_plan({
+        "name": "L", "settings": {"wallThickness": 14, "unitsPerMeter": 100}, "openings": [],
+        "walls": [{"id": "w", "kind": "outline", "closed": True, "thickness": 25, "segThickness": {},
+                   "points": [{"x": x, "y": y} for x, y in ((0, 0), (600, 0), (600, 300), (300, 300),
+                                                            (300, 600), (0, 600))]}],
+        "items": [{"type": "trefoil", "x": 450, "y": 150}],
+        "markers": [{"n": 1, "x": 200, "y": 500, "label": ""}]})
+    keys = [s.key for s in plan.segments]
+    setup = SurveySetup(isotope="F-18", walls={k: (("concrete", 250.0),) for k in keys})
+    assert survey(plan, setup)[0].caution == AROUND_A_CORNER
 
 
 def test_line_through_a_corner_counts_one_wall():
