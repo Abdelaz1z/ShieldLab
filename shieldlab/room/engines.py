@@ -149,9 +149,11 @@ class AnalyticalEngine:
                 barrier_id=path.label, label=path.label, engine=self.name,
                 B_required=B_required, B_achieved=ev.transmitted_total / unshielded if unshielded else None,
                 dose_mSv_wk=ev.transmitted_total, goal_over_T=goal_over_T,
-                passes=ev.verdict.acceptable, margin=ev.verdict.margin_ratio,
+                passes=(None if ev.verdict.review_reasons and ev.verdict.status == "REVIEW"
+                        else ev.verdict.acceptable), margin=ev.verdict.margin_ratio,
                 suggested_thickness_mm=pref_mm, material=material,
-                note=f"Suggested {pref_mm:g} mm {material} (required {req_mm:.1f} mm, rounded up).",
+                note=(f"Suggested {pref_mm:g} mm {material} (required {req_mm:.1f} mm, rounded up). "
+                      + "; ".join(ev.verdict.review_reasons)),
             )
 
         # CHECK mode (and openings in both modes): evaluate the declared barrier
@@ -178,9 +180,10 @@ class AnalyticalEngine:
             B_required=B_required,
             B_achieved=ev.transmitted_total / unshielded if unshielded else None,
             dose_mSv_wk=ev.transmitted_total, goal_over_T=goal_over_T,
-            passes=ev.verdict.acceptable, margin=ev.verdict.margin_ratio,
+            passes=(None if ev.verdict.review_reasons and ev.verdict.status == "REVIEW"
+                    else ev.verdict.acceptable), margin=ev.verdict.margin_ratio,
             material=material,
-            note=barrier.describe(),
+            note=barrier.describe() + " " + "; ".join(ev.verdict.review_reasons),
         )
 
     def evaluate_all(self, mode: str) -> List[EngineResult]:
@@ -277,6 +280,10 @@ def optical_depth(energy_keV: float, layers) -> Optional[float]:
         if entry is None:
             continue
         grid, mu_rho_grid, _limit = entry
+        if not tx.mu_rho_interpolation_supported(
+            energy_keV / 1000.0, grid, m.get("absorption_edges_MeV", []),
+        ):
+            return None
         try:
             mu_rho = tx.interp_mu_rho(energy_keV / 1000.0, grid, mu_rho_grid)
             rho = m["density_kg_m3"] / 1000.0          # kg/m^3 -> g/cm^3

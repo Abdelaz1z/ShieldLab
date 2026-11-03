@@ -14,7 +14,8 @@ This is the single place that decides "which model + which numbers" for every
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+import math
 from typing import Optional
 
 from .. import data_loader as dl
@@ -57,9 +58,12 @@ class Beam:
 # helpers to pull the right parameter set out of the datasets
 # ---------------------------------------------------------------------------
 
-def _nearest_index(value, grid):
-    """Index of the grid entry closest to `value` (used for kVp / energy lookup)."""
-    return min(range(len(grid)), key=lambda i: abs(grid[i] - value))
+def diagnostic_table_kvp(kvp: float) -> int:
+    """Upper tabulated kVp within the covered range; never silently round down."""
+    grid = dl.archer_diagnostic()["secondary_kvp"]["kvp"]
+    if not math.isfinite(kvp) or not grid[0] <= kvp <= grid[-1]:
+        raise ValueError(f"Diagnostic kVp must be within {grid[0]}-{grid[-1]}.")
+    return next(potential for potential in grid if potential >= kvp)
 
 
 def _diagnostic_archer_params(beam: Beam, material: str):
@@ -68,7 +72,7 @@ def _diagnostic_archer_params(beam: Beam, material: str):
     Preference order:
       * if a workload distribution is given -> use the per-distribution table
         (primary or secondary as requested);
-      * else use the single-kVp secondary table at the nearest kVp.
+      * else use the single-kVp secondary table at the upper tabulated kVp.
     """
     data = dl.archer_diagnostic()
     if material not in data.get("materials_in_tables", []):
@@ -86,7 +90,7 @@ def _diagnostic_archer_params(beam: Beam, material: str):
     # fall back to single-kVp SECONDARY data (primary single-kVp not tabulated in NCRP 147)
     block = data["secondary_kvp"]
     kvp = beam.kvp if beam.kvp is not None else 100
-    i = _nearest_index(kvp, block["kvp"])
+    i = block["kvp"].index(diagnostic_table_kvp(kvp))
     mat = block[material]
     return mat["alpha"][i], mat["beta"][i], mat["gamma"][i]
 
@@ -158,28 +162,61 @@ def _mono_params(beam: Beam, material: str):
     if entry is None:
         return None
     grid, mu_rho_grid, limit = entry
-    energy = beam.mono_energy_MeV if beam.mono_energy_MeV else 0.1
-    if energy > limit:
+    energy = _fallback_energy(beam)
+    if not math.isfinite(energy) or not grid[0] <= energy <= limit:
         return None                    # outside the tabulated range: no data, not a guess
     mat = dl.materials()["materials"][material]
+    if not tx.mu_rho_interpolation_supported(energy, grid, mat.get("absorption_edges_MeV", [])):
+        return None
     return tx.interp_mu_rho(energy, grid, mu_rho_grid), mat["density_kg_m3"]
 
 
-def has_buildup_data(material: str) -> bool:
-    """True if this material ships a dose build-up table (see tx.interp_buildup)."""
+def _fallback_energy(beam: Beam) -> float:
+    if beam.kind == KIND_DIAGNOSTIC:
+        return (beam.kvp if beam.kvp is not None else 100) / 2000.0
+    if beam.kind == KIND_RADIONUCLIDE:
+        return dl.radionuclides()["radionuclides"][beam.nuclide]["main_gamma_keV"] / 1000.0
+    return beam.mono_energy_MeV if beam.mono_energy_MeV is not None else 0.1
+
+
+def _validate_buildup_table(table) -> None:
+    if not isinstance(table, dict):
+        raise ValueError("Build-up tables must be objects with energy and geometry.")
+    tx.validate_buildup_grid(table.get("mux", []), table.get("B", []))
+    energy = table.get("energy_MeV", 0)
+    if (table.get("quantity") != "air_kerma" or not table.get("geometry")
+            or not table.get("ref") or not isinstance(energy, (int, float))
+            or not math.isfinite(energy) or energy <= 0):
+        raise ValueError("Build-up tables require energy, air_kerma quantity, geometry and ref.")
+
+
+def _buildup_table(material: str, energy_MeV: float):
+    """Only exact-energy, documented air-kerma tables may supply a correction."""
     mat = dl.materials()["materials"].get(material) or {}
-    return bool(mat.get("buildup_mux")) and bool(mat.get("buildup_B"))
+    if "buildup_mux" in mat or "buildup_B" in mat:
+        raise ValueError("Legacy build-up arrays lack energy and geometry; use buildup_tables.")
+    tables = mat.get("buildup_tables", [])
+    if not isinstance(tables, list):
+        raise ValueError("buildup_tables must be a list.")
+    for table in tables:
+        _validate_buildup_table(table)
+        if math.isclose(table["energy_MeV"], energy_MeV, rel_tol=1e-9):
+            return table
+    return None
 
 
-def _mono_buildup(material: str, mu_rho_cm2_g: float, density_kg_m3: float,
-                  thickness_mm: float) -> float:
+def has_buildup_data(material: str, energy_MeV: float) -> bool:
+    return _buildup_table(material, energy_MeV) is not None
+
+
+def _mono_buildup(beam: Beam, material: str, thickness_mm: float) -> float:
     """Dose build-up factor for this barrier, or 1.0 (narrow beam) if untabulated."""
-    mat = dl.materials()["materials"].get(material) or {}
-    mux_grid, buildup_grid = mat.get("buildup_mux"), mat.get("buildup_B")
-    if not mux_grid or not buildup_grid:
+    table = _buildup_table(material, _fallback_energy(beam))
+    if table is None:
         return 1.0
+    mu_rho_cm2_g, density_kg_m3 = _mono_params(beam, material)
     mu_x = mu_rho_cm2_g * (density_kg_m3 / 1000.0) * (thickness_mm / 10.0)
-    return tx.interp_buildup(mu_x, mux_grid, buildup_grid)
+    return tx.interp_buildup(mu_x, table["mux"], table["B"])
 
 
 # ---------------------------------------------------------------------------
@@ -187,7 +224,7 @@ def _mono_buildup(material: str, mu_rho_cm2_g: float, density_kg_m3: float,
 # ---------------------------------------------------------------------------
 
 def transmission_of_layer(beam: Beam, material: str, thickness_mm: float,
-                          buildup: float = 1.0) -> float:
+                          buildup: Optional[float] = None) -> float:
     """Transmitted fraction B through a single material layer for this beam.
 
     Picks the appropriate model based on beam.kind. Raises ValueError only if no
@@ -227,8 +264,7 @@ def transmission_of_layer(beam: Beam, material: str, thickness_mm: float,
             # An explicit buildup argument wins; otherwise use the material's own
             # table when it has one, and fall back to 1.0 (narrow beam) when it
             # does not. data_path() reports which of those two applied.
-            factor = buildup if buildup != 1.0 else _mono_buildup(
-                material, mp[0], mp[1], thickness_mm)
+            factor = buildup if buildup is not None else _mono_buildup(beam, material, thickness_mm)
             return tx.mu_buildup_transmission(thickness_mm, mp[0], mp[1], factor)
         raise ValueError(f"No mu/rho data for material '{material}'. Add a mu_rho grid in materials.json.")
 
@@ -241,6 +277,7 @@ def transmission_of_layer(beam: Beam, material: str, thickness_mm: float,
 
 PATH_BROAD = "broad"      # a measured broad-beam dataset (Archer fit or TVL) exists
 PATH_NARROW = "narrow"    # only the generic mu/rho model applies -- see the caveat below
+PATH_BUILDUP = "buildup"  # documented correction; still not a measured broad-beam fit
 PATH_NONE = None          # no data at all; this material cannot be evaluated
 
 
@@ -256,6 +293,7 @@ def data_path(beam: Beam, material: str) -> Optional[str]:
                 beam but not those scattered back into it, so it UNDER-predicts
                 the dose behind a thick barrier. Callers must label it.
     PATH_NONE   no dataset reaches this pair; evaluating it would raise.
+    PATH_BUILDUP a documented generic correction, still requiring model review.
 
     This is the single source of truth for "can we shield X with Y, and how well
     do we know it" -- `transmission_of_layer`, the UI material lists and the
@@ -277,8 +315,8 @@ def data_path(beam: Beam, material: str) -> Optional[str]:
     # diagnostic, radionuclide and mono beams all fall back to the generic grid
     if not _mono_params(beam, material):
         return PATH_NONE
-    # A material carrying a build-up table is no longer narrow-beam.
-    return PATH_BROAD if has_buildup_data(material) else PATH_NARROW
+    # A correction table is not equivalent to a measured broad-beam fit.
+    return PATH_BUILDUP if has_buildup_data(material, _fallback_energy(beam)) else PATH_NARROW
 
 
 def available_materials(beam: Beam) -> list:

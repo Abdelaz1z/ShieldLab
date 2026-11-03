@@ -13,6 +13,7 @@ The combined transmission is the product of the per-layer broad-beam factors
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import math
 from typing import List
 
 from .. import data_loader as dl
@@ -25,6 +26,10 @@ class Layer:
     """One material layer in a barrier."""
     material: str          # key into materials.json, e.g. 'concrete'
     thickness_mm: float    # layer thickness in millimetres
+
+    def __post_init__(self):
+        if not math.isfinite(self.thickness_mm) or self.thickness_mm < 0:
+            raise ValueError("Layer thickness must be finite and non-negative.")
 
 
 @dataclass
@@ -53,6 +58,9 @@ class Barrier:
         """
         merged: List[Layer] = []
         for layer in self.layers:
+            # A zero-thickness insert cannot separate two physical courses.
+            if layer.thickness_mm == 0:
+                continue
             if merged and merged[-1].material == layer.material:
                 merged[-1] = Layer(layer.material,
                                    merged[-1].thickness_mm + layer.thickness_mm)

@@ -43,6 +43,7 @@ class MaterialOption:
     already_met: bool           # goal met with 0 mm of this material
     note: str = ""
     narrow_beam: bool = False   # priced off the generic mu/rho model, with no build-up
+    review_required: bool = False
     is_cheapest: bool = False
     is_lightest: bool = False
     is_thinnest: bool = False
@@ -84,6 +85,8 @@ def rank_options(source: src.SourceTerm, goal: reg.DesignGoal,
             continue  # no usable transmission path for this (beam, material)
 
         pref = solver.preferred_thickness(req, m)
+        trial = ba.Barrier(list(existing.layers) if existing else []).add(m, pref)
+        review_reasons = solver.model_review_reasons(source, trial)
         density = mats[m]["density_kg_m3"]
         cpm3 = c["installed_cost_usd_per_m3"]
         lo, hi = c.get("range_usd_per_m3", [cpm3, cpm3])
@@ -95,14 +98,15 @@ def rank_options(source: src.SourceTerm, goal: reg.DesignGoal,
             cost_low_usd=thick_m * lo, cost_high_usd=thick_m * hi,
             weight_per_m2_kg=thick_m * density, space_mm=pref,
             feasible=(req <= max_buildable_mm), already_met=(req <= 0.0),
-            note=c.get("labour_note", ""), narrow_beam=narrow))
+            note=c.get("labour_note", ""), narrow_beam=narrow,
+            review_required=bool(review_reasons)))
 
     # cheapest first; unbuildable options sink to the bottom
     opts.sort(key=lambda o: (not o.feasible, o.cost_per_m2_usd))
 
     # Only broad-beam options may win a badge (see the docstring).
     buildable = [o for o in opts
-                 if o.feasible and not o.already_met and not o.narrow_beam]
+                 if o.feasible and not o.already_met and not o.review_required]
     if buildable:
         min(buildable, key=lambda o: o.cost_per_m2_usd).is_cheapest = True
         min(buildable, key=lambda o: o.weight_per_m2_kg).is_lightest = True
@@ -113,7 +117,7 @@ def rank_options(source: src.SourceTerm, goal: reg.DesignGoal,
 def headline(options: List[MaterialOption]) -> Optional[str]:
     """One-line recommendation from a ranked list (or None if nothing is buildable)."""
     buildable = [o for o in options
-                 if o.feasible and not o.already_met and not o.narrow_beam]
+                 if o.feasible and not o.already_met and not o.review_required]
     if not buildable:
         return None
     cheap = next(o for o in buildable if o.is_cheapest)

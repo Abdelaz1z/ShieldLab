@@ -20,3 +20,6 @@ shap>=0.46
 
 # Coverage reporting used by the CI workflow.
 coverage>=7.4
+
+# Reproduce and check the generated material coefficients.
+xraydb>=4.5,<5

@@ -30,6 +30,7 @@
       "density_kg_m3": 11350,
       "density_ref": "NCRP147 / standard (11.35 g/cm3)",
       "mu_rho_ref": "HUBBELL (NIST, Z=82)",
+      "absorption_edges_MeV": [0.0130352, 0.0152, 0.0158608, 0.0880045],
       "mu_rho": [
         130.6,
         111.6,
@@ -80,10 +81,11 @@
       ]
     },
     "barite_concrete": {
+      "absorption_edges_MeV": [0.0374406],
       "label": "Barite (barytes) heavy concrete",
       "density_kg_m3": 3450,
       "density_ref": "SRS47 (3400-3500 kg/m3)",
-      "mu_rho_ref": "NIST_XCOM",
+      "mu_rho_ref": "XRAYDB_ELAM",
       "mu_rho": [
         106.66,
         35.981,
@@ -160,7 +162,7 @@
       "label": "Gypsum wallboard (CaSO4*2H2O)",
       "density_kg_m3": 800,
       "density_ref": "NCRP147 (gypsum wallboard ~0.8 g/cm3 board; solid gypsum ~2.32)",
-      "mu_rho_ref": "NIST_XCOM",
+      "mu_rho_ref": "XRAYDB_ELAM",
       "mu_rho": [
         34.408,
         10.855,
@@ -205,7 +207,7 @@
       "label": "Plate glass (soda-lime)",
       "density_kg_m3": 2500,
       "density_ref": "NCRP147 (plate glass ~2.5 g/cm3)",
-      "mu_rho_ref": "NIST_XCOM",
+      "mu_rho_ref": "XRAYDB_ELAM",
       "mu_rho": [
         25.655,
         7.9693,
@@ -246,10 +248,11 @@
       "composition_ref": "NIST/ICRU tabulated composition, Glass (Plate)"
     },
     "lead_glass": {
+      "absorption_edges_MeV": [0.0118667, 0.0130352, 0.0152, 0.0158608, 0.0880045],
       "label": "Lead glass (leaded viewing window)",
       "density_kg_m3": 5200,
       "density_ref": "Typical 4.8-6.2 g/cm3 depending on PbO content; verify product spec (lead-equivalence usually quoted in mm Pb).",
-      "mu_rho_ref": "NIST_XCOM",
+      "mu_rho_ref": "XRAYDB_ELAM",
       "mu_rho": [
         102.91,
         85.572,
@@ -295,7 +298,7 @@
       "label": "Wood (soft)",
       "density_kg_m3": 560,
       "density_ref": "NCRP147 (wood, fitting basis); varies 0.4-0.8 g/cm3",
-      "mu_rho_ref": "NIST_XCOM",
+      "mu_rho_ref": "XRAYDB_ELAM",
       "mu_rho": [
         4.4001,
         1.4133,
@@ -343,7 +346,7 @@
       "label": "Brick (clay, solid)",
       "density_kg_m3": 1800,
       "density_ref": "Typical solid clay brick 1.6-2.0 g/cm3",
-      "mu_rho_ref": "NIST_XCOM",
+      "mu_rho_ref": "XRAYDB_ELAM",
       "mu_rho": [
         29.894,
         9.45,

@@ -50,6 +50,30 @@ def test_a_real_sandwich_is_not_collapsed():
     assert not barrier.was_merged()
 
 
+@pytest.mark.parametrize("zero_layers", [
+    [("lead", 0.0)],
+    [("lead", 0.0), ("steel", 0.0)],
+])
+def test_zero_thickness_separators_do_not_change_wall_dose(zero_layers):
+    # PR #1 review: a zero-mm insert prevented two concrete courses from merging.
+    whole = _barrier(("concrete", 300.0))
+    split = _barrier(("concrete", 100.0), *zero_layers, ("concrete", 200.0))
+    assert split.transmission(DIAGNOSTIC) == pytest.approx(whole.transmission(DIAGNOSTIC))
+    assert split.merge_adjacent().areal_density_kg_m2() == whole.areal_density_kg_m2()
+
+
+def test_added_concrete_matches_a_single_finished_wall():
+    from shieldlab.physics import solver
+    from shieldlab.regulatory import limits as reg
+
+    source = src.ct_source([src.CTExamWorkload("body_average", 550, 150)], 3)
+    goal = reg.design_goal("NCRP", "uncontrolled")
+    existing = _barrier(("concrete", 50), ("lead", 0))
+    added = solver.required_thickness(source, "concrete", goal, existing=existing)
+    whole = solver.required_thickness(source, "concrete", goal)
+    assert added + 50 == pytest.approx(whole, abs=0.002)
+
+
 def test_was_merged_flags_only_split_walls():
     assert _barrier(("concrete", 150.0), ("concrete", 150.0)).was_merged()
     assert not _barrier(("concrete", 150.0), ("lead", 2.0)).was_merged()
@@ -74,10 +98,21 @@ def test_ct_scatter_uses_broad_beam_transmission():
         assert bm.data_path(component.beam, "concrete") == bm.PATH_BROAD
 
 
-@pytest.mark.parametrize("kvp", [80, 100, 120, 140])
-def test_ct_scanner_potential_selects_the_dataset(kvp):
+@pytest.mark.parametrize("kvp,table_kvp", [(80, 100), (100, 100), (120, 125), (140, 150)])
+def test_ct_scanner_potential_selects_the_upper_dataset(kvp, table_kvp):
     source = src.ct_source([src.CTExamWorkload("head", 1200.0, 30.0)], 2.0, kvp=kvp)
-    assert all(component.beam.kvp == kvp for component in source.components)
+    tabulated = bm.Beam(kind=bm.KIND_DIAGNOSTIC, component="secondary", kvp=table_kvp)
+    for material, thickness in [("lead", 2), ("concrete", 200)]:
+        actual = ba.Barrier().add(material, thickness).transmission(source.components[0].beam)
+        expected = bm.transmission_of_layer(tabulated, material, thickness)
+        assert actual == pytest.approx(expected)
+    assert f"table {table_kvp} kVp" in source.notes[-1]
+
+
+@pytest.mark.parametrize("kvp", [0, 29, 151, float("nan"), float("inf")])
+def test_ct_outside_transmission_table_range_is_rejected(kvp):
+    with pytest.raises(ValueError, match="kVp must be within"):
+        src.ct_source([src.CTExamWorkload("head", 1200, 30)], 2, kvp=kvp)
 
 
 @pytest.mark.parametrize("material,thickness", [("concrete", 150.0), ("concrete", 200.0),
@@ -96,32 +131,38 @@ def test_narrow_beam_model_is_declared_not_silently_applied():
     """No material ships build-up data yet, so each must report itself narrow-beam."""
     beam = bm.Beam(kind=bm.KIND_MONO, mono_energy_MeV=0.2)
     for material in ("barite_concrete", "brick", "lead_glass", "water"):
-        assert not bm.has_buildup_data(material)
+        assert not bm.has_buildup_data(material, 0.2)
         assert bm.data_path(beam, material) == bm.PATH_NARROW
 
 
-def test_buildup_interpolation_clamps_rather_than_extrapolating():
-    mux, factors = [1.0, 5.0, 10.0], [2.0, 8.0, 20.0]
-    assert tx.interp_buildup(0.1, mux, factors) == 2.0        # below the grid
-    assert tx.interp_buildup(50.0, mux, factors) == 20.0      # above the grid
-    assert tx.interp_buildup(3.0, mux, factors) == pytest.approx(5.0)
-    assert tx.interp_buildup(3.0, [], []) == 1.0              # no table -> narrow beam
+def test_buildup_interpolation_rejects_extrapolation():
+    mux, factors = [0.0, 5.0, 10.0], [1.0, 8.0, 20.0]
+    assert tx.interp_buildup(0, mux, factors) == 1
+    assert tx.interp_buildup(10, mux, factors) == 20
+    assert tx.interp_buildup(3, mux, factors) == pytest.approx(5.2)
+    with pytest.raises(ValueError, match="outside"):
+        tx.interp_buildup(50, mux, factors)
 
 
-def test_supplying_buildup_data_raises_dose_and_clears_the_narrow_beam_flag(monkeypatch):
-    """Adding a table must both apply the factor and lift the narrow-beam label."""
+def test_supplying_buildup_data_raises_dose_but_does_not_establish_broad_beam_validity(monkeypatch):
+    """Synthetic JSON input tests the correction mechanism, not physical accuracy."""
     from shieldlab import data_loader as dl
 
     materials = dl.materials()
     entry = dict(materials["materials"]["brick"])
-    entry["buildup_mux"] = [0.5, 1.0, 2.0, 4.0, 7.0, 10.0]
-    entry["buildup_B"] = [1.4, 2.0, 3.3, 6.4, 12.0, 18.0]
+    entry["buildup_tables"] = [{
+        "energy_MeV": 0.364, "quantity": "air_kerma",
+        "geometry": "synthetic test geometry", "ref": "synthetic test only",
+        "mux": [0, 0.5, 1, 2, 4, 7, 10], "B": [1, 1.4, 2, 3.3, 6.4, 12, 18],
+    }]
     patched = {**materials, "materials": {**materials["materials"], "brick": entry}}
     monkeypatch.setattr(dl, "materials", lambda: patched)
 
     beam = bm.Beam(kind=bm.KIND_MONO, mono_energy_MeV=0.364)
-    assert bm.has_buildup_data("brick")
-    assert bm.data_path(beam, "brick") == bm.PATH_BROAD
+    assert bm.has_buildup_data("brick", 0.364)
+    assert not bm.has_buildup_data("brick", 0.140)
+    assert bm.data_path(beam, "brick") == bm.PATH_BUILDUP
+    assert bm.data_path(bm.Beam(kind=bm.KIND_MONO, mono_energy_MeV=0.140), "brick") == bm.PATH_NARROW
 
     with_buildup = bm.transmission_of_layer(beam, "brick", 300.0)
     narrow = tx.mu_buildup_transmission(300.0, *bm._mono_params(beam, "brick"), 1.0)

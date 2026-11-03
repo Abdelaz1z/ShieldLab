@@ -2,7 +2,7 @@
   "_comment": "Diagnostic X-ray broad-beam transmission data (Archer 3-parameter model) extracted from NCRP Report No. 147 (the user's reference PDF). Transmission B(x) = [ (1 + beta/alpha) * exp(alpha*gamma*x) - beta/alpha ] ^ (-1/gamma), with x = barrier thickness in MILLIMETRES and alpha,beta in mm^-1. See references.json: NCRP147, ARCHER1983, SIMPKIN1995. Every value is editable.",
   "_model": "Archer-Thornby-Bushong three-parameter broad-beam transmission (NCRP 147 Eq. A.2 / A.3).",
   "_units": {"alpha": "mm^-1", "beta": "mm^-1", "gamma": "dimensionless", "thickness_x": "mm"},
-  "_extraction_note": "Mantissas machine-decoded from the NCRP 147 PDF; exponents and row/column mapping verified from high-resolution page renders (PDF pp. 143-144 Table B.1 primary; pp. 157-158 Table C.1 secondary). Bottom three workload rows (mammography, cardiac, peripheral angiography) carry less-certain exponents and are validated by the Part-4 worked-example tests; verify against your PDF before relying on them for those specific modalities.",
+  "_extraction_note": "Transcription rechecked against the locally licensed NCRP 147 Tables B.1 (printed pp. 133-134) and C.1 (printed pp. 147-148) on 2026-11-03. Corrected concrete alpha exponents, mammography lead/gypsum exponents, wood signs and row alignment, and several mantissas. Regression anchors check selected transmission values; this is not an independent clinical validation or qualified expert sign-off.",
 
   "materials_in_tables": ["lead", "concrete", "gypsum", "steel", "plate_glass", "wood"],
 
@@ -25,18 +25,18 @@
     "_order": ["rad_room_all","rad_room_chest_bucky","rad_room_floor_other","fluoro_tube_rf","rad_tube_rf","chest_room","mammography","cardiac_angio","peripheral_angio"],
     "lead": {
       "alpha": [2.346, 2.264, 2.651, 2.347, 2.295, 2.283, 3.060e1, 2.389, 2.728],
-      "beta":  [1.590e1, 1.308e1, 1.656e1, 1.267e1, 1.300e1, 1.074e1, 1.776e1, 1.426e1, 1.852e1],
+      "beta":  [1.590e1, 1.308e1, 1.656e1, 1.267e1, 1.300e1, 1.074e1, 1.776e2, 1.426e1, 1.852e1],
       "gamma": [4.982e-1, 5.600e-1, 4.585e-1, 6.149e-1, 5.573e-1, 6.370e-1, 3.308e-1, 5.948e-1, 4.614e-1]
     },
     "concrete": {
-      "alpha": [3.626e-1, 3.552e-1, 3.994e-1, 3.616e-1, 3.549e-1, 3.622e-1, 2.577, 3.717e-1, 4.292e-1],
+      "alpha": [3.626e-2, 3.552e-2, 3.994e-2, 3.616e-2, 3.549e-2, 3.622e-2, 2.577e-1, 3.717e-2, 4.292e-2],
       "beta":  [1.429e-1, 1.177e-1, 1.448e-1, 9.721e-2, 1.164e-1, 7.766e-2, 1.765, 1.087e-1, 1.538e-1],
-      "gamma": [4.932e-1, 6.007e-1, 4.231e-1, 5.186e-1, 5.774e-1, 5.404e-1, 3.644e-1, 5.948e-1, 4.614e-1]
+      "gamma": [4.932e-1, 6.007e-1, 4.231e-1, 5.186e-1, 5.774e-1, 5.404e-1, 3.644e-1, 4.879e-1, 4.236e-1]
     },
     "gypsum": {
-      "alpha": [1.420e-2, 1.278e-2, 1.679e-2, 1.340e-2, 1.300e-2, 1.296e-2, 9.148e-2, 1.409e-2, 1.774e-2],
-      "beta":  [5.781e-2, 4.848e-2, 6.124e-2, 4.283e-2, 4.778e-2, 3.505e-2, 7.090e-2, 4.814e-2, 6.449e-2],
-      "gamma": [7.445e-1, 8.609e-1, 7.356e-1, 8.798e-1, 8.485e-1, 9.356e-1, 2.577e-1, 8.419e-1, 7.158e-1]
+      "alpha": [1.420e-2, 1.278e-2, 1.679e-2, 1.340e-2, 1.300e-2, 1.286e-2, 9.148e-2, 1.409e-2, 1.774e-2],
+      "beta":  [5.781e-2, 4.848e-2, 6.124e-2, 4.283e-2, 4.778e-2, 3.505e-2, 7.090e-1, 4.814e-2, 6.449e-2],
+      "gamma": [7.445e-1, 8.609e-1, 7.356e-1, 8.796e-1, 8.485e-1, 9.356e-1, 3.459e-1, 8.419e-1, 7.158e-1]
     },
     "steel": {
       "alpha": [2.163e-1, 2.179e-1, 2.535e-1, 2.323e-1, 2.126e-1, 2.500e-1, 5.998, 2.533e-1, 3.670e-1],
@@ -49,9 +49,9 @@
       "gamma": [5.940e-1, 7.867e-1, 5.463e-1, 8.081e-1, 7.483e-1, 9.843e-1, 3.694e-1, 7.523e-1, 5.763e-1]
     },
     "wood": {
-      "alpha": [7.616e-3, 7.142e-3, 7.915e-3, 7.089e-3, 7.162e-3, 7.650e-3, 1.914e-1, 7.303e-3, 8.103e-3],
+      "alpha": [7.616e-3, 7.142e-3, 7.915e-3, 7.089e-3, 7.162e-3, 7.650e-3, 1.914e-2, 7.303e-3, 8.103e-3],
       "beta":  [7.670e-4, 3.080e-4, 8.800e-4, 4.740e-4, 4.110e-4, -9.800e-4, 4.166e-2, 7.220e-4, 8.440e-4],
-      "gamma": [1.027, 1.617, 9.790e-1, 1.580, 1.541, 8.083e-1, 2.858e-1, 1.204, 9.754e-1]
+      "gamma": [1.027, 1.617, 9.790e-1, 1.580, 1.541, 8.083e-2, 2.858e-1, 1.204, 9.754e-1]
     }
   },
 
@@ -66,7 +66,7 @@
     },
     "concrete": {
       "alpha": [3.174e-1, 9.030e-2, 5.090e-2, 3.950e-2, 3.510e-2, 3.240e-2],
-      "beta":  [1.725e-1, 1.712e-1, 1.697e-1, 8.440e-2, 6.600e-2, 7.750e-2],
+      "beta":  [1.725, 1.712e-1, 1.697e-1, 8.440e-2, 6.600e-2, 7.750e-2],
       "gamma": [3.705e-1, 2.324e-1, 3.849e-1, 5.191e-1, 7.832e-1, 1.566],
       "_note": "concrete single-kVp exponents read from render p157; 150 kVp gamma=1.566 (>1) is as printed."
     },
@@ -87,7 +87,7 @@
     },
     "wood": {
       "alpha": [2.159e-2, 1.076e-2, 8.550e-3, 7.230e-3, 6.587e-3, 6.027e-3],
-      "beta":  [3.971e-3, 1.862e-3, 5.390e-4, 8.940e-4, 7.370e-4, 2.290e-4],
+      "beta":  [3.971e-3, 1.862e-3, 5.390e-4, 8.940e-4, -1.140e-3, -1.630e-3],
       "gamma": [2.852e-1, 1.170, 1.194, 1.316, 1.172, 1.440]
     }
   },
@@ -102,13 +102,13 @@
       "gamma": [6.193e-1, 8.837e-1, 4.994e-1, 7.575e-1, 7.184e-1, 1.054, 3.550e-1, 7.481e-1, 5.094e-1]
     },
     "concrete": {
-      "alpha": [3.610e-1, 3.560e-1, 3.920e-1, 3.630e-1, 3.560e-1, 3.640e-1, 2.539, 3.710e-1, 4.219e-1],
-      "beta":  [1.433e-1, 1.079e-1, 1.464e-1, 9.360e-2, 1.114e-1, 6.590e-2, 1.844, 1.067e-1, 1.559e-1],
+      "alpha": [3.610e-2, 3.560e-2, 3.920e-2, 3.630e-2, 3.560e-2, 3.640e-2, 2.539e-1, 3.710e-2, 4.219e-2],
+      "beta":  [1.433e-1, 1.079e-1, 1.464e-1, 9.360e-2, 1.114e-1, 6.590e-2, 1.8411, 1.067e-1, 1.559e-1],
       "gamma": [5.600e-1, 7.705e-1, 4.486e-1, 5.955e-1, 6.620e-1, 7.543e-1, 3.924e-1, 5.733e-1, 4.472e-1]
     },
     "gypsum": {
       "alpha": [1.380e-2, 1.270e-2, 1.640e-2, 1.330e-2, 1.290e-2, 1.300e-2, 8.830e-2, 1.390e-2, 1.747e-2],
-      "beta":  [5.700e-2, 4.450e-2, 6.080e-2, 4.100e-2, 4.570e-2, 2.970e-2, 7.526e-2, 4.640e-2, 6.422e-2],
+      "beta":  [5.700e-2, 4.450e-2, 6.080e-2, 4.100e-2, 4.570e-2, 2.970e-2, 7.526e-1, 4.640e-2, 6.422e-2],
       "gamma": [7.937e-1, 1.049, 7.472e-1, 9.566e-1, 9.355e-1, 1.195, 3.786e-1, 9.185e-1, 7.299e-1]
     },
     "steel": {
@@ -122,9 +122,9 @@
       "gamma": [6.397e-1, 9.086e-1, 5.538e-1, 8.520e-1, 8.087e-1, 1.128, 3.918e-1, 8.019e-1, 5.907e-1]
     },
     "wood": {
-      "alpha": [7.552e-3, 7.058e-3, 7.887e-3, 7.057e-3, 7.102e-3, 7.485e-3, 1.888e-1, 7.266e-3, 8.079e-3],
-      "beta":  [8.770e-4, 4.220e-4, 3.450e-4, 4.172e-4, 6.740e-4, 8.470e-4, 1.888e-2, 7.220e-4, 8.440e-4],
-      "gamma": [1.044, 1.875, 9.800e-1, 1.664, 1.698, 9.459e-1, 2.903e-1, 1.235, 9.742e-1]
+      "alpha": [7.552e-3, 7.058e-3, 7.887e-3, 7.057e-3, 7.102e-3, 7.485e-3, 1.888e-2, 7.266e-3, 8.079e-3],
+      "beta":  [7.370e-4, 2.290e-4, 8.770e-4, 4.220e-4, 3.450e-4, -8.100e-4, 4.172e-2, 6.740e-4, 8.470e-4],
+      "gamma": [1.044, 1.875, 9.800e-1, 1.664, 1.698, 9.459e-2, 2.903e-1, 1.235, 9.742e-1]
     }
   },
 

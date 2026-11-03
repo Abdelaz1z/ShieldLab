@@ -8,6 +8,12 @@
     "redistributed": false,
     "publisher": "NCRP (National Council on Radiation Protection and Measurements), ncrponline.org"
   },
+  "XRAYDB_ELAM": {
+    "citation": "XrayDB, Elam/Ravel/Sieber attenuation tables, evaluated with mu_elam(kind='total') and elemental mass-weighted mixture rule.",
+    "url": "https://xraypy.github.io/XrayDB/python.html",
+    "role": "Generated narrow-beam coefficients; distinct from NIST XCOM. Selected-node comparisons do not validate real construction products or build-up.",
+    "provided_by_user": false
+  },
   "NCRP151": {
     "citation": "NCRP Report No. 151, 'Structural Shielding Design and Evaluation for Megavoltage X- and Gamma-Ray Radiotherapy Facilities', National Council on Radiation Protection and Measurements, Bethesda, MD (2005).",
     "role": "Megavoltage (LINAC) vault methodology: B = P d^2 / (W U T), 0.1 % head leakage, IMRT factor, time-averaged dose rate checks. Values cross-checked against IAEA SRS 47.",

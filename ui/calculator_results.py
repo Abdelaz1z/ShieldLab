@@ -25,11 +25,7 @@ class CalculatorAssessment:
 
 
 def _decision_status(assessment: CalculatorAssessment) -> str:
-    if not assessment.evaluation.verdict.acceptable:
-        return "FAIL"
-    if assessment.evaluation.verdict.margin_ratio < 1.20:
-        return "REVIEW"
-    return "PASS"
+    return assessment.evaluation.verdict.status
 
 
 def _render_decision(assessment: CalculatorAssessment) -> None:
@@ -57,6 +53,8 @@ def _render_decision(assessment: CalculatorAssessment) -> None:
         decision_detail,
         decision_meta,
     )
+    for reason in assessment.evaluation.verdict.review_reasons:
+        st.warning(f"{t('calculation_notes')} (English): {reason}" if is_arabic() else reason)
 
 
 def _render_metrics(assessment: CalculatorAssessment) -> None:
@@ -139,9 +137,12 @@ def _best_for(option) -> str:
 
 
 def _material_option_row(option) -> dict:
+    material_label = term(option.label)
+    if option.review_required:
+        material_label += f" · {t('review')}"
     if option.already_met:
         return {
-            t("column_material"): term(option.label),
+            t("column_material"): material_label,
             t("column_required_build"): t("not_required"),
             t("column_installed_cost"): "—",
             t("column_areal_load"): "—",
@@ -149,7 +150,7 @@ def _material_option_row(option) -> dict:
         }
     if not option.feasible:
         return {
-            t("column_material"): term(option.label),
+            t("column_material"): material_label,
             t("column_required_build"): (
                 f">{option.preferred_mm:g} mm · {t('impractical')}"
             ),
@@ -158,7 +159,7 @@ def _material_option_row(option) -> dict:
             t("column_best_for"): t("cannot_meet_goal"),
         }
     return {
-        t("column_material"): term(option.label),
+        t("column_material"): material_label,
         t("column_required_build"): f"{option.preferred_mm:g} mm",
         t("column_installed_cost"): f"${option.cost_per_m2_usd:,.0f}",
         t("column_areal_load"): f"{option.weight_per_m2_kg:,.0f} kg/m²",

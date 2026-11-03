@@ -61,7 +61,7 @@ ShieldLab uses the **standard analytical formalism** prescribed by the reference
 | LINAC / Co-60 | **TVL** `n=x₁/TVL₁+(x−x₁)/TVLₑ, B=10⁻ⁿ` | IAEA SRS 47 Tables 4, 5, 8, 11 |
 | I-131, Tc-99m, F-18, Lu-177 | broad-beam **TVL/HVL** | Oumano et al. 2025; AAPM TG-108 (PET) |
 | I-131 released-patient dose | RG 8.39 biokinetic integral (Eq. B-5) | NRC RG 8.39 |
-| any other material | **μ/ρ**, narrow-beam `T=e^{−(μ/ρ)ρx}` — build-up applied only where a `buildup_mux`/`buildup_B` table exists, so results are labelled **narrow-beam** and read as a *lower bound* on dose | NIST XCOM / Hubbell-Seltzer |
+| any other material | **μ/ρ**, narrow-beam `T=e^{−(μ/ρ)ρx}`; an exact-energy `buildup_tables` entry can supply a correction. Both require model review. | Existing NIST rows; generated mixtures use XrayDB/Elam |
 
 Dose limits: **Saudi NRRC-R-01** (occupational 20 mSv/y, public 1 mSv/y) and **IAEA GSR Part 3**. Full bibliography is in the app's **References** tab and in [`shieldlab/data/references.json`](shieldlab/data/references.json).
 
@@ -93,7 +93,9 @@ The whole model is data-driven. To change a number, edit the JSON in [`shieldlab
 | `scatter.json` | secondary kerma, CT DLP defaults, ceiling scatter |
 | `workloads.json` | patient numbers, primary kerma, Saudi NDRLs, LINAC defaults |
 
-To add a **new material**: add an entry to `materials.json` with its `density_kg_m3` and a `mu_rho` grid — either on the shared `energy_grid_MeV` or on its own `energy_grid_MeV` with a `mu_rho_max_energy_MeV` cap. `python tools/build_mu_rho.py --write` regenerates the grids from elemental compositions by the Hubbell & Seltzer mixture rule, and `--verify` checks the generator against the NIST rows already in the file. A material is treated as **narrow-beam** (labelled and warned about) unless it has either a tabulated broad-beam dataset or a `buildup_mux`/`buildup_B` pair. To add a **modality**: add an entry to `ui/modality_config.py`.
+To add a **new material**: supply its density and a `mu_rho` grid in `materials.json`, with an energy grid and validity cap. `python tools/build_mu_rho.py --verify` compares selected Elam-generated points against existing NIST rows; it does not validate off-grid energies, other mixtures or a real construction product. Record absorption discontinuities in `absorption_edges_MeV`; interpolation across an unrepresented edge is unavailable. To add a **modality**: add an entry to `ui/modality_config.py`.
+
+An optional `buildup_tables` list contains records with `energy_MeV`, `quantity` (currently `air_kerma`), `geometry`, `ref`, `mux` and `B`. Each grid must start at `(0, 1)`, have matching lengths, strictly increasing finite depths and finite factors at least one. Only an exact-energy match is used, without extrapolation. These corrections remain unvalidated (`PATH_BUILDUP`), not measured broad-beam fits; legacy unqualified arrays are rejected. No build-up coefficients ship with the app.
 
 **The reference standards are not in this repository.** NCRP 147, IAEA SRS 47 and the rest are copyrighted publications; `references.json` names each publisher so you can obtain your own copy. Nothing is read from them at runtime — every number lives in the JSON datasets.
 
@@ -118,8 +120,8 @@ PROGRESS.md             development log
 
 Photons only — **LINAC > 10 MV photoneutrons are not modelled** (warned, with guidance).
 
-**Multi-layer barriers of MIXED materials are optimistic, not conservative.** The transmission of a stack is taken as the product of the per-layer factors. For the TVL models (megavoltage, radionuclides) that product is exact. For the Archer model it is not: each fit already contains the build-up of the whole slab it was measured on, so multiplying two fits drops that build-up and **under-predicts the dose behind the barrier**. Adjacent layers of the *same* material are now fused before evaluation, so one wall entered as several courses gives the same answer as the single slab it is; a genuine mix of different materials still multiplies different fits, and the app flags it.
+**Mixed-material barriers require model review.** Multiplying separate homogeneous fits does not transport the changed spectrum or inter-layer scatter. Its error has no demonstrated universal bound, even when a pure exponential makes multiplication mathematically exact within the model. Adjacent same-material layers are merged after zero-thickness layers are removed.
 
-**Materials without a broad-beam dataset are marked "narrow-beam".** Barite concrete, brick, lead glass and water fall back to the generic μ/ρ model, which has no build-up factor and therefore reports a *lower bound* on the transmitted dose. They are labelled in the layer selector, carry a warning in the results, and are excluded from the cost optimiser's cheapest/lightest/thinnest recommendations.
+**A numerical pass does not establish model validity.** CT, mixed-material barriers and generic attenuation paths cannot receive a compliance pass or material recommendation badges. A numerical exceedance remains FAIL; an estimate below the goal with unresolved model validity is REVIEW in the UI, HTML and PDF. Narrow-beam estimates omit scattered contributions, and the mean-energy proxy does not establish a guaranteed bound for a polyenergetic spectrum.
 
-CT uses NCRP 147's broad-beam secondary transmission at the scanner kVp; replace the DLP normalization with scanner isodose data when available, and enter DLP including any contrast or repeated acquisitions because no automatic multiplier is applied. Skyshine/ducts/maze are qualitative in v1.0. **A qualified expert must review any design used for construction.**
+CT uses the upper tabulated secondary kVp (80→100, 100→100, 120→125, 140→150), explicitly recorded in calculation details. This is an approximation requiring independent scanner-specific validation; it is not a claim of a guaranteed conservative spectrum. Enter complete DLP, including repeat acquisitions. **A qualified expert must review any design used for construction.** See [the validation checklist](PHYSICS_REVIEW_CHECKLIST.md).

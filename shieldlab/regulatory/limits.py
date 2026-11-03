@@ -19,7 +19,7 @@ the transmitted dose at the point, including occupancy, is at or below P.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from .. import data_loader as dl
@@ -84,14 +84,24 @@ class Verdict:
     """Result of comparing a transmitted dose with the design goal."""
     transmitted: float       # dose behind the barrier at the point (per week)
     goal_over_T: float       # P / T (the level the transmitted dose must not exceed)
-    acceptable: bool
+    acceptable: bool         # numeric goal met and no unresolved model review
     margin_ratio: float      # goal_over_T / transmitted  (>=1 is a pass; headroom)
     unit: str
     message: str
+    review_reasons: list[str] = field(default_factory=list)
+
+    @property
+    def status(self) -> str:
+        if not self.transmitted <= self.goal_over_T:
+            return "FAIL"
+        if self.review_reasons or self.margin_ratio < 1.20:
+            return "REVIEW"
+        return "PASS"
 
 
-def verdict(transmitted_dose: float, goal: DesignGoal) -> Verdict:
-    """Acceptable if transmitted_dose <= P / T.
+def verdict(transmitted_dose: float, goal: DesignGoal,
+            review_reasons=()) -> Verdict:
+    """Acceptable only if the numeric goal is met without unresolved model review.
 
     The occupancy factor T allows a partially-occupied area to receive a higher
     average dose by 1/T (NCRP 147 Section 4.1.3). margin_ratio > 1 means there is
@@ -108,4 +118,9 @@ def verdict(transmitted_dose: float, goal: DesignGoal) -> Verdict:
         msg = (f"NOT ACCEPTABLE: transmitted {transmitted_dose:.3g} {goal.unit} "
                f"exceeds goal/T {goal_over_T:.3g} {goal.unit} "
                f"by x{1/margin:.2f}. Add shielding.")
-    return Verdict(transmitted_dose, goal_over_T, acceptable, margin, goal.unit, msg)
+    if acceptable and review_reasons:
+        acceptable = False
+        msg = ("REVIEW REQUIRED: numerical estimate meets goal/T; model validity "
+               "does not establish compliance. " + "; ".join(review_reasons))
+    return Verdict(transmitted_dose, goal_over_T, acceptable, margin, goal.unit, msg,
+                   list(review_reasons))

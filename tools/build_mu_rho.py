@@ -10,10 +10,10 @@ METHOD. mu/rho for a mixture is the mass-weighted sum of its elements
 
     (mu/rho)_mix = SUM_i  w_i * (mu/rho)_i
 
-Elemental coefficients come from `xraydb`, whose Elam tables are the NIST
-photon cross-sections. `--verify` checks them against the NIST values already
-in materials.json for water, lead and concrete; the worst deviation over the
-whole 0.01-0.5 MeV grid is 0.04%, so the two are the same data.
+Elemental coefficients come from xraydb's Elam/Ravel/Sieber tables.
+They are distinct from NIST XCOM. `--verify` compares selected tabulated points
+against existing NIST rows for water, lead and concrete; agreement there does
+not establish accuracy for other mixtures, off-grid energies or physical products.
 
 ENERGY RANGE. Capped at 0.8 MeV, the documented reliability limit of the Elam
 tables -- above it they flat-line, which would silently under-predict. Every
@@ -205,7 +205,7 @@ def write() -> int:
             for element, weight in sorted(composition.items())
         }
         entry["composition_ref"] = COMPOSITION_SOURCE[name]
-        entry["mu_rho_ref"] = "NIST_XCOM"
+        entry["mu_rho_ref"] = "XRAYDB_ELAM"
         print(f"  {name:16s} {len(entry['mu_rho'])} points, "
               f"{min(composition, key=composition.get)}..{max(composition, key=composition.get)}")
     MATERIALS_JSON.write_text(
