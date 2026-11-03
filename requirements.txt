@@ -64,7 +64,7 @@ onnxruntime>=1.17
 
 #   pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-# Deployment refresh: rebuild selected ShieldLab SL identity from the current main revision.
+# Deployment refresh: rebuild after the physics review fixes and module moves (9524fdb).
 
 # Room Designer Monte Carlo room tier (shieldlab/room/transport_mc.py): photon transport in the 3D room,
 # compiled by numba. Without it the tier reports itself unavailable and the rest of the app is unchanged.
