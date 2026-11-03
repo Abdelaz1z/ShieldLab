@@ -103,6 +103,10 @@ def shap_failure_explanations(surrogate_engine, design: RoomDesign, mode: str,
     The explanation is only available when the deployed Extra-Trees surrogate and
     the optional ``shap`` package are both present. Other paths retain the safer
     physics-aware explanation from :func:`explain_failures`.
+
+    Model E is deliberately not explained this way. It predicts the departure from a physical
+    baseline, so an attribution over its features describes that correction and not the
+    transmission, and printing it as "in log10 transmission" would be wrong.
     """
     try:
         import numpy as np
@@ -111,6 +115,9 @@ def shap_failure_explanations(surrogate_engine, design: RoomDesign, mode: str,
         return {}
 
     if not surrogate_engine.available():
+        return {}
+    from . import surrogate_e as sur_e
+    if sur_e.is_model_e(surrogate_engine.bundle):
         return {}
     model = surrogate_engine.bundle.get("model")
     feature_names = surrogate_engine.bundle.get("features", [])

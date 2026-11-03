@@ -18,7 +18,7 @@ compared numerically on that basis and every number traces to the physics packag
 from __future__ import annotations
 
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import List, Optional
 
@@ -27,11 +27,16 @@ from ..physics import beams as bm
 from ..physics import barriers as ba
 from ..physics import solver as sv
 from ..regulatory import limits as reg
+from . import merge_rule
 from .model import RoomDesign, Wall
 from .geometry import BarrierPath, all_paths
+from .transport_materials import model_material, served_as_note, simulated_thickness_mm
 
 # candidate wall materials, in the order to offer them; probed for real data below
 _CANDIDATE_WALL_MATERIALS = ("concrete", "lead", "steel", "barite_concrete", "brick", "gypsum")
+# materials model E5 was trained on beyond those: the broad-beam tables hold no radionuclide data
+# for most of them, so they are offered for a wall's layers only while model E is loaded
+_SURROGATE_WALL_MATERIALS = ("gypsum", "lead_glass", "plate_glass", "wood", "water")
 
 
 @dataclass
@@ -56,6 +61,55 @@ class EngineResult:
     note: str = ""
 
 
+@dataclass(frozen=True)
+class _Served:
+    """Model E's broad-beam answer for one barrier, in log10 B: for one line, or summed over the
+    source's lines, in which case `factor`, `group` and `energy_keV` are those of the line carrying
+    most of the transmitted dose and `mu_x` is the deepest line's (see `_sum_lines`)."""
+    energy_keV: float
+    logB: float
+    lo: float
+    hi: float
+    group: str
+    inside: bool
+    mu_x: Optional[float]
+    factor: tuple                      # surrogate_e.FieldFactor
+    substituted: tuple = ()            # lines bounded by a harder line (see `_sum_lines`)
+
+
+@dataclass(frozen=True)
+class _ModelWall:
+    """A declared wall as model E is asked about it: at most two layers of simulated material, by
+    the names in its material map. `moved_mass` is the merge rule's covariate (g/cm2) for a wall of
+    three layers, None otherwise; `omitted` is a second layer outside the material map, left out."""
+    layers: tuple
+    moved_mass: Optional[float] = None
+    omitted: Optional[str] = None
+
+
+def _model_wall(layers, materials: dict) -> Optional[_ModelWall]:
+    """The wall model E serves for declared `layers` (inner face first), or None when a layer
+    cannot be served. A wall of three layers is merged by E-Domain-5's rule, which raises
+    ValueError for a wall outside it."""
+    simulated = []
+    for index, (material, thickness) in enumerate(layers):
+        name = model_material(material)
+        if name not in materials and index == 1 and len(layers) == 2:
+            return _ModelWall(tuple(simulated), omitted=material)
+        served = simulated_thickness_mm(material, thickness) if name in materials else None
+        if served is None:
+            return None
+        simulated.append((name, served))
+    if len(simulated) <= 2:
+        return _ModelWall(tuple(simulated))
+    # merged at the material map's densities, as E-Domain-5 scored it
+    weighed = [(material, thickness, materials[name]["density_gcm3"])
+               for (material, _), (name, thickness) in zip(layers, simulated)]
+    merged = merge_rule.merge(weighed)
+    return _ModelWall(tuple((model_material(m), t) for m, t, _ in merged),
+                      moved_mass=merge_rule.moved_light_mass(weighed))
+
+
 def usable_wall_materials(isotope: str) -> List[str]:
     """Materials with a MEASURED broad-beam dataset for this isotope's gamma.
 
@@ -70,6 +124,20 @@ def usable_wall_materials(isotope: str) -> List[str]:
         m for m in _CANDIDATE_WALL_MATERIALS
         if bm.data_path(beam, m) == bm.PATH_BROAD
     ]
+
+
+def wall_layer_materials(isotope: str) -> List[str]:
+    """Materials offered for a wall's layers: those with analytical data for this isotope, then
+    those the loaded model E serves. Outside model E's domain the latter have no analytical
+    fallback, and the result says a Monte-Carlo run is needed."""
+    from . import surrogate_e as se
+    offered = usable_wall_materials(isotope)
+    bundle = load_bundle()
+    if bundle is None or not se.is_model_e(bundle):
+        return offered
+    served = bundle["material_map"]
+    return offered + [m for m in _SURROGATE_WALL_MATERIALS
+                      if m not in offered and model_material(m) in served]
 
 
 class AnalyticalEngine:
@@ -127,9 +195,7 @@ class AnalyticalEngine:
             layers = [(material, path.lead_equiv_mm)]
         else:
             material = wall.material1
-            layers = [(wall.material1, wall.thickness1_mm)]
-            if wall.material2 and wall.thickness2_mm > 0:
-                layers.append((wall.material2, wall.thickness2_mm))
+            layers = [(wall.material1, wall.thickness1_mm)] + wall.back_layers()
 
         if mode == "design" and path.kind == "wall":
             # suggest a single-material thickness for material1 that just meets the goal
@@ -204,32 +270,33 @@ _BUNDLE_TRIED = False
 _CORNER = None
 _CORNER_TRIED = False
 
-# Response-space routing floor, in log10 B. A query whose PREDICTED transmission falls below
-# this is not served by the surrogate however ordinary its features look: the prospective
-# validation showed the band is not calibrated there and the error is a bias, so widening the
-# interval cannot fix it. Set from the measured failure boundary (B = 1e-4), not tuned.
+# Response-space routing floor, in log10 B, for the LEGACY eight-feature bundle only. A query whose
+# predicted transmission fell below this was served without an interval however ordinary its
+# features looked, because that model's band was measured as not calibrated there and its error was
+# a bias. Model E removed the cause: on the sealed test set it predicted the 182 configurations
+# below B = 1e-4 with the same accuracy as the rest (0.023 in log10 B) and its interval covered
+# 98.4% of them, so no withdrawal applies to it.
 RESPONSE_ROUTER_LOGB_MAX = -4.0
 
+# Model E's test set reached B = 1.1e-5. Below that the model still answers, but no coverage has
+# been measured, so the result carries a note instead of a silent extrapolation.
+BELOW_TESTED_LOGB = -5.0
+
 # ---------------------------------------------------------------------------
-# GEOMETRY-BIAS THRESHOLD (uncorrected; disclosed, not fixed)
+# GEOMETRY-BIAS THRESHOLD (corrected by measured factors; the residual is disclosed)
 #
-# Every training label used a finite 0.5 m square beam. The locked Beamwidth-2 study measured
-# resolved increases at every tested optical depth. Its shallowest points were concrete/364 keV
-# mu*x=3.97 and 5.95: widening 0.5 -> 1.0 m
-# raised B by 44.8% and 57.3%, then 1.0 -> 1.5 m added another 9.3% and 9.8%. A fixed 0.5 m
-# beam changed only 0.47% when the slab widened from 2 to 3 m at mu*x=8.05, so slab width
-# alone does not explain the production value at that tested point. Historical deep rows rose
-# 1.8-2.0x at mu*x=8-12.
+# Every training label used a finite 0.5 m square beam, which truncates lateral scatter. Model E's
+# served transmission is raised by the broad-beam factor Conventions 3-5 measured for its
+# material, depth and line with the beam widened to 3.5 m (`surrogate_e.field_convention`):
+# concrete 1.72-2.07x, rising with depth; steel 1.33-1.57x; lead 1.01-1.14x, served as 1.20x;
+# measured at 140.5, 364, 511 and 1077 keV and interpolated between. A fixed 0.5 m beam changed
+# only 0.47% when the slab widened from 2 to 3 m, so this is beam truncation, not slab truncation.
 #
-# The magnitude is measured only for solid concrete at 364 keV. Because the bias was already 1.58x
-# at the shallowest tested depth, the physical onset is unknown and may be below mu*x=3.97. The
-# mu*x>=4 red flag is a priority rule, not an onset claim. Materials/energies without red flags are
-# not thereby validated: every surrogate label remains a finite-field quantity until a wider-field
-# corpus is generated.
-#
-# A later prospective pure-lead study at 511 and 364 keV completed all 13 fixed-budget rows, but
-# eight missed its preregistered 0.8% precision gate. Its official decision did not constrain the
-# 0.5-to-2.0 m field-width change below 10%, so it does not justify weakening this warning.
+# The flag stays because of what is still uncertain. Three concrete factors are lower bounds, still
+# rising over their last step 2.5 -> 3.5 m: mu*x 4 at 511 keV (+1.1%), and mu*x 8 at 140.5 keV
+# (+2.3%) and 1077 keV (+1.6%). Beyond mu*x 8 no depth was measured to 3.5 m, and materials other
+# than lead and steel borrow the concrete factor. The deficit was already 1.72x at mu*x 4, the
+# shallowest depth measured, so the mu*x>=4 flag is a priority rule, not an onset claim.
 #
 # This is NOT covered by the two guards above:
 #   * the OOD guard is a feature-space test, and a deep wall is an ordinary thickness of an
@@ -237,18 +304,21 @@ RESPONSE_ROUTER_LOGB_MAX = -4.0
 #     prospective validation were);
 #   * the analytical fallback is not reliably the conservative option on such rows either
 #     (it under-predicted dose on 2 of 12 of them, by up to 0.70 dex).
-# The only honest mitigation is to tell the RSO. Hence a hard, unconditional warning.
+# Hence a hard, unconditional warning to the RSO on the residual.
 GEOMETRY_BIAS_MUX = 4.0
 GEOMETRY_BIAS_WARNING = (
-    "Caution: Finite-beam transmission (μx≥4) carries an uncorrected geometry bias "
-    "(under-prediction of scatter). Bias was measured at every optical depth tested "
-    "(μx≈4–12, concrete at 364 keV): 1.58× to 2.0×. It was already 1.58× at the "
-    "shallowest depth measured, so no lower bound on its onset has been established. "
-    "The measured factors are lower bounds because the shallow width sequences were "
-    "still rising. A fixed-budget pure-lead study at 511 and 364 keV failed its "
-    "precision gate and did not constrain the field-width effect below 10%; lead "
-    "and other material/energy cases remain decision-unquantified. An independent "
-    "Monte-Carlo check with reviewed irradiation geometry is required for final design sign-off."
+    "Caution: finite-beam correction (μx≥4). The Monte-Carlo surrogate was trained in a 0.5 m "
+    "beam, which under-states scatter, so its transmission has been raised by the broad-beam "
+    "factor measured for this material, depth and energy with the beam widened to 3.5 m: "
+    "concrete 1.72× at μx 4 rising to 2.07× at μx 8, steel 1.33–1.57×, lead up to 1.14× "
+    "(served as 1.20×), measured at 140.5, 364, 511 and 1077 keV and interpolated between "
+    "(below 140.5 keV the 140.5 keV factor is held, unmeasured). "
+    "Three concrete factors are lower bounds, their widest step still rising (μx 4 at 511 keV, "
+    "μx 8 at 140.5 and 1077 keV); that step is added to the upper limit. Beyond μx 8 no depth "
+    "was measured, and other materials take the concrete factor. The "
+    "deficit was already 1.72× at the shallowest depth measured, so the μx≥4 flag marks "
+    "priority, not the onset. An independent Monte-Carlo check with reviewed irradiation "
+    "geometry is required for final design sign-off."
 )
 
 
@@ -333,7 +403,10 @@ def _corner_provenance(cb) -> str:
 def load_bundle(path: Optional[str] = None):
     """Load the deployed surrogate bundle once (or return None if unavailable, so the
     app degrades gracefully to analytical-only). Aliases the guard module into sys.modules
-    under the name the pickle expects ('surrogate_guard')."""
+    under the name the pickle expects ('surrogate_guard').
+
+    Model E is preferred when its bundle is present, and the eight-feature bundle is the
+    fallback, so a deploy without the larger file still serves predictions."""
     global _BUNDLE, _BUNDLE_TRIED
     if _BUNDLE is not None or _BUNDLE_TRIED:
         return _BUNDLE
@@ -342,9 +415,11 @@ def load_bundle(path: Optional[str] = None):
         import joblib
         from . import surrogate_guard as _sg
         sys.modules.setdefault("surrogate_guard", _sg)   # pickle refers to surrogate_guard.*
-        p = Path(path) if path else (Path(__file__).resolve().parents[2] / "models" /
-                                     "surrogate_bundle.joblib")
-        if not p.exists():
+        models = Path(__file__).resolve().parents[2] / "models"
+        candidates = ([Path(path)] if path else
+                      [models / "surrogate_bundle_e.joblib", models / "surrogate_bundle.joblib"])
+        p = next((c for c in candidates if c.exists()), None)
+        if p is None:
             return None
         _BUNDLE = joblib.load(p)
     except Exception:
@@ -373,30 +448,35 @@ class SurrogateEngine:
         e = b["isotope_energy_keV"].get(self.design.source.isotope)
         mat = "lead" if path.kind in ("door", "window") else wall.material1
         mm = b["material_map"]
-        if e is None or mat not in mm:
+        if e is None or mat not in mm or (path.kind == "wall" and len(wall.back_layers()) > 1):
+            return None
+        served = simulated_thickness_mm(mat, thickness_mm)
+        if served is None:
             return None
         z, rho = mm[mat]["zeff"], mm[mat]["density_gcm3"]
         l2t, l2z = 0.0, 0.0
         if path.kind == "wall" and wall.material2 and wall.thickness2_mm > 0 and wall.material2 in mm:
-            l2t, l2z = wall.thickness2_mm, mm[wall.material2]["zeff"]
+            l2t = simulated_thickness_mm(wall.material2, wall.thickness2_mm)
+            if l2t is None:
+                return None
+            l2z = mm[wall.material2]["zeff"]
         # feature order MUST match bundle["features"]
-        return np.array([[e, thickness_mm, path.duct_radius_mm, path.offset_m * 1000.0,
+        return np.array([[e, served, path.duct_radius_mm, path.offset_m * 1000.0,
                           z, rho, l2t, l2z]], dtype=float)
 
-    def _barrier_mu_x(self, path: BarrierPath, wall: Wall,
-                      thickness_mm: float) -> Optional[float]:
-        """Optical depth of the barrier this prediction is about. Layer list mirrors
-        `_features` exactly, so the mu*x reported is the mu*x of the thing the model was
-        asked about (the suggested wall in design mode, the declared one in check mode)."""
-        e = (self.bundle or {}).get("isotope_energy_keV", {}).get(self.design.source.isotope)
+    def _barrier_mu_x(self, path: BarrierPath, wall: Wall, thickness_mm: float,
+                      energy_keV: Optional[float] = None) -> Optional[float]:
+        """Optical depth of the barrier this prediction is about, at `energy_keV` or the source's
+        principal line. Layer list mirrors `_features` exactly, so the mu*x reported is the mu*x of
+        the thing the model was asked about (the suggested wall in design mode, the declared one in
+        check mode)."""
+        e = energy_keV if energy_keV is not None else self._principal_energy()
         if e is None:
             return None
         if path.kind in ("door", "window"):
             layers = [("lead", thickness_mm)]
         else:
-            layers = [(wall.material1, thickness_mm)]
-            if wall.material2 and wall.thickness2_mm > 0:
-                layers.append((wall.material2, wall.thickness2_mm))
+            layers = [(wall.material1, thickness_mm)] + wall.back_layers()
         return optical_depth(e, layers)
 
     def _evaluate_maze(self, path: BarrierPath, wall: Wall) -> EngineResult:
@@ -415,15 +495,24 @@ class SurrogateEngine:
         unshielded = source.total_unshielded()
         mm = self.bundle["material_map"] if self.bundle else {}
         e = (self.bundle or {}).get("isotope_energy_keV", {}).get(self.design.source.isotope)
-        if cb is None or e is None or wall.material1 not in mm or path.ret_material not in mm:
+        first, back = model_material(wall.material1), model_material(path.ret_material)
+        if cb is None or e is None or first not in mm or back not in mm:
             return EngineResult(barrier_id=path.label, label=path.label, engine="OOD — needs MC",
                                 B_required=None, B_achieved=None, dose_mSv_wk=None, goal_over_T=gT,
                                 passes=None, margin=None, ood=True,
                                 note="Corner surrogate unavailable for these materials — full MC needed.")
-        z1, r1 = mm[wall.material1]["zeff"], mm[wall.material1]["density_gcm3"]
-        z2, r2 = mm[path.ret_material]["zeff"], mm[path.ret_material]["density_gcm3"]
-        X = np.array([[e, wall.thickness1_mm, z1, r1,
-                       path.ret_thickness_mm, z2, r2,
+        primary = simulated_thickness_mm(wall.material1, wall.thickness1_mm)
+        returned = simulated_thickness_mm(path.ret_material, path.ret_thickness_mm)
+        if primary is None or returned is None:
+            return EngineResult(barrier_id=path.label, label=path.label, engine="OOD — needs MC",
+                                B_required=None, B_achieved=None, dose_mSv_wk=None, goal_over_T=gT,
+                                passes=None, margin=None, ood=True,
+                                note="This product's density differs from the simulated material's "
+                                     "in a way equal mass per area cannot correct — full MC needed.")
+        z1, r1 = mm[first]["zeff"], mm[first]["density_gcm3"]
+        z2, r2 = mm[back]["zeff"], mm[back]["density_gcm3"]
+        X = np.array([[e, primary, z1, r1,
+                       returned, z2, r2,
                        path.corridor_m * 1000.0, path.shadow_offset_m * 1000.0]], dtype=float)
         if not cb["domain"].in_domain(X)[0]:
             return EngineResult(barrier_id=path.label, label=path.label, engine="OOD — needs MC",
@@ -446,6 +535,301 @@ class SurrogateEngine:
                   f"95% band [{B_lo:.1e}, {B_hi:.1e}] is wide by design — confirm the final "
                   f"maze with a full MC run."))
 
+    def _model_e_layers(self, path: BarrierPath, wall: Wall, thickness_mm: float):
+        """The declared layers this path crosses, inner face first, with the first at `thickness_mm`.
+
+        A door or window is served as its lead equivalent, so its one layer is lead whatever the
+        wall is made of. Ducts and mazes cross the first layer only, as model E was trained.
+        """
+        if path.kind in ("door", "window"):
+            return [("lead", thickness_mm)]
+        behind = wall.back_layers() if path.kind == "wall" else []
+        return [(wall.material1, thickness_mm)] + behind
+
+    def _lines(self):
+        """(energy keV, air-kerma weight) of each line model E serves for the source, the principal
+        line first. A nuclide with no line table is served at the bundle's one line."""
+        from . import surrogate_e as se
+        isotope = self.design.source.isotope
+        domain = self.bundle["domain"]
+        column = domain.features.index("primary_energy_keV")
+        lines = se.kerma_weighted_lines(isotope, float(domain.lo[column]), float(domain.hi[column]))
+        if lines is None:
+            energy = self.bundle["isotope_energy_keV"].get(isotope)
+            return [] if energy is None else [(energy, 1.0)]
+        return sorted(lines, key=lambda line: -line[1])
+
+    def _principal_energy(self) -> Optional[float]:
+        if not self.bundle:
+            return None
+        lines = self._lines()
+        return lines[0][0] if lines else None
+
+    def _model_e_wall(self, path: BarrierPath, wall: Wall, thickness_mm: float) -> Optional[_ModelWall]:
+        """The wall model E serves for this path, or None when it cannot serve it (including a wall
+        of three layers outside the merge rule)."""
+        try:
+            return _model_wall(self._model_e_layers(path, wall, thickness_mm),
+                               self.bundle["material_map"])
+        except ValueError:
+            return None
+
+    def _model_e_row(self, path: BarrierPath, wall: Wall, thickness_mm: float,
+                     energy_keV: Optional[float] = None):
+        """Feature row, baseline, depth in mfp and the merge correction log10 C for model E at
+        `energy_keV` or the source's principal line, or None when a material or line is unknown."""
+        from . import surrogate_e as se
+        b = self.bundle
+        energy = energy_keV if energy_keV is not None else self._principal_energy()
+        served = self._model_e_wall(path, wall, thickness_mm)
+        if energy is None or served is None or not served.layers:
+            return None
+        materials = b["material_map"]
+        (first, first_mm), second = served.layers[0], (served.layers[1:] or [None])[0]
+        correction = (merge_rule.log10_correction(energy, served.moved_mass)
+                      if served.moved_mass is not None else 0.0)
+        try:
+            X, baseline, nmfp = se.design_row(
+                b, energy_keV=energy, thickness_mm=first_mm,
+                duct_radius_mm=path.duct_radius_mm, det_offset_mm=path.offset_m * 1000.0,
+                zeff=materials[first]["zeff"], density_gcm3=materials[first]["density_gcm3"],
+                layer2_thickness_mm=second[1] if second else 0.0,
+                layer2_zeff=materials[second[0]]["zeff"] if second else 0.0,
+                layer2_density_gcm3=materials[second[0]]["density_gcm3"] if second else 0.0)
+        except ValueError:
+            return None            # e.g. a duct wider than the geometry the model was trained on
+        return X, baseline, nmfp, correction
+
+    def _serve_spectrum(self, path: BarrierPath, wall: Wall,
+                        thicknesses: List[float]) -> List[Optional[_Served]]:
+        """Model E's broad-beam answer at each thickness, summed over the source's lines.
+
+        Every (thickness, line) row is served in one batch. Each line is raised by the broad-beam
+        factor for its own depth, then the lines are summed with their air-kerma weights. None where
+        the principal line cannot be built at all.
+        """
+        import numpy as np
+        from . import surrogate_e as se
+        lines = self._lines()
+        rows, where = [], {}
+        for i, thickness in enumerate(thicknesses):
+            for j, (energy, _) in enumerate(lines):
+                built = self._model_e_row(path, wall, thickness, energy)
+                if built is not None:
+                    where[i, j] = len(rows)
+                    rows.append(built)
+        if not rows:
+            return [None] * len(thicknesses)
+        X = np.vstack([row for row, _, _, _ in rows])
+        inside = self.bundle["domain"].in_domain(X)
+        point, lo, hi, groups = se.serve_batch(self.bundle, X,
+                                               np.array([baseline for _, baseline, _, _ in rows]))
+        # a merged three-layer wall is divided by E-Domain-5's correction C before the broad-beam
+        # factor, as it was fitted against the 0.5 m-beam Monte Carlo
+        correction = np.array([c for _, _, _, c in rows])
+        point, lo, hi = point - correction, lo - correction, hi - correction
+        materials = [material for material, _ in self._model_e_layers(path, wall, thicknesses[0])]
+        answers = {}
+        for (i, j), k in where.items():
+            energy = lines[j][0]
+            mu_x = self._barrier_mu_x(path, wall, thicknesses[i], energy)
+            if mu_x is None:                   # barite concrete has no mu/rho table in the app;
+                mu_x = float(rows[k][2])       # the model's own depth stands in
+            factor = se.field_convention(mu_x, energy, *materials)
+            broad = se.apply_field_convention(factor, point[k], lo[k], hi[k])
+            answers[i, j] = _Served(energy, *broad, groups[k], bool(inside[k]), mu_x, factor)
+        return [_sum_lines(lines, [answers.get((i, j)) for j in range(len(lines))])
+                for i in range(len(thicknesses))]
+
+    def _evaluate_model_e(self, path: BarrierPath, wall: Wall, thickness_mm: float,
+                          analytical: Optional[EngineResult], gT: float,
+                          unshielded: float) -> EngineResult:
+        """Serve model E: point estimate, 95% interval, guard, and the standing beam caveat."""
+        b = self.bundle
+        served = self._serve_spectrum(path, wall, [thickness_mm])[0]
+        three_layers = len(self._model_e_layers(path, wall, thickness_mm)) > 2
+        if served is None and not three_layers:
+            return EngineResult(barrier_id=path.label, label=path.label, engine=self.name,
+                                B_required=None, B_achieved=None, dose_mSv_wk=None, goal_over_T=gT,
+                                passes=None, margin=None, note="No surrogate features for this path.")
+        if served is None or not served.inside:
+            aB = analytical.B_achieved if analytical else None
+            aDose = analytical.dose_mSv_wk if analytical else None
+            if aB is not None and served is None:
+                note = ("A wall of three layers is served by the surrogate only inside the merge "
+                        "rule Monte Carlo tested: one lead or lead-glass layer at most, and the other "
+                        "layers of one material or all concrete, gypsum or brick. This wall is "
+                        "outside it, so the analytical value is used.")
+                engine = "analytical (OOD fallback)"
+            elif aB is not None:
+                note = ("Outside the surrogate's trusted domain; the analytical value is used. "
+                        "An independent Monte-Carlo run is the safer check.")
+                engine = "analytical (OOD fallback)"
+            else:
+                why = ("off-axis duct streaming" if path.kind == "duct"
+                       else "the broad-beam tables have no data for this material at this energy")
+                note = (f"Outside the surrogate's trusted domain AND unmodellable analytically "
+                        f"({why}) — a full Monte-Carlo simulation is required.")
+                engine = "OOD — needs MC"
+            return EngineResult(
+                barrier_id=path.label, label=path.label, engine=engine, B_required=None,
+                B_achieved=aB, dose_mSv_wk=aDose, goal_over_T=gT,
+                passes=(analytical.passes if analytical else None),
+                margin=(gT / aDose if aDose else None), material=wall.material1, ood=True, note=note)
+
+        # The model is trained in a 0.5 m beam and the standards tabulate a broad one, so each line
+        # was raised to its broad-beam equivalent before the lines were summed. `serve` is left
+        # untouched, so it still reproduces the paper's sealed predictions.
+        logB, lo, hi, group = served.logB, served.lo, served.hi, served.group
+        mu_x, factor = served.mu_x, served.factor
+        finite_beam_bias = mu_x is not None and mu_x >= GEOMETRY_BIAS_MUX
+        gb_note = f"  ⚠ μx≈{mu_x:.1f}. {GEOMETRY_BIAS_WARNING}" if finite_beam_bias else ""
+        B, B_lo, B_hi = 10.0 ** logB, 10.0 ** lo, min(10.0 ** hi, 1.0)
+        dose = unshielded * B
+        margin_hi = gT / (unshielded * B_hi) if unshielded * B_hi > 0 else None
+        band_note = {"deep_tail": " (deep tail)", "beam_shadow": " (deep off-axis)"}.get(group, "")
+        interval, upper_limit = self._interval_names()
+        below_tested = (" The prediction is below the deepest transmission tested (about 1e-5), "
+                        "where the interval has no measured coverage; confirm with Monte Carlo."
+                        if logB < BELOW_TESTED_LOGB else "")
+        layers = self._model_e_layers(path, wall, thickness_mm)
+        model_wall = self._model_e_wall(path, wall, thickness_mm)
+        omitted = model_wall.omitted if model_wall else None
+        density_note = served_as_note([layer for layer in layers if layer[0] != omitted])
+        if omitted:
+            density_note += (f" The second layer ({omitted}) is not among the surrogate's training "
+                             f"materials and is left out, which over-states the transmission "
+                             f"(the conservative direction).")
+        if model_wall and model_wall.moved_mass is not None:
+            density_note += _merge_note(model_wall, self._principal_energy())
+        return EngineResult(
+            barrier_id=path.label, label=path.label, engine=self.name,
+            B_required=(min(1.0, gT / unshielded) if unshielded > 0 else 1.0),
+            B_achieved=B, dose_mSv_wk=dose, goal_over_T=gT,
+            passes=(dose <= gT), margin=(gT / dose if dose > 0 else None),
+            material=wall.material1, ci_low=B_lo, ci_high=B_hi,
+            geometry_bias=finite_beam_bias, mu_x=mu_x,
+            note=((f"MC surrogate B={B:.2e}, {interval} [{B_lo:.1e}, {B_hi:.1e}]{band_note}; "
+                   f"margin at the {upper_limit} ×{margin_hi:.2f}."
+                   if margin_hi is not None else
+                   f"MC surrogate B={B:.2e}, {interval} [{B_lo:.1e}, {B_hi:.1e}]{band_note}.")
+                  + f" Includes the ×{factor.value:.2f} broad-beam factor measured for this "
+                    f"material and depth; its own 95% range (×{factor.low:.2f}–{factor.high:.2f}) "
+                    f"is carried into the interval."
+                  + self._spectrum_note(served) + density_note + below_tested + gb_note))
+
+    def _interval_names(self):
+        """What the served interval and its upper edge are called: a calibrated 95% interval for a
+        one-line source, the summed line edges (not calibrated as a whole) otherwise."""
+        if len(self._lines()) < 2:
+            return "95% CI", "95% upper limit"
+        return "interval (summed line edges)", "upper limit (summed line edges)"
+
+    def _spectrum_note(self, served: _Served) -> str:
+        """How the source's lines were served, for a nuclide served over more than one line."""
+        lines = self._lines()
+        if len(lines) < 2:
+            return ""
+        listed = ", ".join(f"{energy:g} keV ({weight:.0%})" for energy, weight in lines)
+        note = (f" Served over {self.design.source.isotope}'s lines, weighted by unshielded air "
+                f"kerma: {listed}; each line takes the factor for its own depth, and the factor "
+                f"quoted is that of the {served.energy_keV:g} keV line, the directly served line "
+                f"carrying most of the transmitted dose. The interval sums each line's calibrated "
+                f"95% edges. That is a 95% interval if the lines' errors move together and wider if "
+                f"they are near normal, but it has not been calibrated against full-spectrum Monte "
+                f"Carlo; its distribution-free floor is {1 - 0.05 * len(lines):.0%}. Lines below "
+                f"100 keV are left out, which over-states the transmission.")
+        if served.substituted:
+            bounded = ", ".join(f"{energy:g}" for energy in served.substituted)
+            note += (f" The {bounded} keV line is outside the trained domain at this depth and is "
+                     f"bounded by the upper edge of the next harder line, which transmits more.")
+        return note
+
+    def _goal_and_unshielded(self, path: BarrierPath, wall: Wall):
+        """The path's dose limit P/T and its unshielded weekly dose, both in mSv/week."""
+        goal = self.analytical._goal(wall)
+        gT = goal.P_weekly / goal.occupancy_T if goal.occupancy_T > 0 else goal.P_weekly
+        return gT, self.analytical._source(path).total_unshielded()
+
+    def _thickness_candidates(self, path: BarrierPath, wall: Wall) -> List[float]:
+        """Standard thicknesses of the wall's first material, thinnest first, up to the thickest
+        and, at the principal line, the deepest barrier the trained domain holds."""
+        domain = self.bundle["domain"]
+        thickest = float(domain.hi[domain.features.index("thickness_mm")])
+        deepest = float(domain.hi[domain.features.index("nmfp_total")])
+        step = sv.thickness_increment(wall.material1)
+        candidates = []
+        for count in range(1, 100_000):
+            thickness = count * step
+            served = simulated_thickness_mm(wall.material1, thickness)
+            built = self._model_e_row(path, wall, thickness)
+            if served is None or served > thickest or built is None or built[2] > deepest:
+                break
+            candidates.append(thickness)
+        return candidates
+
+    def _size_wall_model_e(self, path: BarrierPath, wall: Wall, gT: float,
+                           unshielded: float) -> Optional[float]:
+        """Thinnest standard thickness of the wall's first material whose served upper limit
+        meets the goal, or None when no thickness inside the trained domain does.
+
+        A thickness is accepted only if every thicker candidate meets the goal too, served inside
+        the domain: a tree ensemble is piecewise constant in thickness, and a thin candidate that
+        passes on one step of the model must not be offered ahead of a thicker one that fails or
+        that the model cannot vouch for. Only candidates beyond the thick end of the domain are
+        passed over.
+        """
+        candidates = self._thickness_candidates(path, wall)
+        if not candidates or gT <= 0:
+            return None
+        limit = math.log10(gT / unshielded)
+        sized = None
+        reached_domain = False
+        for thickness, served in reversed(list(zip(candidates,
+                                                   self._serve_spectrum(path, wall, candidates)))):
+            if served is None or not served.inside:
+                if reached_domain:
+                    break
+                continue
+            reached_domain = True
+            if served.hi > limit:
+                break
+            sized = thickness
+        return sized
+
+    def _design_wall(self, path: BarrierPath, wall: Wall,
+                     analytical: Optional[EngineResult]) -> EngineResult:
+        """Design mode for a solid wall: size it from the surrogate's own upper limit.
+
+        When no thickness inside the trained domain meets the goal, the analytical suggestion (or,
+        without one, the declared thickness) is evaluated instead, and the note says so. A wall the
+        surrogate cannot model at all, and one that needs no shielding, are evaluated as before.
+        """
+        gT, unshielded = self._goal_and_unshielded(path, wall)
+        analytical_mm = analytical.suggested_thickness_mm if analytical else None
+        fallback_mm = analytical_mm if analytical_mm is not None else wall.thickness1_mm
+        modelled = self._model_e_row(path, wall, sv.thickness_increment(wall.material1)) is not None
+        sized = (self._size_wall_model_e(path, wall, gT, unshielded)
+                 if modelled and unshielded > gT else None)
+        if sized is None:
+            result = self.evaluate(path, wall, fallback_mm, analytical=analytical)
+            if not modelled or unshielded <= gT:
+                return result
+            which = ("the analytical suggestion" if analytical_mm is not None
+                     else "the declared thickness")
+            reason = ("A design goal of zero cannot be met by any finite barrier" if gT <= 0
+                      else f"The surrogate found no thickness inside its trained domain whose "
+                           f"{self._interval_names()[1]} meets the goal")
+            return replace(result, note=f"{reason}; {which} is evaluated instead. " + result.note)
+        result = self._evaluate_model_e(path, wall, sized, analytical, gT, unshielded)
+        compared = (f" (the analytical method suggests {analytical_mm:g} mm)"
+                    if analytical_mm is not None else "")
+        _, upper_limit = self._interval_names()
+        return replace(result, suggested_thickness_mm=sized,
+                       note=(f"Sized by the surrogate: {sized:g} mm {wall.material1} is the thinnest "
+                             f"standard thickness whose {upper_limit} meets the goal{compared}. "
+                             + result.note))
+
     def evaluate(self, path: BarrierPath, wall: Wall, thickness_mm: float,
                  analytical: Optional[EngineResult] = None) -> Optional[EngineResult]:
         if not self.available():
@@ -453,6 +837,10 @@ class SurrogateEngine:
         if path.kind == "maze":
             return self._evaluate_maze(path, wall)
         b = self.bundle
+        from . import surrogate_e as se
+        if se.is_model_e(b):
+            gT, unshielded = self._goal_and_unshielded(path, wall)
+            return self._evaluate_model_e(path, wall, thickness_mm, analytical, gT, unshielded)
         X = self._features(path, wall, thickness_mm)
         source = self.analytical._source(path)
         goal = self.analytical._goal(wall)
@@ -582,14 +970,23 @@ class SurrogateEngine:
 
     def evaluate_all(self, mode: str,
                      analytical_results: Optional[List[EngineResult]] = None) -> List[EngineResult]:
-        """Evaluate every path with the surrogate. Thickness per path = the analytical
-        suggestion (design mode) or the declared build (check mode)."""
+        """Evaluate every path with the surrogate. In design mode model E sizes each solid wall
+        from its own upper limit, and the wall's duct and maze paths are evaluated through the wall
+        as designed; other paths use the analytical suggestion (design mode) or the declared build
+        (check mode)."""
+        from . import surrogate_e as se
         ar = {r.label: r for r in (analytical_results or [])}
         out: List[EngineResult] = []
         wall_by_id = {w.id: w for w in self.design.walls}
-        for path in all_paths(self.design):
+        sizes_walls = (mode == "design" and self.available() and se.is_model_e(self.bundle))
+        for path in all_paths(self.design):     # each wall's own path comes before its openings
             wall = wall_by_id[path.wall_id]
             a = ar.get(path.label)
+            if sizes_walls and path.kind == "wall":
+                result = self._design_wall(path, wall, a)
+                wall_by_id[wall.id] = replace(wall, thickness1_mm=_designed_thickness(result, a, wall))
+                out.append(result)
+                continue
             if path.kind in ("door", "window"):
                 thickness = path.lead_equiv_mm
             elif mode == "design" and a is not None and a.suggested_thickness_mm is not None:
@@ -598,3 +995,76 @@ class SurrogateEngine:
                 thickness = wall.thickness1_mm
             out.append(self.evaluate(path, wall, thickness, analytical=a))
         return out
+
+
+def _merge_note(model_wall: _ModelWall, energy_keV: Optional[float]) -> str:
+    """What the merge rule did to a wall of three layers, for the result's note."""
+    served = " + ".join(f"{thickness:.1f} mm {material}" for material, thickness in model_wall.layers)
+    note = (f" Three layers served as {served} of simulated material by the merge rule Monte Carlo "
+            f"tested (E-Domain-5: 180 walls, all within ×2)")
+    if energy_keV is None:
+        return note + "."
+    factor = 10.0 ** -merge_rule.log10_correction(energy_keV, model_wall.moved_mass)
+    return note + f", with its measured correction (×{factor:.3f} at {energy_keV:g} keV)."
+
+
+def _sum_lines(lines, answers: List[Optional[_Served]]) -> Optional[_Served]:
+    """Sum per-line answers (principal first) with their weights; edges are summed edge by edge.
+
+    Each line's edges are a calibrated 95% interval; their sums are not. They are the 95% edges of
+    the sum when the lines' errors move together, and wider when the errors are near normal, but
+    the only distribution-free floor is 1 - 5% x (lines served), 80% for I-131's four. No
+    full-spectrum Monte Carlo labels exist to calibrate the sum; the note says so.
+
+    A minor line the model cannot serve at this depth, either unbuilt or outside the domain, is
+    bounded by the upper edge of the nearest harder line that it can serve. For lines of 100 keV
+    and above, every
+    material here attenuates a softer line more (`tests/test_room_surrogate.py` checks the
+    coefficients), so the harder line's true transmission is above the softer one's, and its own
+    upper edge covers it: the bound needs no monotonicity of the model itself. With no such line, or
+    with the principal line outside the domain, the barrier is outside the domain.
+
+    The group, factor and energy reported are those of the directly served line carrying most of
+    the transmitted dose, and `mu_x` is the deepest line's, so the finite-beam flag sees every line.
+    """
+    import numpy as np
+    from . import surrogate_e as se
+    principal = answers[0]
+    if principal is None:
+        return None
+    if not principal.inside:
+        return principal
+    served = [answer for answer in answers if answer is not None and answer.inside]
+    chosen, substituted = [], []
+    for (energy, _), answer in zip(lines, answers):
+        if answer is None or not answer.inside:
+            harder = [candidate for candidate in served if candidate.energy_keV > energy]
+            if not harder:
+                return replace(principal, inside=False)
+            bound = min(harder, key=lambda candidate: candidate.energy_keV)
+            # The harder line's upper edge bounds the softer line's transmission; its point
+            # estimate does not, so the substituted line enters the point at that edge, and the
+            # lower sum at zero.
+            answer = replace(bound, logB=bound.hi, lo=float("-inf"))
+            substituted.append(energy)
+        chosen.append(answer)
+    weights = np.array([weight for _, weight in lines])
+    direct = [(weight * 10.0 ** answer.logB, index)
+              for index, ((energy, weight), answer) in enumerate(zip(lines, chosen))
+              if energy not in substituted]
+    dominant = chosen[max(direct)[1]]
+    depths = [answer.mu_x for answer in answers if answer is not None and answer.mu_x is not None]
+    return replace(dominant, substituted=tuple(substituted), mu_x=max(depths, default=None),
+                   **{edge: se.combine_lines(weights, np.array([getattr(a, edge) for a in chosen]))
+                      for edge in ("logB", "lo", "hi")})
+
+
+def _designed_thickness(result: EngineResult, analytical: Optional[EngineResult],
+                        wall: Wall) -> float:
+    """The first-layer thickness a design-mode wall row was evaluated at: the surrogate's own size,
+    else the analytical suggestion, else the declared thickness."""
+    if result.suggested_thickness_mm is not None:
+        return result.suggested_thickness_mm
+    if analytical is not None and analytical.suggested_thickness_mm is not None:
+        return analytical.suggested_thickness_mm
+    return wall.thickness1_mm

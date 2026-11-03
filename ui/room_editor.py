@@ -7,7 +7,7 @@ from math import isclose, isfinite
 
 import streamlit as st
 
-from shieldlab.room.engines import usable_wall_materials
+from shieldlab.room.engines import usable_wall_materials, wall_layer_materials
 from shieldlab.room.model import (
     ISOTOPES,
     OCCUPANCY_MENU,
@@ -111,7 +111,11 @@ def _opening_load_errors(
     return errors
 
 
-def _wall_load_errors(wall: Wall, available_materials: set[str]) -> list[str]:
+def _wall_load_errors(
+    wall: Wall,
+    available_materials: set[str],
+    return_materials: set[str],
+) -> list[str]:
     wall_label = str(wall.id)
     errors = []
     if wall.material1 not in available_materials:
@@ -122,6 +126,12 @@ def _wall_load_errors(wall: Wall, available_materials: set[str]) -> list[str]:
         errors.append(f"Wall {wall_label} primary thickness must be between 0 and 3,000 mm.")
     if not _number_in_range(wall.thickness2_mm, 0.0, 3000.0):
         errors.append(f"Wall {wall_label} second thickness must be between 0 and 3,000 mm.")
+    if wall.material3 is not None and wall.material3 not in available_materials:
+        errors.append(f"Wall {wall_label} uses an unsupported third material.")
+    if wall.material3 and wall.thickness3_mm > 0 and not (wall.material2 and wall.thickness2_mm > 0):
+        errors.append(f"Wall {wall_label} has a third layer but no second layer in front of it.")
+    if not _number_in_range(wall.thickness3_mm, 0.0, 3000.0):
+        errors.append(f"Wall {wall_label} third thickness must be between 0 and 3,000 mm.")
     if wall.adjacent.kind not in ("public", "controlled"):
         errors.append(f"Wall {wall_label} has an unsupported area classification.")
     if not _number_in_range(wall.adjacent.occupancy_T, 0.0001, 1.0):
@@ -130,7 +140,7 @@ def _wall_load_errors(wall: Wall, available_materials: set[str]) -> list[str]:
     if custom_goal is not None and not _number_in_range(custom_goal, 0.0001, 10.0):
         errors.append(f"Wall {wall_label} custom design goal is outside the editor range.")
     for opening in wall.openings:
-        errors.extend(_opening_load_errors(opening, wall_label, available_materials))
+        errors.extend(_opening_load_errors(opening, wall_label, return_materials))
     return errors
 
 
@@ -145,13 +155,15 @@ def _design_load_errors(room_design: RoomDesign) -> list[str]:
     if room_design.source.isotope not in ISOTOPES:
         errors.append("The radionuclide is not supported.")
 
+    known_isotope = room_design.source.isotope in ISOTOPES
     available_materials = set(
-        usable_wall_materials(room_design.source.isotope)
-        if room_design.source.isotope in ISOTOPES
-        else []
+        wall_layer_materials(room_design.source.isotope) if known_isotope else []
+    )
+    return_materials = set(
+        usable_wall_materials(room_design.source.isotope) if known_isotope else []
     )
     for wall in room_design.walls:
-        errors.extend(_wall_load_errors(wall, available_materials))
+        errors.extend(_wall_load_errors(wall, available_materials, return_materials))
     try:
         errors.extend(room_design.validate())
     except (AttributeError, TypeError):
@@ -343,42 +355,30 @@ def _source_workload(room_design: RoomDesign) -> None:
     )
 
 
-def _source_slider_default(
-    key: str,
-    model_value: float,
-    maximum: float,
-) -> float | None:
-    if key not in st.session_state:
-        return min(max(model_value, 0.0), maximum)
-    widget_value = float(st.session_state[key])
-    bounded_value = min(max(widget_value, 0.0), maximum)
-    if not isclose(widget_value, bounded_value, rel_tol=0.0, abs_tol=1e-9):
-        st.session_state[key] = bounded_value
-    return None
+def _seed_source_slider(key: str, model_value: float, maximum: float) -> None:
+    # A new room dimension changes the slider's max, and Streamlit then treats it as a new widget
+    # whose value falls back to the minimum (the source jumped onto the wall). Writing the bounded
+    # position into session state before the slider is built carries it across that reset.
+    current_value = float(st.session_state.get(key, model_value))
+    st.session_state[key] = min(max(current_value, 0.0), maximum)
 
 
 def _source_position(room_design: RoomDesign) -> None:
-    source_x = _source_slider_default(
-        "room_source_x_m", room_design.source.x_m, room_design.room.width_m
-    )
-    source_y = _source_slider_default(
-        "room_source_y_m", room_design.source.y_m, room_design.room.length_m
-    )
+    _seed_source_slider("room_source_x_m", room_design.source.x_m, room_design.room.width_m)
+    _seed_source_slider("room_source_y_m", room_design.source.y_m, room_design.room.length_m)
     x_col, y_col = st.columns(2)
     room_design.source.x_m = x_col.slider(
         i18n.t("source_x"),
         0.0,
         room_design.room.width_m,
-        source_x,
-        0.1,
+        step=0.1,
         key="room_source_x_m",
     )
     room_design.source.y_m = y_col.slider(
         i18n.t("source_y"),
         0.0,
         room_design.room.length_m,
-        source_y,
-        0.1,
+        step=0.1,
         key="room_source_y_m",
     )
 
@@ -539,6 +539,7 @@ def _second_layer_editor(wall, materials: list[str]) -> None:
     )
     if not laminate_enabled:
         wall.material2, wall.thickness2_mm = None, 0.0
+        wall.material3, wall.thickness3_mm = None, 0.0
         return
     material_col, thickness_col = st.columns(2)
     wall.material2 = material_col.selectbox(
@@ -558,10 +559,42 @@ def _second_layer_editor(wall, materials: list[str]) -> None:
     )
 
 
+def _third_layer_editor(wall, materials: list[str]) -> None:
+    if not wall.material2:
+        return
+    material_labels = _term_labels(materials)
+    third_enabled = st.checkbox(
+        i18n.t("add_third_layer"),
+        key=f"l3ck_{wall.id}",
+        value=bool(wall.material3),
+        help=i18n.t("third_layer_help"),
+    )
+    if not third_enabled:
+        wall.material3, wall.thickness3_mm = None, 0.0
+        return
+    material_col, thickness_col = st.columns(2)
+    wall.material3 = material_col.selectbox(
+        i18n.t("third_material"),
+        materials,
+        index=materials.index(wall.material3) if wall.material3 in materials else 0,
+        format_func=material_labels.__getitem__,
+        key=f"m3_{wall.id}",
+    )
+    wall.thickness3_mm = thickness_col.number_input(
+        i18n.t("third_thickness"),
+        0.0,
+        3000.0,
+        wall.thickness3_mm or 0.0,
+        5.0,
+        key=f"t3_{wall.id}",
+    )
+
+
 def _barrier_layers_editor(wall, assessment_mode: str, materials: list[str]) -> None:
     st.markdown(f"### {i18n.t('barrier_build_up')}")
     _primary_layer_editor(wall, assessment_mode, materials)
     _second_layer_editor(wall, materials)
+    _third_layer_editor(wall, materials)
 
 
 def _append_opening(wall, span_m: float, opening_kind: str) -> None:
@@ -785,7 +818,9 @@ def wall_editor(
         )
         _adjacent_area_editor(room_design, selected_wall)
         _barrier_layers_editor(selected_wall, assessment_mode, materials)
-        _openings_editor(room_design, selected_wall, materials)
+        # the corner surrogate behind a maze was trained on fewer materials than model E
+        return_materials = usable_wall_materials(room_design.source.isotope) or ["concrete"]
+        _openings_editor(room_design, selected_wall, return_materials)
 
 
 

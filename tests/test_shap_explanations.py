@@ -12,6 +12,9 @@ absent, so an analytical-only deployment stays green.
 
 from __future__ import annotations
 
+from pathlib import Path
+
+import joblib
 import pytest
 
 from shieldlab.room.decision_support import (
@@ -43,6 +46,11 @@ def _under_shielded_room(thickness_mm: float = 40.0) -> RoomDesign:
 def failing_case():
     design = _under_shielded_room()
     engine = SurrogateEngine(design)
+    # TreeSHAP describes total transmission only for the eight-feature model.
+    legacy_path = Path(__file__).resolve().parents[1] / "models" / "surrogate_bundle.joblib"
+    if not legacy_path.exists():
+        pytest.skip("the eight-feature surrogate bundle is not available")
+    engine.bundle = joblib.load(legacy_path)
     if not engine.available():
         pytest.skip("surrogate_bundle.joblib is not available")
     analytical = AnalyticalEngine(design).evaluate_all("check")
@@ -85,9 +93,24 @@ def test_no_explanations_when_nothing_fails(failing_case):
     for wall in design.walls:
         wall.thickness1_mm = 600.0
     engine = SurrogateEngine(design)
+    engine.bundle = _engine.bundle
     analytical = AnalyticalEngine(design).evaluate_all("check")
     surrogate = engine.evaluate_all("check", analytical)
     assert shap_failure_explanations(engine, design, "check", analytical, surrogate) == {}
+
+
+def test_residual_model_keeps_physics_explanation_without_misleading_shap():
+    from shieldlab.room import surrogate_e
+
+    design = _under_shielded_room()
+    engine = SurrogateEngine(design)
+    if not surrogate_e.is_model_e(engine.bundle):
+        pytest.skip("the residual model bundle is not available")
+    analytical = AnalyticalEngine(design).evaluate_all("check")
+    surrogate = engine.evaluate_all("check", analytical)
+    assert any(result.passes is False for result in surrogate)
+    assert shap_failure_explanations(engine, design, "check", analytical, surrogate) == {}
+    assert explain_failures(design, surrogate)
 
 
 def test_physics_explanations_remain_available_alongside_shap(failing_case):

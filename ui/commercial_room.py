@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from shieldlab.room.engines import SurrogateEngine, usable_wall_materials
+from shieldlab.room.engines import SurrogateEngine, wall_layer_materials
 from shieldlab.room.model import RoomDesign
 
 from . import i18n
@@ -72,7 +72,7 @@ def _render_workspace(
     with preview_col:
         preview_slot = st.container(border=True, key="sl_room_preview")
 
-    wall_materials = usable_wall_materials(room_design.source.isotope) or ["concrete"]
+    wall_materials = wall_layer_materials(room_design.source.isotope) or ["concrete"]
     room_editor.wall_editor(room_design, assessment_mode, wall_materials)
     validation_errors = room_design.validate()
 

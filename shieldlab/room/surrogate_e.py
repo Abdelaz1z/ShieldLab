@@ -1,0 +1,340 @@
+"""
+surrogate_e.py
+==============
+Features and 95% prediction interval for the model-E surrogate, the MC-trained model the paper
+reports (15,417 training configurations, tested on 2,400 recorded before simulation). The bundle
+served now is E5, the same recipe refitted on 21,936 configurations: E-Domain-1 to -6 added lead
+behind another layer, thin gypsum, two-layer non-lead walls, barite, RS 520 lead glass, wood, plate
+glass, water and walls 11-12.5 mean free paths deep, each study passing its pre-registered tests on
+configurations simulated after its model was frozen (research `EDOMAIN1_PLAN.md` to
+`EDOMAIN6_PLAN.md`). Its features and interval are E's.
+
+Model E differs from the earlier eight-feature bundle in two ways this module has to reproduce
+exactly, or the app would serve numbers the paper did not test:
+
+  * it has four physical features on top of the eight design features, namely the thickness of
+    each layer and of the whole barrier in mean free paths and the logarithm of the open fraction
+    of a duct's line of sight;
+  * it predicts the DEPARTURE from a physical baseline (uncollided attenuation plus line-of-sight
+    streaming), so the served transmission is the model's output plus that baseline.
+
+The arithmetic mirrors the research repository (`src/model_e.py`, `src/duct_streaming.py`,
+`src/paper_a_error_budget.py`, `src/mondrian_band.py`). The research repository's
+`src/build_app_bundle_e_fifth.py` replays E5 through this module on E-Domain-6's 85 and E-Domain-1's
+800 test configurations and the 2,400 of E's test set, and refuses to package the bundle if anything
+drifts;
+`tests/test_room_surrogate.py` pins three of them here, so the app and the research cannot diverge.
+"""
+
+from __future__ import annotations
+
+import math
+from typing import Dict, NamedTuple, Optional, Tuple
+
+import numpy as np
+
+from .. import data_loader as dl
+from ..physics import transmission as tx
+
+LN10 = math.log(10.0)
+
+# mu/rho is tabulated for these four materials only; anything else is interpolated in log(zeff).
+MU_ANCHORS = {"water": 7.4, "concrete": 13.0, "steel": 26.0, "lead": 82.0}
+
+# The training detector is a 200 mm square block whose centre sits at the off-axis offset.
+DET_HALF_MM = 100.0
+DET_AREA_MM2 = 200.0 * 200.0
+MIN_LOG_OPEN_FRACTION = -6.0
+
+SCHEME = {"taxonomy": "deployed", "score": "absolute", "centre": "union"}
+
+
+class MeasuredFactor(NamedTuple):
+    """A broad-beam factor as Monte Carlo measured it.
+
+    `rel_unc` is the measurement's one-sigma relative uncertainty. `unconverged_step` is the rise
+    over the last widening step of a ladder that had not stopped rising, and zero for one that had:
+    it is carried into the upper edge as an allowance for the rise still to come.
+    """
+    value: float
+    rel_unc: float
+    unconverged_step: float = 0.0
+
+
+class FieldFactor(NamedTuple):
+    """The factor a served transmission is multiplied by, and the edges of its 95% range."""
+    value: float
+    low: float
+    high: float
+
+
+# The finite-field deficit, measured by widening the training 0.5 m beam to 3.5 m (research
+# repository, `hpc_campaign/CONVENTION3/4/5_SCORE.json`, jobs 332285, 333856/333857 and
+# 336013/336014, mapped as `CONVENTION4_PLAN.md` and `CONVENTION5_PLAN.md` fixed before any row
+# ran); see `field_convention`. Each table is keyed by the measured line in keV.
+# Lead measured 1.008-1.143 at every line and is served at 1.20, above each measurement and its
+# uncertainty (Convention-5's plan keeps 1.20 as lead's floor).
+# Every value is the score file's, rounded UP to four decimals, so no rounding serves less than
+# was measured.
+LEAD_FIELD_CONVENTION = MeasuredFactor(1.20, 0.0)
+STEEL_FIELD_CONVENTION = {140.5: MeasuredFactor(1.3280, 0.0074), 364.0: MeasuredFactor(1.5541, 0.0074),
+                          511.0: MeasuredFactor(1.5732, 0.0073), 1077.0: MeasuredFactor(1.4852, 0.0074)}
+# Concrete's factor rises with depth, so each line carries (mu*x, factor) points. At 364 and 511 keV
+# it is Convention-4's table (mu*x 4 and 6 measured at 511 keV, mu*x 8 the larger of the two lines,
+# 364 keV's); 1077 keV was measured at mu*x 8 only and serves that value at every depth. The
+# unconverged step is the absolute rise of the factor over the last widening, 2.5 to 3.5 m, of a
+# ladder still rising there: factor x delta / (1 + delta), delta being B's relative rise.
+_CONCRETE_364_511 = ((4.0, MeasuredFactor(1.7181, 0.0052, unconverged_step=0.0193)),
+                     (6.0, MeasuredFactor(1.8953, 0.0057)),
+                     (8.0, MeasuredFactor(2.0679, 0.0074)))
+CONCRETE_FIELD_CONVENTION = {
+    140.5: ((4.0, MeasuredFactor(1.7919, 0.0072)),
+            (8.0, MeasuredFactor(1.9885, 0.0074, unconverged_step=0.0444))),
+    364.0: _CONCRETE_364_511,
+    511.0: _CONCRETE_364_511,
+    1077.0: ((8.0, MeasuredFactor(1.8691, 0.0074, unconverged_step=0.0289)),),
+}
+Z95 = 1.96
+GROUP_NAMES = ("standard", "beam_shadow", "deep_tail")
+
+# Every gamma line of at least 0.1% per decay (keV, photons per decay; NNDC) of the multi-line
+# nuclides the Room Designer offers. A nuclide not listed is served at the bundle's single line.
+# Lines below the trained energy range, and the K x-rays below 100 keV, are left out and the rest
+# renormalised. That over-states the transmitted dose because each line left out transmits no more
+# than the kept lines' weighted mean at any depth, even Lu-177's 71.6 keV line under lead's K edge
+# (tests/test_room_surrogate.py checks it in every trained material). No listed line lies above the
+# trained range, where nothing could bound it.
+PHOTON_LINES = {
+    "I-131": ((364.490, 0.815), (636.989, 0.0716), (284.305, 0.0612), (80.185, 0.0262),
+              (722.911, 0.0177), (503.004, 0.00359), (325.789, 0.00273), (177.214, 0.00269),
+              (642.719, 0.00217)),
+    "Lu-177": ((208.366, 0.1036), (112.950, 0.0620), (321.316, 0.00216), (249.674, 0.00200),
+               (71.646, 0.00172)),
+}
+# Mass energy-absorption coefficient of dry air (cm2/g; NIST, Hubbell and Seltzer), so that each line
+# is weighted by the air kerma it delivers unshielded.
+AIR_MU_EN_RHO = ((80.0, 0.02407), (100.0, 0.02325), (150.0, 0.02496), (200.0, 0.02672),
+                 (300.0, 0.02872), (400.0, 0.02949), (500.0, 0.02966), (600.0, 0.02953),
+                 (800.0, 0.02882), (1000.0, 0.02789), (1250.0, 0.02666))
+
+
+def kerma_weighted_lines(nuclide: str, low_keV: float, high_keV: float
+                         ) -> Optional[Tuple[Tuple[float, float], ...]]:
+    """(energy keV, weight) for each of the nuclide's lines inside [low, high], weights summing to 1.
+
+    The weight is the share of unshielded air kerma: photons per decay x energy x mu_en/rho of air.
+    None for a nuclide with no line table, which is then served at its one line.
+    """
+    lines = PHOTON_LINES.get(nuclide)
+    if lines is None:
+        return None
+    energies, mu_en = zip(*AIR_MU_EN_RHO)
+    kept = [(energy, per_decay * energy * math.exp(np.interp(math.log(energy), np.log(energies),
+                                                             np.log(mu_en))))
+            for energy, per_decay in lines if low_keV <= energy <= high_keV]
+    total = sum(kerma for _, kerma in kept)
+    return tuple((energy, kerma / total) for energy, kerma in kept)
+
+
+def combine_lines(weights: np.ndarray, log10_b: np.ndarray) -> float:
+    """log10 of the kerma-weighted sum of the lines' transmissions, kept at or below B = 1."""
+    return min(float(np.log10(np.sum(weights * 10.0 ** log10_b))), 0.0)
+
+_MU_CACHE: Dict[Tuple[float, float], float] = {}
+
+
+def is_model_e(bundle: Optional[dict]) -> bool:
+    """True for a bundle this module serves; the eight-feature bundle has no baseline."""
+    return bool(bundle) and bundle.get("baseline") == "logB_streaming" and "band" in bundle
+
+
+def mu_rho(zeff: float, energy_keV: float) -> float:
+    """Mass attenuation coefficient at this effective atomic number, interpolated in log(zeff)."""
+    key = (round(float(zeff), 3), float(energy_keV))
+    if key not in _MU_CACHE:
+        mats = dl.load("materials")
+        names = sorted(MU_ANCHORS, key=lambda n: MU_ANCHORS[n])
+        anchors = [float(tx.interp_mu_rho(energy_keV / 1000.0, mats["energy_grid_MeV"],
+                                          mats["materials"][n]["mu_rho"])) for n in names]
+        log_z = np.log([MU_ANCHORS[n] for n in names])
+        _MU_CACHE[key] = float(np.exp(np.interp(math.log(float(zeff)), log_z, np.log(anchors))))
+    return _MU_CACHE[key]
+
+
+def open_fraction(duct_radius_mm: float, det_offset_mm: float) -> float:
+    """Fraction of the detector face the duct's unattenuated pencil lands on.
+
+    Zero for a solid wall and for a duct whose pencil clears the detector. A radius wider than the
+    detector half-width is a geometry the expression was never checked against, so it is refused.
+    """
+    radius = float(duct_radius_mm or 0.0)
+    offset = abs(float(det_offset_mm or 0.0))
+    if radius <= 0.0:
+        return 0.0
+    if radius > DET_HALF_MM:
+        raise ValueError(f"duct radius {radius} mm exceeds the detector half-width "
+                         f"({DET_HALF_MM} mm); the open fraction is not modelled there")
+    low = float(np.clip(offset - DET_HALF_MM, -radius, radius))
+    high = float(np.clip(offset + DET_HALF_MM, -radius, radius))
+
+    def antiderivative(x: float) -> float:
+        height = math.sqrt(max(radius ** 2 - x ** 2, 0.0))
+        return x * height + radius ** 2 * math.asin(min(max(x / radius, -1.0), 1.0))
+
+    return float(np.clip((antiderivative(high) - antiderivative(low)) / DET_AREA_MM2, 0.0, 1.0))
+
+
+def streaming_log10_b(open_frac: float, nmfp_total: float) -> float:
+    """log10 of the baseline: the streamed pencil plus the attenuated wall."""
+    if open_frac > 0.0:
+        return float(np.log10(open_frac + (1.0 - open_frac) * math.exp(-nmfp_total)))
+    return -nmfp_total / LN10
+
+
+def design_row(bundle: dict, *, energy_keV: float, thickness_mm: float, duct_radius_mm: float,
+               det_offset_mm: float, zeff: float, density_gcm3: float,
+               layer2_thickness_mm: float = 0.0, layer2_zeff: float = 0.0,
+               layer2_density_gcm3: float = 0.0) -> Tuple[np.ndarray, float, float]:
+    """The feature row in the bundle's own order, its baseline in log10 B, and the barrier's mfp."""
+    nmfp1 = mu_rho(zeff, energy_keV) * density_gcm3 * thickness_mm / 10.0
+    nmfp2 = 0.0
+    if layer2_thickness_mm > 0 and layer2_density_gcm3 > 0:
+        z2 = layer2_zeff if layer2_zeff > 0 else MU_ANCHORS["concrete"]
+        nmfp2 = mu_rho(z2, energy_keV) * layer2_density_gcm3 * layer2_thickness_mm / 10.0
+    nmfp_total = nmfp1 + nmfp2
+    fraction = open_fraction(duct_radius_mm, det_offset_mm)
+    values = {
+        "primary_energy_keV": energy_keV, "thickness_mm": thickness_mm,
+        "duct_radius_mm": duct_radius_mm or 0.0, "det_offset_mm": det_offset_mm or 0.0,
+        "zeff": zeff, "density_gcm3": density_gcm3,
+        "layer2_thickness_mm": layer2_thickness_mm or 0.0, "layer2_zeff": layer2_zeff or 0.0,
+        "nmfp1": nmfp1, "nmfp2": nmfp2, "nmfp_total": nmfp_total,
+        "log_open_fraction": max(math.log10(max(fraction, 1e-300)), MIN_LOG_OPEN_FRACTION),
+    }
+    missing = [f for f in bundle["features"] if f not in values]
+    if missing:
+        raise KeyError(f"the bundle wants features this module does not build: {missing}")
+    X = np.array([[values[f] for f in bundle["features"]]], dtype=float)
+    return X, streaming_log10_b(fraction, nmfp_total), nmfp_total
+
+
+def group_of(bundle: dict, det_offset_mm: float, logB: float) -> str:
+    """The interval group a query falls in: deep tail takes precedence over the beam shadow."""
+    thresholds = bundle["band"]["thresholds"]
+    if logB < thresholds["deep_logB_max"]:
+        return "deep_tail"
+    if (det_offset_mm > thresholds["shadow_offset_mm"]
+            and logB < thresholds["shadow_logB_max"]):
+        return "beam_shadow"
+    return "standard"
+
+
+def field_convention(mu_x: Optional[float], energy_keV: float,
+                     *materials: Optional[str]) -> FieldFactor:
+    """What a served transmission is multiplied by to reach a broad-beam equivalent, with its range.
+
+    Every training label was scored under a 0.5 m square beam, which truncates lateral scatter and
+    returns a transmission below the broad-beam one the shielding tables assume. That is the
+    non-conservative direction, so a design that does not correct for it sizes the barrier too thin.
+    Monte Carlo measured the deficit directly, by widening the beam to 3.5 m at fixed barrier and
+    detector, at 140.5, 364, 511 and 1077 keV:
+
+      * concrete rises with depth. At 511 keV: 1.718 at mu*x 4 (still rising: +1.1% in B, +0.019
+        in the factor, over its last step, so a lower bound), 1.895 at mu*x 6, 2.068 at mu*x 8
+        (the larger of 364 and 511 keV). At 140.5 keV: 1.792 at mu*x 4, and 1.988 at mu*x 8, a
+        lower bound (+0.044). At 1077 keV: 1.869 at mu*x 8, a lower bound (+0.029), served at every
+        depth, which over-corrects shallower walls if the factor rises with depth there too.
+        Between depths it is interpolated and outside them held; beyond mu*x 8 no depth was
+        measured to 3.5 m;
+      * steel, at mu*x 8: 1.328, 1.554, 1.573 and 1.485 at the four lines;
+      * lead read 1.008 to 1.143 and is served at 1.20, above every measurement.
+
+    Between lines each edge is interpolated linearly in log(E). Below 140.5 keV the 140.5 keV value
+    is held; nothing was measured there. The range is the measurement's 95% interval: each factor's
+    Monte Carlo uncertainty, plus the unconverged step of a lower bound on the upper edge. It is
+    carried into the served interval's edges, not its point.
+
+    A material other than lead and steel takes the concrete factor, the largest measured at every
+    line and depth, because nothing here licenses a smaller one. A laminate takes the largest factor
+    and edges among its layers at the barrier's total depth: how two layers combine was not
+    measured, and the larger factor is the safe reading of that silence. An unknown depth takes the
+    deepest value.
+    """
+    known = [m for m in materials if m]
+    factors = [_material_range(m, mu_x, energy_keV) for m in known] or \
+              [_material_range("concrete", mu_x, energy_keV)]
+    return FieldFactor(*(max(edge) for edge in zip(*factors)))
+
+
+def _factor_range(measured: MeasuredFactor) -> FieldFactor:
+    spread = Z95 * measured.rel_unc * measured.value
+    return FieldFactor(measured.value, measured.value - spread,
+                       measured.value + spread + measured.unconverged_step)
+
+
+def _material_range(material: str, mu_x: Optional[float], energy_keV: float) -> FieldFactor:
+    """One material's factor range at this depth and line."""
+    if material == "lead":
+        return _factor_range(LEAD_FIELD_CONVENTION)
+    if material == "steel":
+        by_line = {line: _factor_range(m) for line, m in STEEL_FIELD_CONVENTION.items()}
+    else:
+        by_line = {line: _depth_range(points, mu_x)
+                   for line, points in CONCRETE_FIELD_CONVENTION.items()}
+    lines = sorted(by_line)
+    # np.interp holds the end lines' values outside [140.5, 1077] keV
+    return FieldFactor(*(float(np.interp(math.log(energy_keV), np.log(lines),
+                                         [getattr(by_line[line], edge) for line in lines]))
+                         for edge in FieldFactor._fields))
+
+
+def _depth_range(points, mu_x: Optional[float]) -> FieldFactor:
+    depths = [depth for depth, _ in points]
+    ranges = [_factor_range(measured) for _, measured in points]
+    if mu_x is None:
+        return ranges[-1]
+    # np.interp holds the end values beyond the measured depths
+    return FieldFactor(*(float(np.interp(mu_x, depths, edge)) for edge in zip(*ranges)))
+
+
+def apply_field_convention(factor: FieldFactor, logB: float, lo: float,
+                           hi: float) -> Tuple[float, float, float]:
+    """Raise a served point and interval in log10 B to their broad-beam equivalent.
+
+    The point takes the factor, and each edge takes the matching edge of the factor's range, so the
+    factor's own uncertainty widens the interval. All three stay at or below B = 1.
+    """
+    return (min(logB + math.log10(factor.value), 0.0),
+            min(lo + math.log10(factor.low), 0.0),
+            min(hi + math.log10(factor.high), 0.0))
+
+
+def serve(bundle: dict, X: np.ndarray, baseline_logB: float) -> Tuple[float, float, float, str]:
+    """Point prediction and 95% interval in log10 B, plus the group that set the offset."""
+    served, lo, hi, groups = serve_batch(bundle, X, np.array([baseline_logB]))
+    return float(served[0]), float(lo[0]), float(hi[0]), groups[0]
+
+
+def serve_batch(bundle: dict, X: np.ndarray, baseline_logB: np.ndarray
+                ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, list]:
+    """`serve` for many rows at once: one call per model instead of one per row.
+
+    A tree ensemble costs about the same for one row as for two hundred, so a thickness search
+    that served its candidates one at a time would take seconds per wall.
+    """
+    band = bundle["band"]
+    for key, expected in SCHEME.items():
+        if band.get(key) != expected:
+            raise ValueError(f"this module serves only the {SCHEME} scheme; the bundle carries "
+                             f"{key}={band.get(key)!r}")
+    point = bundle["model"].predict(X)
+    lo = np.minimum(bundle["q_lo"].predict(X), point)
+    hi = np.maximum(bundle["q_hi"].predict(X), point)
+    served_logB = point + baseline_logB
+    offset_column = X[:, bundle["features"].index("det_offset_mm")]
+    groups = [group_of(bundle, float(offset_mm), float(logB))
+              for offset_mm, logB in zip(offset_column, served_logB)]
+    offset = np.array([band["offsets"][group] for group in groups])
+    edge_lo = lo - offset + baseline_logB
+    edge_hi = np.minimum(hi + offset + baseline_logB, 0.0)
+    return served_logB, edge_lo, edge_hi, groups

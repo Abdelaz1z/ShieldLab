@@ -101,8 +101,25 @@ class Wall:
     thickness1_mm: float = 150.0
     material2: Optional[str] = None
     thickness2_mm: float = 0.0
+    material3: Optional[str] = None        # a third layer, beyond the second (e.g. a board finish)
+    thickness3_mm: float = 0.0
     adjacent: AdjacentArea = field(default_factory=AdjacentArea)
     openings: List[Opening] = field(default_factory=list)
+
+    def back_layers(self) -> List[tuple]:
+        """The layers behind the first, as (material, thickness mm), each with a material and a
+        positive thickness. A third layer counts only behind a second one."""
+        if not (self.material2 and self.thickness2_mm > 0):
+            return []
+        layers = [(self.material2, float(self.thickness2_mm))]
+        if self.material3 and self.thickness3_mm > 0:
+            layers.append((self.material3, float(self.thickness3_mm)))
+        return layers
+
+    def layers(self) -> List[tuple]:
+        """The declared build-up, inner (source-side) face first, layers of zero thickness left out."""
+        first = [(self.material1, float(self.thickness1_mm))] if self.thickness1_mm > 0 else []
+        return first + self.back_layers()
 
 
 @dataclass
@@ -172,8 +189,10 @@ class RoomDesign:
             if w.id in seen:
                 errs.append(f"Duplicate wall '{w.id}'.")
             seen.add(w.id)
-            if w.thickness1_mm < 0 or w.thickness2_mm < 0:
+            if w.thickness1_mm < 0 or w.thickness2_mm < 0 or w.thickness3_mm < 0:
                 errs.append(f"Wall {w.id}: negative thickness.")
+            if w.material3 and w.thickness3_mm > 0 and not (w.material2 and w.thickness2_mm > 0):
+                errs.append(f"Wall {w.id}: a third layer needs a second layer in front of it.")
             if w.adjacent.occupancy_T <= 0:
                 errs.append(f"Wall {w.id}: occupancy factor must be > 0.")
             span = r.width_m if w.id in ("N", "S") else r.length_m

@@ -4,6 +4,7 @@ Requires models/surrogate_bundle.joblib + scikit-learn (pinned in requirements.t
 If the bundle/sklearn is absent the whole suite SKIPS (analytical-only deploys stay green).
 Run: py -3.11 tests/test_room_surrogate.py
 """
+import math
 import os
 import sys
 
@@ -37,13 +38,477 @@ def _both(d, mode="check"):
 
 def test_bundle_loads():
     se = SurrogateEngine(_room())
-    assert se.available(), "surrogate_bundle.joblib did not load"
-    # Regression guard, not a version lock: the training set only ever GROWS (4,177 rescued
-    # full-domain baseline -> +Lu-177 -> +materials tier). A drop means the bundle was rebuilt
-    # on a subset — the failure this is here to catch.
-    assert se.bundle["meta"]["n_accepted"] >= 4177          # full domain: shadow+deep+boundary rescued
-    assert se.bundle["meta"]["n_excised"] == 0              # zero known bias remaining
-    assert se.bundle["meta"]["cqr95_coverage_holdout"] >= 0.95
+    assert se.available(), "no surrogate bundle loaded"
+    from shieldlab.room import surrogate_e as sur_e
+    meta = se.bundle["meta"]
+    if sur_e.is_model_e(se.bundle):
+        # Model E5: the training set only ever grows, and the deployed copy must be the frozen
+        # model whose 85 test configurations passed E-Domain-6's four hypotheses.
+        assert meta["n_rows"] >= 21936
+        assert meta["all_pass"] is True
+        assert meta["model_name"] == "E5"
+        assert meta["test_set"]["n"] == 85
+        assert meta["test_set"]["rmse"] < 0.03
+        assert 0.93 <= meta["test_set"]["coverage"] <= 0.99
+        assert len(se.bundle["features"]) == 12
+    else:
+        # Legacy eight-feature bundle. A drop in the row count means it was rebuilt on a subset.
+        assert meta["n_accepted"] >= 4177
+        assert meta["n_excised"] == 0
+        assert meta["cqr95_coverage_holdout"] >= 0.95
+
+
+# Three configurations from E-Domain-6's test set (research hpc_campaign/manifest_edomain6.csv,
+# rows 763300, 763341 and 763345): a 12.1 mfp concrete wall, thin lead, and Geant4 lead glass. E5
+# was frozen before they were simulated; the values are what the frozen E5 serves, reproduced by
+# the research's build_app_bundle_e_fifth.py. The app must match them from its own feature builder.
+SEALED_PREDICTIONS = [
+    # (energy keV, thickness mm, duct radius mm, offset mm, material, layer2, layer2 mm,
+    #  point, lower, upper)
+    (140.5, 356.52, 0.0, 0.0, "concrete", None, 0.0, -4.162014226493, -4.520667734760, -3.911771176322),
+    (208.0, 0.64, 0.0, 0.0, "lead", None, 0.0, -0.267856797411, -0.280508264920, -0.224243467910),
+    (208.0, 7.0, 0.0, 0.0, "lead_glass", None, 0.0, -1.258222997801, -1.273126094863, -1.141878577935),
+]
+
+
+def test_sealed_test_set_predictions_reproduce():
+    """The app's own feature and interval code reproduces sealed predictions to float precision."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    bundle = SurrogateEngine(_room()).bundle
+    if not sur_e.is_model_e(bundle):
+        print("SKIP sealed-prediction test: model E is not the loaded bundle")
+        return
+    materials = bundle["material_map"]
+    for energy, thickness, radius, offset, first, second, second_mm, point, low, high in SEALED_PREDICTIONS:
+        X, baseline, _ = sur_e.design_row(
+            bundle, energy_keV=energy, thickness_mm=thickness, duct_radius_mm=radius,
+            det_offset_mm=offset, zeff=materials[first]["zeff"],
+            density_gcm3=materials[first]["density_gcm3"],
+            layer2_thickness_mm=second_mm,
+            layer2_zeff=materials[second]["zeff"] if second else 0.0,
+            layer2_density_gcm3=materials[second]["density_gcm3"] if second else 0.0)
+        got_point, got_low, got_high, _ = sur_e.serve(bundle, X, baseline)
+        assert bundle["domain"].in_domain(X)[0], (first, thickness)
+        for got, want, name in ((got_point, point, "point"), (got_low, low, "lower"),
+                                (got_high, high, "upper")):
+            assert abs(got - want) < 1e-9, (first, thickness, name, got, want)
+
+
+def test_field_convention_factor_follows_the_measurement():
+    """Conventions 3 and 4 as CONVENTION4_PLAN.md maps them (CONVENTION4_SCORE.json, job 333857),
+    and the safe defaults."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    def factor(mu_x, *materials):
+        return sur_e.field_convention(mu_x, 511.0, *materials).value
+
+    # Lead is served above its measured 1.109; steel is flat at its one measured depth.
+    assert factor(2.0, "lead") == factor(12.0, "lead") == 1.20
+    assert factor(2.0, "steel") == factor(12.0, "steel") == 1.5732
+    # Concrete rises with depth through the measured points and holds its end values outside them.
+    assert factor(4.0, "concrete") == 1.7181
+    assert factor(6.0, "concrete") == 1.8953
+    assert factor(8.0, "concrete") == 2.0679
+    assert abs(factor(5.0, "concrete") - (1.7181 + 1.8953) / 2) < 1e-12
+    assert factor(1.0, "concrete") == 1.7181
+    assert factor(14.0, "concrete") == 2.0679
+    # An unmeasured material, or an unknown one, takes the concrete factor: the largest at any depth.
+    assert factor(5.0, "barite_concrete") == factor(5.0, "concrete")
+    assert factor(5.0, None) == factor(5.0, "concrete")
+    # An unknown depth takes the deepest value.
+    assert factor(None, "concrete") == 2.0679
+    # A laminate takes the larger of its layers at the barrier's total depth.
+    assert factor(8.0, "lead", "concrete") == 2.0679
+    assert factor(3.0, "lead", "steel") == 1.5732
+    assert factor(3.0, "lead", None) == 1.20
+
+
+def test_field_convention_range_carries_the_measurement_uncertainty():
+    """Each factor's 95% range is its Monte-Carlo uncertainty, plus the last step of a ladder still
+    rising at 3.5 m (at 511 keV, concrete at mu*x 4: +0.0193 in the factor, B having risen 1.1%)."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    steel = sur_e.field_convention(8.0, 511.0, "steel")
+    assert abs(steel.high - 1.5732 * (1 + 1.96 * 0.0073)) < 1e-12
+    assert abs(steel.low - 1.5732 * (1 - 1.96 * 0.0073)) < 1e-12
+    shallow = sur_e.field_convention(4.0, 511.0, "concrete")
+    assert abs(shallow.high - (1.7181 * (1 + 1.96 * 0.0052) + 0.0193)) < 1e-12
+    assert abs(shallow.low - 1.7181 * (1 - 1.96 * 0.0052)) < 1e-12
+    # Lead is served above its measurement and its uncertainty, so it carries no range.
+    assert sur_e.field_convention(6.0, 140.5, "lead") == sur_e.FieldFactor(1.20, 1.20, 1.20)
+    for energy in (100.0, 140.5, 208.0, 364.0, 511.0, 700.0, 1077.0):
+        for mu_x in (1.0, 4.0, 5.0, 7.0, 8.0, 12.0, None):
+            for materials in (("concrete",), ("steel",), ("lead", "concrete")):
+                f = sur_e.field_convention(mu_x, energy, *materials)
+                assert f.low <= f.value <= f.high, (energy, mu_x, materials, f)
+
+
+def test_field_convention_follows_convention5_across_energy():
+    """Convention-5 (CONVENTION5_SCORE.json, job 336014) as CONVENTION5_PLAN.md maps it: each
+    line's own factor, linear in log(E) between lines, held below 140.5 keV; lead floored at 1.20;
+    concrete at 1077 keV served at every depth; lower bounds carry their last step on the upper edge."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    def factor(mu_x, energy, material):
+        return sur_e.field_convention(mu_x, energy, material)
+
+    assert factor(8.0, 140.5, "steel").value == 1.328
+    assert factor(8.0, 364.0, "steel").value == 1.5541
+    assert factor(8.0, 1077.0, "steel").value == 1.4852
+    assert factor(4.0, 140.5, "concrete").value == 1.7919
+    assert factor(8.0, 140.5, "concrete").value == 1.9885
+    assert factor(2.0, 1077.0, "concrete").value == factor(12.0, 1077.0, "concrete").value == 1.8691
+    # Measured below 1.20 at every line, lead stays at its floor.
+    for energy in (100.0, 140.5, 364.0, 511.0, 1077.0):
+        assert factor(8.0, energy, "lead").value == 1.20
+    # Held below the lowest measured line, where nothing was measured.
+    assert factor(6.0, 100.0, "concrete") == factor(6.0, 140.5, "concrete")
+    assert factor(8.0, 113.0, "steel") == factor(8.0, 140.5, "steel")
+    # Linear in log(E) between lines.
+    t = math.log(700.0 / 511.0) / math.log(1077.0 / 511.0)
+    assert abs(factor(8.0, 700.0, "steel").value - (1.5732 + t * (1.4852 - 1.5732))) < 1e-12
+    # Lower bounds carry their unconverged step on the upper edge only.
+    deep_low = factor(8.0, 140.5, "concrete")
+    assert abs(deep_low.high - (1.9885 * (1 + 1.96 * 0.0074) + 0.0444)) < 1e-12
+    assert abs(deep_low.low - 1.9885 * (1 - 1.96 * 0.0074)) < 1e-12
+    high_line = factor(8.0, 1077.0, "concrete")
+    assert abs(high_line.high - (1.8691 * (1 + 1.96 * 0.0074) + 0.0289)) < 1e-12
+    # Concrete stays the largest factor at every line and depth, so borrowing it is the safe side.
+    for energy in (100.0, 140.5, 250.0, 364.0, 511.0, 800.0, 1077.0):
+        for mu_x in (1.0, 4.0, 6.0, 8.0, 12.0):
+            concrete = factor(mu_x, energy, "concrete").value
+            assert concrete >= factor(mu_x, energy, "steel").value
+            assert concrete >= factor(mu_x, energy, "lead").value
+
+
+def test_design_mode_sizes_the_wall_from_the_surrogate_upper_limit():
+    """Design mode offers the thinnest standard thickness whose served 95% upper limit meets the
+    goal: at it the upper-limit dose is within the limit, and one increment thinner it is not."""
+    from shieldlab.physics import solver as sv
+    from shieldlab.room import surrogate_e as sur_e
+
+    for iso, activity, material in (("F-18", 3700.0, "concrete"), ("I-131", 7400.0, "lead"),
+                                    ("Tc-99m", 3700.0, "steel")):
+        design = _room(iso=iso, mbq=activity, material=material)
+        engine, analytical, served = _both(design, mode="design")
+        if not sur_e.is_model_e(engine.bundle):
+            print("SKIP design-mode sizing test: model E is not the loaded bundle")
+            return
+        result = served["Wall N"]
+        sized = result.suggested_thickness_mm
+        assert sized is not None, (iso, material, result.note)
+        assert result.engine == "surrogate" and not result.ood
+        assert "Sized by the surrogate" in result.note
+        assert result.dose_mSv_wk * result.ci_high / result.B_achieved <= result.goal_over_T
+        step = sv.thickness_increment(material)
+        assert abs(sized / step - round(sized / step)) < 1e-9
+        if sized - step > 0:
+            thinner = engine.evaluate(_path(design, "Wall N"), design.wall("N"), sized - step)
+            if not thinner.ood:
+                assert (thinner.dose_mSv_wk * thinner.ci_high / thinner.B_achieved
+                        > thinner.goal_over_T), (iso, material, sized)
+        assert analytical["Wall N"].suggested_thickness_mm is not None
+
+
+class _DomainWithHole:
+    """The bundle's domain, except that one served thickness is refused."""
+
+    def __init__(self, domain, hole_mm):
+        self._domain, self._hole_mm = domain, hole_mm
+
+    def __getattr__(self, name):
+        return getattr(self._domain, name)
+
+    def in_domain(self, X):
+        column = self._domain.features.index("thickness_mm")
+        return self._domain.in_domain(X) & (abs(X[:, column] - self._hole_mm) > 1e-9)
+
+
+def test_sizing_does_not_step_over_an_out_of_domain_thickness():
+    """A thickness the model cannot vouch for, above the answer, pushes the answer above it."""
+    from shieldlab.physics import solver as sv
+    from shieldlab.room import surrogate_e as sur_e
+    from shieldlab.room.transport_materials import simulated_thickness_mm
+
+    design = _room(iso="F-18", mbq=3700.0, material="concrete")
+    engine, analytical, served = _both(design, mode="design")
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP OOD-hole sizing test: model E is not the loaded bundle")
+        return
+    sized = served["Wall N"].suggested_thickness_mm
+    step = sv.thickness_increment("concrete")
+    hole = sized + 2 * step
+    engine.bundle = dict(engine.bundle, domain=_DomainWithHole(
+        engine.bundle["domain"], simulated_thickness_mm("concrete", hole)))
+    holed = {r.label: r for r in engine.evaluate_all("design", list(analytical.values()))}
+    assert holed["Wall N"].suggested_thickness_mm > hole, holed["Wall N"].note
+
+
+def _without_wood(design, mode):
+    """`_both` with wood taken out of the surrogate's material map. Every material the app offers is
+    in model E5's, so an untrained material is simulated by removing one."""
+    analytical = AnalyticalEngine(design).evaluate_all(mode)
+    engine = SurrogateEngine(design)
+    materials = {k: v for k, v in engine.bundle["material_map"].items() if k != "wood"}
+    engine.bundle = dict(engine.bundle, material_map=materials)
+    return engine, {r.label: r for r in engine.evaluate_all(mode, analytical)}
+
+
+def test_design_mode_leaves_an_unmodelled_material_to_the_analytical_tier():
+    """A wall of a material the surrogate never trained on is neither sized nor mislabelled."""
+    design = _room(iso="F-18", mbq=3700.0, material="wood")
+    _, served = _without_wood(design, "design")
+    result = served["Wall N"]
+    assert result.suggested_thickness_mm is None
+    assert "found no thickness" not in result.note
+    assert "Sized by the surrogate" not in result.note
+
+
+def test_an_unmodelled_second_layer_is_disclosed():
+    """A laminate layer outside the training materials is left out, and the note says so."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    design = _room(iso="F-18", thickness=200.0, material="concrete")
+    design.wall("N").material2, design.wall("N").thickness2_mm = "wood", 50.0
+    engine, served = _without_wood(design, "check")
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP omitted-layer test: model E is not the loaded bundle")
+        return
+    assert "(wood) is not among the surrogate's training materials" in served["Wall N"].note
+
+
+def test_every_app_material_is_served_by_the_surrogate():
+    """E5 trained on every material the Room Designer offers, so none falls back for want of data."""
+    for material, thickness in (("wood", 300.0), ("plate_glass", 100.0), ("water", 300.0),
+                                ("lead_glass", 5.0)):
+        _, _, served = _both(_room(iso="Tc-99m", thickness=thickness, material=material))
+        assert served["Wall N"].engine == "surrogate", (material, served["Wall N"].note)
+
+
+def test_the_layer_menu_offers_every_material_the_surrogate_serves():
+    """Gypsum, the glasses, wood and water have no radionuclide broad-beam data, so only model E
+    serves them; the maze's return wall keeps the analytical list."""
+    from shieldlab.room import surrogate_e as sur_e
+    from shieldlab.room.engines import load_bundle, usable_wall_materials, wall_layer_materials
+
+    if not sur_e.is_model_e(load_bundle()):
+        print("SKIP layer-menu test: model E is not the loaded bundle")
+        return
+    for isotope in ("Tc-99m", "F-18", "I-131", "Lu-177"):
+        offered = wall_layer_materials(isotope)
+        assert offered[:len(usable_wall_materials(isotope))] == usable_wall_materials(isotope)
+        assert {"gypsum", "lead_glass", "plate_glass", "wood", "water"} <= set(offered)
+        assert len(offered) == len(set(offered))
+
+
+def test_design_mode_evaluates_a_duct_through_the_wall_as_designed():
+    """A duct in a surrogate-sized wall is served through the sized wall, not the declared one."""
+    from dataclasses import replace
+    from shieldlab.room import surrogate_e as sur_e
+    from shieldlab.room.geometry import all_paths
+
+    design = _room(iso="F-18", mbq=3700.0, thickness=600.0, material="concrete")
+    design.wall("N").openings.append(Opening(kind="duct", center_along_wall_m=3.5, radius_mm=20.0))
+    engine, _, served = _both(design, mode="design")
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP designed-duct test: model E is not the loaded bundle")
+        return
+    sized = served["Wall N"].suggested_thickness_mm
+    assert sized is not None and sized < 600.0
+    duct = next(p for p in all_paths(design) if p.wall_id == "N" and p.kind == "duct")
+    # The forest sums its trees across threads in no fixed order, so equal means equal to 1e-12.
+    expected = engine.evaluate(duct, replace(design.wall("N"), thickness1_mm=sized), sized)
+    assert abs(served[duct.label].B_achieved / expected.B_achieved - 1.0) < 1e-12
+    declared = engine.evaluate(duct, design.wall("N"), 600.0)
+    assert abs(served[duct.label].B_achieved / declared.B_achieved - 1.0) > 1e-3
+
+
+def test_kerma_weighted_lines():
+    """I-131's lines inside the trained range, weighted by air kerma; the 80 keV line is left out."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    lines = dict(sur_e.kerma_weighted_lines("I-131", 100.01, 1077.34))
+    assert set(lines) == {364.49, 636.989, 284.305, 722.911, 503.004, 325.789, 177.214, 642.719}
+    assert abs(sum(lines.values()) - 1.0) < 1e-12
+    assert 0.77 < lines[364.49] < 0.82 and 0.11 < lines[636.989] < 0.14
+    assert sur_e.kerma_weighted_lines("F-18", 100.01, 1077.34) is None
+    # nothing above the trained range, where no harder line could bound it
+    assert all(energy <= 1077.34 for lines in sur_e.PHOTON_LINES.values() for energy, _ in lines)
+
+
+def test_softer_lines_are_more_attenuated_in_every_trained_material():
+    """The two conservative steps of spectral serving rest on this, not on the model:
+    * from 100 keV up, mu/rho falls with energy, so a line bounded by a harder one is over-stated;
+    * renormalising over the kept lines over-states the sum iff each line left out transmits no
+      more than the kept lines' weighted mean. That is checked at every depth to 16 mean free
+      paths of the principal line, with uncollided transmission: buildup is at least 1 and grows
+      with energy, so leaving it out under-states the harder kept lines and makes the check strict.
+      It matters under lead's 88 keV K edge, where Lu-177's 71.6 keV line is less attenuated than
+      its 113 keV line, but not than the 208 keV line that carries most of the kerma.
+    """
+    from shieldlab import data_loader as dl
+    from shieldlab.physics import transmission as tx
+    from shieldlab.room import surrogate_e as sur_e
+
+    import numpy as np
+
+    table = dl.load("materials")
+    grid = table["energy_grid_MeV"]
+    coefficient_sets = []
+    for material, constants in SurrogateEngine(_room()).bundle["material_map"].items():
+        # the coefficient the model's own baseline uses, interpolated in Z_eff between anchors
+        coefficient_sets.append((material, lambda e, z=constants["zeff"]: sur_e.mu_rho(z, e)))
+        tabulated = table["materials"].get(material, {}).get("mu_rho")
+        if tabulated:
+            coefficient_sets.append((f"{material} (tabulated)", lambda e, t=tabulated: float(
+                tx.interp_mu_rho(e / 1000.0, grid, t))))
+    for material, mu in coefficient_sets:
+        for nuclide, lines in sur_e.PHOTON_LINES.items():
+            kept = sur_e.kerma_weighted_lines(nuclide, 100.01, 1077.34)
+            # every pair of served lines, the exact energies a substitution can pair
+            served = [mu(energy) for energy, _ in sorted(kept)]
+            assert all(a > b for a, b in zip(served, served[1:])), (material, nuclide, served)
+            principal = max(kept, key=lambda line: line[1])[0]
+            depth = np.linspace(0.0, 16.0 / mu(principal), 400)       # g/cm2
+            kept_mean = sum(weight * np.exp(-mu(energy) * depth) for energy, weight in kept)
+            for dropped in (e for e, _ in lines if e < 100.01):
+                assert np.all(np.exp(-mu(dropped) * depth) <= kept_mean + 1e-12), (
+                    material, nuclide, dropped)
+
+
+class _PrincipalLineOnly(SurrogateEngine):
+    def _lines(self):
+        return [(364.49, 1.0)]
+
+
+def _i131_wall(first, thickness, second=None, second_mm=0.0):
+    design = _room(iso="I-131")
+    wall = design.wall("N")
+    wall.material1, wall.thickness1_mm, wall.material2, wall.thickness2_mm = (
+        first, thickness, second, second_mm)
+    return design, _path(design, "Wall N"), wall
+
+
+def test_i131_spectrum_reproduces_the_kfsh_monte_carlo():
+    """Serving I-131 over its lines rather than at 364 keV raises the transmission by what the KFSH
+    Monte Carlo measured with the full spectrum: 1.28x (4 mm Pb + 100 mm concrete), 1.15x
+    (200 mm concrete)."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    if not sur_e.is_model_e(SurrogateEngine(_room()).bundle):
+        print("SKIP I-131 spectrum test: model E is not the loaded bundle")
+        return
+    for barrier, monte_carlo in ((("lead", 4.0, "concrete", 100.0), 1.28), (("concrete", 200.0), 1.15)):
+        design, path, wall = _i131_wall(*barrier)
+        spectrum = SurrogateEngine(design)._serve_spectrum(path, wall, [wall.thickness1_mm])[0]
+        principal = _PrincipalLineOnly(design)._serve_spectrum(path, wall, [wall.thickness1_mm])[0]
+        ratio = 10 ** (spectrum.logB - principal.logB)
+        assert abs(ratio / monte_carlo - 1.0) < 0.05, (barrier, ratio, monte_carlo)
+
+
+def test_the_finite_beam_flag_sees_the_deepest_line():
+    """10 mm of lead is mu*x 3.2 at 364 keV but 5.2 at I-131's 284 keV line: flagged."""
+    from shieldlab.room import engines as eng
+    from shieldlab.room import surrogate_e as sur_e
+
+    design, path, wall = _i131_wall("lead", 10.0)
+    engine = SurrogateEngine(design)
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP deepest-line flag test: model E is not the loaded bundle")
+        return
+    assert engine._barrier_mu_x(path, wall, 10.0) < eng.GEOMETRY_BIAS_MUX
+    result = engine.evaluate(path, wall, 10.0)
+    assert result.geometry_bias and result.mu_x >= eng.GEOMETRY_BIAS_MUX, result.mu_x
+
+
+def test_a_material_without_tabulated_coefficients_still_gets_a_depth():
+    """Barite concrete has no mu/rho table in the app; its depth comes from the model's own row,
+    so a deep wall is still flagged."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    design, path, wall = _i131_wall("barite_concrete", 250.0)
+    engine = SurrogateEngine(design)
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP barite depth test: model E is not the loaded bundle")
+        return
+    result = engine.evaluate(path, wall, 250.0)
+    assert result.mu_x is not None and result.geometry_bias, (result.mu_x, result.note[:200])
+
+
+def test_a_line_outside_the_domain_is_bounded_by_a_harder_one():
+    """Behind 30 mm of lead the 284 keV line is past the trained depth; it is bounded, and said so."""
+    from shieldlab.room import surrogate_e as sur_e
+
+    design, path, wall = _i131_wall("lead", 30.0)
+    engine = SurrogateEngine(design)
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP bounded-line test: model E is not the loaded bundle")
+        return
+    served = engine._serve_spectrum(path, wall, [30.0])[0]
+    assert served.inside and 284.305 in served.substituted
+    result = engine.evaluate(path, wall, 30.0)
+    assert "284.305" in result.note and "outside the trained domain" in result.note
+    assert "Served over I-131's lines" in result.note
+    # a substituted line enters the point at its bound's upper edge, so the point cannot fall
+    # below what the same lines give with the bound's point estimate
+    assert served.logB <= served.hi
+
+
+def test_check_mode_does_not_size():
+    """Check mode evaluates the declared build and offers no thickness."""
+    _, _, served = _both(_room(iso="F-18", thickness=200.0), mode="check")
+    assert all(result.suggested_thickness_mm is None for result in served.values())
+
+
+def _path(design, label):
+    from shieldlab.room.geometry import all_paths
+    return next(path for path in all_paths(design) if path.label == label)
+
+
+def test_served_transmission_carries_the_field_convention():
+    """The engine raises the sealed prediction to its broad-beam equivalent, and says so.
+
+    The model is trained in a 0.5 m beam, which under-states lateral scatter, so the raw prediction
+    is on the unsafe side of the tables a design is checked against. The engine applies the measured
+    factor; `serve` itself must stay untouched, because it has to keep reproducing the sealed test
+    set (see test_sealed_test_set_predictions_reproduce).
+    """
+    from shieldlab.room import surrogate_e as sur_e
+
+    design = _room(iso="F-18", thickness=200.0, material="concrete")
+    engine = SurrogateEngine(design)
+    if not sur_e.is_model_e(engine.bundle):
+        print("SKIP field-convention test: model E is not the loaded bundle")
+        return
+    _, _, served = _both(design)
+    result = served["Wall N"]
+    if result.ood:
+        print("SKIP field-convention test: the reference wall is out of domain")
+        return
+
+    materials = engine.bundle["material_map"]
+    # The 200 mm wall is the app's 2.35 g/cm3 concrete; model E learned Geant4's 2.30, so the
+    # engine serves the thickness with the same mass per area. The reference must be built the same
+    # way, or it compares two different walls.
+    from shieldlab.room.transport_materials import simulated_thickness_mm
+    X, baseline, _ = sur_e.design_row(
+        engine.bundle, energy_keV=engine.bundle["isotope_energy_keV"]["F-18"],
+        thickness_mm=simulated_thickness_mm("concrete", 200.0), duct_radius_mm=0.0,
+        det_offset_mm=0.0,
+        zeff=materials["concrete"]["zeff"], density_gcm3=materials["concrete"]["density_gcm3"],
+        layer2_thickness_mm=0.0, layer2_zeff=0.0, layer2_density_gcm3=0.0)
+    raw_logB, raw_lo, raw_hi, _ = sur_e.serve(engine.bundle, X, baseline)
+    factor = sur_e.field_convention(result.mu_x, engine.bundle["isotope_energy_keV"]["F-18"],
+                                    "concrete")
+    assert 1.7181 <= factor.value <= 2.0679
+
+    assert abs(result.B_achieved - 10.0 ** raw_logB * factor.value) < 1e-9 * result.B_achieved
+    assert abs(result.ci_low - 10.0 ** raw_lo * factor.low) < 1e-9 * result.ci_low
+    assert abs(result.ci_high - min(10.0 ** raw_hi * factor.high, 1.0)) < 1e-9 * result.ci_high
+    assert result.B_achieved > 10.0 ** raw_logB, "the correction must raise the transmission"
+    assert f"×{factor.value:.2f}" in result.note, result.note
+    assert 0.0 < result.B_achieved <= 1.0
 
 
 def test_solid_wall_envelope():
@@ -61,22 +526,30 @@ def test_solid_wall_envelope():
     assert checked >= 3, "too few in-domain solid-wall cases to validate the envelope"
 
 
-def test_deep_wall_served_with_wide_band():
-    """A deep wall (B < 2e-3) WAS the excised deep-tail regime; after the HPC analog rescue the
-    surrogate is trained on unbiased labels there and now SERVES it (the excised set is empty),
-    under the wider group-conditional (deep-tail) conformal band — an honest inflated interval,
-    not a deferral to the analytical value."""
+def test_deep_wall_is_served_with_an_interval():
+    """A deep wall is served with an interval, and the deep band is the wider of the two.
+
+    How much wider is a property of the model. The eight-feature bundle needed a deep-tail
+    conformal offset twelve times the standard one; model E, which predicted the sealed
+    configurations below B = 1e-4 as accurately as the rest, needs almost none, and its deep
+    interval is wider only because its quantile arms are. Both must still bracket the point
+    estimate and stay usable."""
+    from shieldlab.room import surrogate_e as sur_e
+
     se, am, sm = _both(_room(iso="F-18", thickness=500))
     s = sm["Wall N"]
-    assert s.ood is False                              # no longer routed away
+    assert s.ood is False                              # served, not routed away
     assert s.engine == "surrogate"
     assert s.ci_low is not None and s.ci_high is not None
     assert 0.0 < s.B_achieved <= 1.0 and s.ci_low <= s.B_achieved <= s.ci_high
-    # the deep-tail band must be markedly wider than a thin-wall (standard-group) band
     thin = _both(_room(iso="F-18", thickness=120))[2]["Wall N"]
     deep_rel = s.ci_high / max(s.ci_low, 1e-300)
     thin_rel = thin.ci_high / max(thin.ci_low, 1e-300)
-    assert deep_rel > 3.0 * thin_rel
+    assert deep_rel > thin_rel
+    if sur_e.is_model_e(se.bundle):
+        assert deep_rel < 10.0, deep_rel        # an interval a designer can still use
+    else:
+        assert deep_rel > 3.0 * thin_rel
 
 
 def test_2026_08_14_finite_beam_priority_warning_at_mux4():
@@ -105,15 +578,25 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     assert banded.geometry_bias is True
     assert eng.GEOMETRY_BIAS_WARNING in banded.note
 
-    withdrawn = _both(_room(iso="F-18", thickness=700))[2]["Wall N"]
-    assert "deep tail" in withdrawn.engine and withdrawn.ci_low is None
-    assert withdrawn.geometry_bias is True
-    assert eng.GEOMETRY_BIAS_WARNING in withdrawn.note
+    # A very deep wall. The eight-feature bundle withdrew its interval below B = 1e-4; model E
+    # keeps it, because it was tested there, and flags anything below the deepest transmission
+    # the test set reached instead. Either way the geometry warning survives the branch.
+    from shieldlab.room import surrogate_e as sur_e
+    se_deep, _, deep_map = _both(_room(iso="F-18", thickness=700))
+    very_deep = deep_map["Wall N"]
+    assert very_deep.geometry_bias is True
+    assert eng.GEOMETRY_BIAS_WARNING in very_deep.note
+    if sur_e.is_model_e(se_deep.bundle):
+        assert very_deep.ci_low is not None and very_deep.ci_high is not None
+        if very_deep.B_achieved < 10 ** eng.BELOW_TESTED_LOGB:
+            assert "deepest transmission tested" in very_deep.note
+    else:
+        assert "deep tail" in very_deep.engine and very_deep.ci_low is None
 
     warning = eng.GEOMETRY_BIAS_WARNING
     for phrase in (
-        "μx≥4", "geometry bias", "no lower bound on its onset",
-        "lower bounds", "precision gate", "below 10%", "Monte-Carlo",
+        "μx≥4", "0.5 m", "3.5 m", "2.07×", "1.57×", "served as 1.20×", "lower bound",
+        "other materials take the concrete factor", "not the onset", "Monte-Carlo",
     ):
         assert phrase in warning, phrase
 
@@ -134,8 +617,8 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     document = report_regulatory.build_submission_html(report, metadata).decode("utf-8")
     assert "Finite-beam caution" in document
     assert "Wall N" in document.split("Finite-beam caution")[1][:200]
-    assert "lower bounds" in document
-    assert "9.3% and 9.8%" in document
+    assert "lower bound" in document
+    assert "511&nbsp;keV (1.1%)" in document
 
     design.wall("N").thickness1_mm = 100.0
     analytical = AnalyticalEngine(design).evaluate_all("check")
@@ -147,10 +630,10 @@ def test_2026_08_14_finite_beam_priority_warning_at_mux4():
     document = report_regulatory.build_submission_html(report, metadata).decode("utf-8")
     assert "Finite-beam caution" not in document
     assert "Model-wide finite-field scope" in document
-    assert "no lower bound on its physical onset" in document
-    assert "lead" in document
-    assert "precision gate" in document
-    assert "below 10%" in document
+    assert "the shallowest depth measured" in document
+    assert "other materials take the concrete factor" in document
+    assert "interpolated between them" in document
+    assert "untested" not in document
 
 def test_offaxis_opening_triggers_ood():
     """An opening far off-axis (offset beyond the ~300 mm training box) is out of domain."""
