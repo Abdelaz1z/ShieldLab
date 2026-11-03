@@ -174,7 +174,8 @@ def test_report_builds():
     ev = solver.evaluate(st, barrier, goal)
     html = rpt.build_html(source=st, barrier=barrier, goal=goal, evaluation=ev,
                           inputs={"Modality": "chest"}, prepared_by="Abdelaziz Habib")
-    assert "ShieldLab" in html and ("ACCEPTABLE" in html or "NOT ACCEPTABLE" in html)
+    assert "ShieldLab" in html and "REVIEW REQUIRED" in html
+    assert '<div class="verdict">PASS</div>' not in html
     assert "NCRP" in html
 
 

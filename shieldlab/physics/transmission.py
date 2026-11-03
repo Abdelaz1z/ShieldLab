@@ -135,6 +135,16 @@ def tvl_thickness_for_B(B_target: float, tvl1_mm: float,
 # 3) GENERIC mono-energetic mu/rho + buildup model
 # ---------------------------------------------------------------------------
 
+def mu_rho_interpolation_supported(energy: float, grid: list, edges: list) -> bool:
+    """A sparse grid cannot interpolate through an absorption discontinuity."""
+    if energy in grid:
+        return True
+    for low, high in zip(grid, grid[1:]):
+        if low < energy < high:
+            return not any(low <= edge <= high for edge in edges)
+    return False
+
+
 def interp_mu_rho(energy_MeV: float, energy_grid: list, mu_rho_grid: list) -> float:
     """Log-log interpolate the mass attenuation coefficient mu/rho (cm^2/g).
 
@@ -168,13 +178,59 @@ def mu_buildup_transmission(x_mm: float, mu_rho_cm2_g: float, density_kg_m3: flo
         mu/rho  in cm^2/g
         rho     in kg/m^3  -> converted to g/cm^3 (divide by 1000)
         x       in mm      -> converted to cm     (divide by 10)
+
+    WITH buildup=1.0 THIS IS NARROW-BEAM. It counts photons removed from the beam
+    but not those scattered back into it, so it under-predicts the dose behind a
+    thick barrier -- by roughly an order of magnitude at the optical depths a real
+    barrier reaches. No material in materials.json currently ships a build-up table,
+    so every call here is narrow-beam; `beams.data_path` reports those materials as
+    PATH_NARROW and the UI labels them. An exact-energy `buildup_tables` entry
+    supplies a correction, still requiring independent model review.
     """
+    if not math.isfinite(buildup) or buildup < 1:
+        raise ValueError("Build-up factor must be finite and at least one.")
     if x_mm <= 0:
         return 1.0
     rho_g_cm3 = density_kg_m3 / 1000.0
     x_cm = x_mm / 10.0
     mu_lin_per_cm = mu_rho_cm2_g * rho_g_cm3  # linear attenuation coefficient (1/cm)
     return buildup * math.exp(-mu_lin_per_cm * x_cm)
+
+
+def interp_buildup(mu_x: float, mux_grid: list, buildup_grid: list) -> float:
+    """Linear interpolation inside a validated table; never clamp beyond coverage.
+
+    Interpolation is an approximation and does not validate the underlying physics.
+    """
+    validate_buildup_grid(mux_grid, buildup_grid)
+    if not math.isfinite(mu_x) or not 0 <= mu_x <= mux_grid[-1]:
+        raise ValueError("Optical depth is outside the build-up table range.")
+    if mu_x == mux_grid[-1]:
+        return buildup_grid[-1]
+    for i in range(1, len(mux_grid)):
+        if mu_x <= mux_grid[i]:
+            x0, x1 = mux_grid[i - 1], mux_grid[i]
+            b0, b1 = buildup_grid[i - 1], buildup_grid[i]
+            f = (mu_x - x0) / (x1 - x0)
+            return b0 + f * (b1 - b0)
+    return buildup_grid[-1]
+
+
+def validate_buildup_grid(mux_grid: list, buildup_grid: list) -> None:
+    if not isinstance(mux_grid, list) or not isinstance(buildup_grid, list):
+        raise ValueError("Build-up grids must be lists.")
+    if len(mux_grid) < 2 or len(mux_grid) != len(buildup_grid):
+        raise ValueError("Build-up grids need at least two matching points.")
+    if any(not isinstance(n, (int, float)) for n in mux_grid + buildup_grid):
+        raise ValueError("Build-up grids must contain numbers.")
+    if any(not math.isfinite(x) or x < 0 for x in mux_grid):
+        raise ValueError("Build-up depths must be finite and non-negative.")
+    if any(right <= left for left, right in zip(mux_grid, mux_grid[1:])):
+        raise ValueError("Build-up depths must be strictly increasing.")
+    if any(not math.isfinite(b) or b < 1 for b in buildup_grid):
+        raise ValueError("Build-up factors must be finite and at least one.")
+    if mux_grid[0] != 0 or buildup_grid[0] != 1:
+        raise ValueError("Build-up tables must include B(0) = 1.")
 
 
 def hvl_to_tvl(hvl_mm: float) -> float:
@@ -195,11 +251,13 @@ def combined_transmission(layer_transmissions: list) -> float:
 
         B_total = B_1 * B_2 * ... * B_n
 
-    This is slightly conservative for the secondary/leakage component because it
-    ignores spectral hardening between layers (each subsequent layer sees a
-    somewhat harder, more penetrating spectrum). For design (where we want to be
-    safe) this is the appropriate direction. The recommended layer ordering and
-    this caveat are surfaced to the user.
+    Separate Archer fits can under-predict transmission even for a split slab.
+    Barrier.merge_adjacent removes zero-thickness inserts and fuses neighbouring
+    same-material courses before this operation. Mixed materials still lack
+    spectral and inter-layer scatter transport; no universal error bound is
+    established, so the solver requires model review. Multiplication is exact
+    algebraically for pure exponential TVL models, which does not independently
+    validate a physical mixed-material barrier.
     """
     total = 1.0
     for b in layer_transmissions:

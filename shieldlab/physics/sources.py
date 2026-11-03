@@ -43,6 +43,7 @@ class SourceTerm:
     components: List[Component] = field(default_factory=list)
     notes: List[str] = field(default_factory=list)
     refs: List[str] = field(default_factory=list)
+    review_reasons: List[str] = field(default_factory=list)
 
     def total_unshielded(self) -> float:
         return sum(c.unshielded for c in self.components)
@@ -123,7 +124,7 @@ class CTExamWorkload:
 
 
 def _ct_scatter_component(workload: CTExamWorkload, ct: Dict,
-                          d_secondary_m: float) -> Component:
+                          d_secondary_m: float, kvp: int = 120) -> Component:
     exam_data = ct["dlp_defaults_mGy_cm"].get(workload.exam_type)
     if not isinstance(exam_data, dict):
         raise ValueError(f"Unknown CT exam type '{workload.exam_type}'.")
@@ -137,22 +138,32 @@ def _ct_scatter_component(workload: CTExamWorkload, ct: Dict,
     dlp_factor = normalization["dlp_to_peripheral_factor"]
     dlp_total = workload.dlp_per_exam_mGy_cm * workload.exams_per_week
     K_sec = dlp_factor * kappa * dlp_total / (d_secondary_m ** 2)
+    table_kvp = bm.diagnostic_table_kvp(kvp)
     return Component(
         f"scatter ({workload.exam_type})", K_sec,
-        bm.Beam(kind=bm.KIND_MONO, mono_energy_MeV=0.07),
+        # Shielded with the NCRP 147 BROAD-BEAM secondary transmission at the
+        # scanner potential, not the generic mono-energetic model. The mono model
+        # carries no build-up factor, so it is narrow-beam: against this same
+        # dataset it under-predicted the transmitted dose by 4x at 150 mm of
+        # concrete and 11x at 200 mm, and CT routed all of its shielding through it.
+        bm.Beam(kind=bm.KIND_DIAGNOSTIC, component="secondary", kvp=kvp),
         detail=f"{workload.exam_type}/{phantom}: {dlp_factor} x kappa={kappa} "
                f"mGy/(mGy*cm)@1m x DLP_total {dlp_total:g} mGy*cm "
-               f"/ {d_secondary_m} m^2",
+               f"/ {d_secondary_m} m^2 · scanner {kvp} kVp; table {table_kvp} kVp broad-beam",
     )
 
 
 def ct_source(workloads: Sequence[CTExamWorkload],
-              d_secondary_m: float) -> SourceTerm:
+              d_secondary_m: float, kvp: int = 120) -> SourceTerm:
     """Unshielded scattered air kerma (mGy/week) from a CT scanner.
 
     CT is treated as a pure scatter source. NCRP 147 Section 5.5 uses separate
     head and body normalizations. Each exam category keeps its phantom type so
     mixed weekly workloads are summed without collapsing their DLP values.
+
+    `kvp` is the scanner's operating potential and selects the broad-beam secondary
+    transmission dataset used to shield the scatter (upper tabulated kVp).
+    This is a screening approximation, not a scanner-specific validated spectrum.
     """
     if not workloads:
         raise ValueError("At least one CT exam workload is required.")
@@ -161,13 +172,22 @@ def ct_source(workloads: Sequence[CTExamWorkload],
     st = SourceTerm(modality="ct", unit="mGy/week (air kerma)", period="week",
                     refs=["NCRP147", "BIR2012"])
     st.components.extend(
-        _ct_scatter_component(workload, ct, d_secondary_m)
+        _ct_scatter_component(workload, ct, d_secondary_m, kvp)
         for workload in workloads
     )
     st.notes.append(
         "CT scatter uses NCRP 147 head/body DLP normalization; scanner-specific "
         "isodose data are preferred. DLP is used as entered, with no automatic "
         "contrast or repeat-scan multiplier."
+    )
+    st.notes.append(
+        f"Barriers are shielded with the NCRP 147 broad-beam secondary transmission "
+        f"at table {bm.diagnostic_table_kvp(kvp)} kVp for scanner {kvp} kVp. "
+        "Upper-table selection is an approximation requiring independent CT validation."
+    )
+    st.review_reasons.append(
+        "CT DLP normalization and secondary transmission require independent "
+        "validation against scanner-specific data before design use."
     )
     return st
 

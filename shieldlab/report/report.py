@@ -37,7 +37,7 @@ def build_html(*, source, barrier, goal, evaluation,
     """
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     verdict = evaluation.verdict
-    review_required = verdict.acceptable and verdict.margin_ratio < 1.20
+    review_required = verdict.status == "REVIEW"
     if review_required:
         verdict_color = "#8a5a00"
         verdict_word = "REVIEW REQUIRED"
@@ -141,9 +141,7 @@ def build_pdf_summary(*, source, barrier, goal, evaluation, inputs: dict,
     pdf.set_auto_page_break(auto=False)
     pdf.add_page()
     margin = evaluation.verdict.margin_ratio
-    status = "PASS" if evaluation.verdict.acceptable else "FAIL"
-    if evaluation.verdict.acceptable and margin < 1.20:
-        status = "REVIEW"
+    status = evaluation.verdict.status
     colors = {
         "PASS": (31, 122, 61),
         "FAIL": (190, 45, 45),
@@ -170,6 +168,9 @@ def build_pdf_summary(*, source, barrier, goal, evaluation, inputs: dict,
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Helvetica", "", 9)
     pdf.multi_cell(0, 5, evaluation.verdict.message.replace("≤", "<="), align="C")
+    if status == "FAIL" and evaluation.verdict.review_reasons:
+        pdf.multi_cell(0, 4, "Model review also required: " +
+                       "; ".join(evaluation.verdict.review_reasons))
     pdf.ln(2)
 
     pdf.set_font("Helvetica", "B", 11)

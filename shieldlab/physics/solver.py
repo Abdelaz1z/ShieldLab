@@ -51,6 +51,20 @@ class Evaluation:
     notes: List[str] = field(default_factory=list)
 
 
+def model_review_reasons(source: src.SourceTerm, barrier: ba.Barrier) -> list[str]:
+    reasons = list(source.review_reasons)
+    layers = barrier.merge_adjacent().layers
+    if len(layers) > 1:
+        reasons.append("Mixed-material transmission is unvalidated; the product "
+                       "is not a demonstrated conservative bound.")
+    uncertain = sorted({layer.material for layer in layers
+                        if any(bm.data_path(c.beam, layer.material) != bm.PATH_BROAD
+                               for c in source.components)})
+    if uncertain:
+        reasons.append("No measured broad-beam model for: " + ", ".join(uncertain))
+    return reasons
+
+
 def evaluate(source: src.SourceTerm, barrier: ba.Barrier,
              goal: reg.DesignGoal,
              equivalent_materials=("lead", "concrete")) -> Evaluation:
@@ -72,7 +86,8 @@ def evaluate(source: src.SourceTerm, barrier: ba.Barrier,
             transmitted_secondary += transmitted
 
     transmitted_total = sum(cr.transmitted for cr in comp_results)
-    v = reg.verdict(transmitted_total, goal)
+    review_reasons = model_review_reasons(source, barrier)
+    v = reg.verdict(transmitted_total, goal, review_reasons)
 
     # Express the required attenuation as an equivalent single-material thickness.
     # Equivalent thickness = thickness of that one material giving the SAME total
@@ -98,7 +113,7 @@ def evaluate(source: src.SourceTerm, barrier: ba.Barrier,
         barrier_description=barrier.describe(),
         areal_density_kg_m2=barrier.areal_density_kg_m2(),
         equivalents=equivalents,
-        notes=list(source.notes),
+        notes=list(source.notes) + review_reasons,
     )
     return ev
 
@@ -117,12 +132,12 @@ def required_thickness(source: src.SourceTerm, material: str,
     goal_over_T = goal.P_weekly / goal.occupancy_T if goal.occupancy_T > 0 else goal.P_weekly
 
     def transmitted_with(x_mm: float) -> float:
-        total = 0.0
-        for c in source.components:
-            B_existing = existing.transmission(c.beam) if existing else 1.0
-            B_new = bm.transmission_of_layer(c.beam, material, x_mm)
-            total += c.unshielded * B_existing * B_new
-        return total
+        # Built as one barrier rather than multiplying two factors, so that adding
+        # more of a material the barrier already ends with merges into that layer
+        # instead of being charged as a separate slab (see Barrier.merge_adjacent).
+        trial = ba.Barrier(list(existing.layers) if existing else [])
+        trial.add(material, x_mm)
+        return sum(c.unshielded * trial.transmission(c.beam) for c in source.components)
 
     if transmitted_with(0.0) <= goal_over_T:
         return 0.0  # already acceptable without this material
