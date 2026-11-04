@@ -40,6 +40,13 @@ py -3.11 -m streamlit run app.py
 
 Your browser opens at `http://localhost:8501`. (The physics engine itself uses only the Python standard library; Streamlit/pandas/matplotlib are only for the interface and plots.)
 
+For cloud deployments, install the complete `requirements.txt`, including the
+`starlette==1.3.1` compatibility pin for Streamlit 1.58. Newer Starlette internals
+break this Streamlit version's media responses and can prevent startup. After
+changing dependencies, rebuild the hosted environment. CI tests Python 3.11
+(Docker) and 3.14 (the current Streamlit Cloud runtime), including generated plan
+images and downloadable reports in `tests/test_hosted_media.py`.
+
 ## 3. Use it (the wizard)
 
 1. **Sidebar → Modality & Energy** — pick the facility/modality and its maximum energy (kVp / MV / radionuclide).

@@ -9,14 +9,16 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.14"]
     steps:
       - uses: actions/checkout@v4
 
-      # 3.11 matches the Dockerfile and the interpreter the surrogate_bundle.joblib
-      # pickle was built with (see requirements.txt).
+      # Cover the Docker runtime and the live Streamlit Cloud interpreter.
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: |
             requirements.txt

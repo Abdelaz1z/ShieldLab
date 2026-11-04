@@ -6,6 +6,10 @@
 
 streamlit==1.58.0
 
+# Streamlit 1.58's gzip responders are incompatible with newer Starlette internals.
+# Keep media previews and report downloads on the verified server combination.
+starlette==1.3.1
+
 pandas>=2.0
 
 matplotlib>=3.7
