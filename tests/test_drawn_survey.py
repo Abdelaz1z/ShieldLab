@@ -10,15 +10,19 @@ inner face does not).
 """
 import math
 import sys
+from dataclasses import replace
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shieldlab.room.drawn_plan import parse_plan
-from shieldlab.room.drawn_survey import (AROUND_A_CORNER, SEVERAL_BARRIERS, SurveySetup,
+from shieldlab.room.drawn_survey import (AROUND_A_CORNER, OPENING_BYPASS, SEVERAL_BARRIERS, SurveySetup,
                                          calculation_point, crossed_sides, survey)
 from shieldlab.room.engines import AnalyticalEngine, SurrogateEngine
 from shieldlab.room.model import Room, RoomDesign, Source
+from ui.draw_survey import _results_frame, _verdict
 
 CONCRETE_200 = (("concrete", 200.0),)
 
@@ -107,8 +111,13 @@ def test_several_barriers_are_flagged():
              "points": [{"x": 0, "y": 100}, {"x": 400, "y": 100}]}
     plan = parse_plan(_plan([(200, -25)], inner=inner))
     setup = _setup()
-    setup.walls["W2.1"] = (("gypsum", 100.0),)
-    assert survey(plan, setup)[0].caution == SEVERAL_BARRIERS
+    setup.walls = {key: (("concrete", 500.0),) for key in [*setup.walls, "W2.1"]}
+    result = survey(plan, setup)[0]
+    assert result.caution == SEVERAL_BARRIERS
+    assert result.passes is None
+    assert _results_frame([result]).iloc[0]["Result"] == "Unverified: several barriers"
+    setup.activity_MBq = 1e12
+    assert survey(plan, setup)[0].passes is False
     assert survey(parse_plan(_plan([(200, -25)])), _setup())[0].caution is None
 
 
@@ -124,7 +133,31 @@ def test_point_around_a_corner_of_the_same_room_needs_monte_carlo():
         "markers": [{"n": 1, "x": 200, "y": 500, "label": ""}]})
     keys = [s.key for s in plan.segments]
     setup = SurveySetup(isotope="F-18", walls={k: (("concrete", 250.0),) for k in keys})
-    assert survey(plan, setup)[0].caution == AROUND_A_CORNER
+    result = survey(plan, setup)[0]
+    assert result.caution == AROUND_A_CORNER
+    assert result.passes is None
+    assert _verdict(result) == "Needs Monte Carlo"
+
+
+def test_opening_stronger_than_surrounding_wall_withholds_compliance():
+    door = {"id": "o1", "type": "door", "pathId": "w_out", "seg": 0, "t": 0.5,
+            "width": 90, "vision": False}
+    plan = parse_plan(_plan([(200, -25)], openings=[door]))
+    setup = _setup(**{"W1.1": (("concrete", 1.0),)})
+    setup.openings["O1"] = (("lead", 50.0),)
+    result = survey(plan, setup)[0]
+    assert result.caution == OPENING_BYPASS
+    assert result.passes is None
+    assert _verdict(result) == "Review: surrounding wall bypass"
+
+
+@pytest.mark.parametrize(("changes", "expected"), [
+    ({"passes": False, "caution": AROUND_A_CORNER}, "Fails"),
+    ({"passes": True, "dose_upper_mSv_wk": 1.0}, "Review: upper limit exceeds goal"),
+])
+def test_reviewed_survey_verdict_preserves_failures_and_flags_upper_limit(changes, expected):
+    result = survey(parse_plan(_plan([(200, -25)])), _setup())[0]
+    assert _verdict(replace(result, **changes)) == expected
 
 
 def test_line_through_a_corner_counts_one_wall():

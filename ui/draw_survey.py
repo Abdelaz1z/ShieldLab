@@ -13,7 +13,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from shieldlab.room.drawn_plan import OPENING_NAMES, DrawnPlan, parse_plan
-from shieldlab.room.drawn_survey import (AROUND_A_CORNER, SEVERAL_BARRIERS, PointResult,
+from shieldlab.room.drawn_survey import (AROUND_A_CORNER, OPENING_BYPASS, SEVERAL_BARRIERS, PointResult,
                                          SurveySetup, barrier_transmission, survey)
 from shieldlab.room.engines import wall_layer_materials
 from shieldlab.room.model import ISOTOPES, OCCUPANCY_MENU
@@ -147,14 +147,19 @@ def _setup(source: dict, walls: pd.DataFrame, openings: pd.DataFrame,
 # ------------------------------------------------------------------------------ results
 
 def _verdict(result: PointResult) -> str:
-    if result.passes is None or result.caution == AROUND_A_CORNER:
-        return "Needs Monte Carlo"
-    if not result.passes:
+    if result.passes is False:
         return "Fails"
     if result.caution == SEVERAL_BARRIERS:
         return "Unverified: several barriers"
+    if result.caution == OPENING_BYPASS:
+        return "Review: surrounding wall bypass"
+    if result.passes is None or result.caution == AROUND_A_CORNER:
+        return "Needs Monte Carlo"
     if result.dose_upper_mSv_wk is not None and result.dose_upper_mSv_wk > result.goal_over_T:
-        return "Passes (upper limit fails)"
+        return "Review: upper limit exceeds goal"
+    if any(c.result and (c.result.geometry_bias or "deep tail" in c.result.engine.lower())
+           for c in result.crossings):
+        return "Review: model assurance"
     return "Passes"
 
 
@@ -246,12 +251,11 @@ def _render_results(plan: DrawnPlan, setup: SurveySetup) -> None:
                  column_config=SCIENTIFIC)
     st.caption(
         "Line-of-sight only: dose that scatters over or around a barrier (ceiling, floor, room "
-        "return) is not included. Checked against the app's Monte Carlo room tier in three drawn "
-        "rooms (Draw-1, four radionuclides): a line through one wall, door or window was within "
-        "2x at 44 of 45 points (typically 10% low). A line through several barriers can read "
+        "return) is not included. A line through several barriers can read "
         "far too low and is marked Unverified; a point around a corner of the source's own room "
         "is marked Needs Monte Carlo. Points drawn against a wall are calculated 0.3 m beyond it "
-        "on the side away from the source. A door with a glass panel is served as the weaker of "
+        "on the side away from the source. An opening more shielding than its surrounding wall "
+        "requires review for radiation bypassing the opening. A door with a glass panel is served as the weaker of "
         "the two.")
 
 

@@ -20,13 +20,10 @@ For each point:
 4. The transmissions of the crossed barriers are multiplied; the interval's edges are multiplied
    the same way and are not a calibrated interval for the product.
 
-The Draw-1 Monte Carlo check (research repository, hpc_campaign/draw1, 2026-10-11; the reference is
-the app's transport tier) found single-barrier lines within x2 at 44 of 45 points (median 0.90x).
-Lines through several barriers failed: two walls with a room between them read up to 15x low at
-low energy, because the second wall is reached from every direction once the first has scattered
-the beam, and a line that leaves the room and comes back in through the same wall (a point around a
-corner of the source's own room) read 2,000 to 1,000,000x low. Such results are flagged
-(`caution`), not corrected.
+Several barriers, re-entrant room outlines and openings more shielding than their surrounding
+walls require independent transport validation. The straight-line product omits scatter and
+alternative paths, so it has no guaranteed conservative bound. Such results are flagged
+(`caution`), not corrected; numerical failure is retained, otherwise compliance is undetermined.
 
 The dose is the unshielded weekly dose at the point's distance (`AnalyticalEngine`, inverse
 square, the source's workload) times that product, judged against the point's design goal P/T.
@@ -55,6 +52,7 @@ MAX_SLANT = 20.0            # a near-grazing line is held at 87 degrees
 SURROGATE = "surrogate"     # SurrogateEngine's name when model E served the barrier in its domain
 SEVERAL_BARRIERS = "several barriers"
 AROUND_A_CORNER = "around a corner"
+OPENING_BYPASS = "opening bypass"
 
 
 @dataclass
@@ -111,7 +109,7 @@ class PointResult:
     goal_over_T: float
     passes: Optional[bool]
     notes: List[str]
-    caution: Optional[str] = None           # SEVERAL_BARRIERS or AROUND_A_CORNER (Draw-1 failures)
+    caution: Optional[str] = None
 
 
 # ------------------------------------------------------------------------------- geometry
@@ -244,19 +242,41 @@ def _opening_layers(setup: SurveySetup, opening: PlanOpening, path: BarrierPath,
     return panel if b_panel.B_achieved > b_leaf.B_achieved else leaf
 
 
-def _stronger_than_its_wall(setup: SurveySetup, served: Optional[EngineResult], segment: Segment,
-                            path: BarrierPath, angle: float, area: AdjacentArea) -> bool:
-    """True when the opening on the line transmits less than the wall it is set in."""
-    if served is None or served.B_achieved is None:
-        return False
-    wall = serve_barrier(setup, path, setup.walls.get(segment.key, ()), angle, area)[0]
-    return wall is not None and wall.B_achieved is not None and wall.B_achieved > served.B_achieved
+def _opening_is_stronger(opening_result: Optional[EngineResult], wall_result: Optional[EngineResult]) -> bool:
+    wall_transmission = wall_result.B_achieved if wall_result is not None else 1.0
+    return (
+        opening_result is not None and opening_result.B_achieved is not None
+        and wall_transmission is not None and wall_transmission > opening_result.B_achieved
+    )
 
 
 def _product(values: List[Optional[float]]) -> Optional[float]:
     if any(v is None for v in values):
         return None
     return math.prod(values)
+
+
+def _geometry_caution(walls_crossed: List[str], barrier_count: int) -> Tuple[Optional[str], List[str]]:
+    if len(set(walls_crossed)) < len(walls_crossed):
+        return AROUND_A_CORNER, [
+            "The line leaves and re-enters the same drawn wall outline. A line-of-sight "
+            "survey omits radiation travelling around the corner. Needs Monte Carlo."
+        ]
+    if barrier_count > 1:
+        return SEVERAL_BARRIERS, [
+            "Several barriers: transmissions are multiplied along the line. Scatter between "
+            "barriers is omitted and the interval is not calibrated for the product. "
+            "Confirm with Monte Carlo before relying on it."
+        ]
+    return None, []
+
+
+def _survey_compliance(dose: Optional[float], goal_over_T: float, caution: Optional[str]) -> Optional[bool]:
+    if dose is None:
+        return None
+    if dose > goal_over_T:
+        return False
+    return None if caution else True
 
 
 def survey_point(plan: DrawnPlan, setup: SurveySetup, source: Point, point: SurveyPoint
@@ -266,6 +286,7 @@ def survey_point(plan: DrawnPlan, setup: SurveySetup, source: Point, point: Surv
     distance = max(math.dist(source, calc), 1e-3)
     area = setup.area(point.n)
     crossings, notes, walls_crossed = [], [], []
+    opening_bypass = False
     for segment, angle, opening in crossed_sides(plan, source, calc):
         label = opening.label if opening else segment.label
         path = BarrierPath(wall_id=opening.key if opening else segment.key, kind="wall",
@@ -276,10 +297,12 @@ def survey_point(plan: DrawnPlan, setup: SurveySetup, source: Point, point: Surv
         served, analytical, factor = serve_barrier(setup, path, layers, angle, area)
         crossings.append(Crossing(label, tuple(layers), angle, served, analytical, factor))
         walls_crossed.append(segment.wall_id)
-        if opening and _stronger_than_its_wall(setup, served, segment, path, angle, area):
-            notes.append(f"{opening.label} is stronger than the wall around it on this line; "
-                         "radiation through the wall beside it can dominate (Draw-1: 20x low for "
-                         "2 mm lead in a 120 mm brick wall at Tc-99m).")
+        if opening:
+            wall_result = serve_barrier(setup, path, setup.walls.get(segment.key, ()), angle, area)[0]
+            if _opening_is_stronger(served, wall_result):
+                opening_bypass = True
+                notes.append(f"{opening.label} transmits less than its surrounding wall. "
+                             "Radiation through that wall is omitted; independent transport review is required.")
 
     design = setup.design()
     engine = AnalyticalEngine(design)
@@ -304,19 +327,9 @@ def survey_point(plan: DrawnPlan, setup: SurveySetup, source: Point, point: Surv
         notes.append("No wall lies between the source and this point.")
     elif not served:
         notes.append("The line passes only through open gaps.")
-    caution = None
-    if len(set(walls_crossed)) < len(walls_crossed):
-        caution = AROUND_A_CORNER
-        notes.append("The line leaves the room and comes back in through the same wall: this point "
-                     "shares open space with the source around a corner, and radiation reaches it "
-                     "that way, which a line-of-sight survey cannot see (Draw-1: the true dose was "
-                     "2,000 to 1,000,000 times higher). Needs Monte Carlo.")
-    elif len(served) > 1:
-        caution = SEVERAL_BARRIERS
-        notes.append("Several barriers: their transmissions are multiplied along the line. In the "
-                     "Draw-1 Monte Carlo check this read up to 15x low for two walls with a room "
-                     "between them (Tc-99m, Lu-177), because the second wall is reached from every "
-                     "direction. Confirm with Monte Carlo before relying on it.")
+    geometry_caution, geometry_notes = _geometry_caution(walls_crossed, len(served))
+    caution = geometry_caution or (OPENING_BYPASS if opening_bypass else None)
+    notes.extend(geometry_notes)
     if B is None:
         notes.append("At least one barrier is outside every tier; a Monte Carlo run is needed.")
     notes += [f"{c.barrier}: {c.result.note}" for c in crossings
@@ -324,7 +337,8 @@ def survey_point(plan: DrawnPlan, setup: SurveySetup, source: Point, point: Surv
     return PointResult(point=point, calc_xy=calc, moved_beyond=moved.label if moved else None,
                        distance_m=distance, crossings=crossings, B=B, B_low=B_low, B_high=B_high,
                        B_analytical=B_analytical, dose_mSv_wk=dose, dose_upper_mSv_wk=upper,
-                       goal_over_T=goal_over_T, passes=None if dose is None else dose <= goal_over_T,
+                       goal_over_T=goal_over_T,
+                       passes=_survey_compliance(dose, goal_over_T, caution),
                        notes=notes, caution=caution)
 
 
